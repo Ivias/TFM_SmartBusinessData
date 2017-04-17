@@ -3,7 +3,7 @@ library(shinydashboard)
 library(shinyFiles)
 
 
-#Definimos los estilos que vamos a usar en el diseño de la aplicación
+#Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
 
 
@@ -32,19 +32,14 @@ dashboardPage(
                       fluidRow(
                         box(fileInput('datafile', 'Selecciona CSV',
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain'))
-                            #These column selectors are dynamically created when the file is loaded
-                            )
-                            #box(verbatimTextOutput("strcarga",placeholder = FALSE)),
-                      ),
+                            )),
+                      fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga"))),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
                                     box(title = "Datos Cargados", width = NULL, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
-                                   ))
-                        #tableOutput("filetable")
-                        #tableOutput("geotable")
-                      )
-             ),
-     
+                                   )))
+              ),
+                    
       tabItem(tabName = "consulta",
               verbatimTextOutput("controlDeCarga_Consulta"),
               conditionalPanel(condition="output.filedatacargado",
@@ -60,26 +55,11 @@ dashboardPage(
                             div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("val2")),
                             br(),
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                            #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("columna2")),
                             br(),
                             
                             #The action button prevents an action firing before we're ready
                             actionButton("SeleccionarVariables", "Seleccionar Variables",style=blueStyle)
                           ),
-                       #box(
-                         
-                         #br(),
-                         #uiOutput("fromCol"),
-                         #uiOutput("toCol"),
-                         #uiOutput("amountflag"),
-                         #The conditional panel is triggered by the preceding checkbox
-                         #conditionalPanel(
-                         # condition="input.amountflag==true",
-                         #  uiOutput("amountCol")
-                         #),
-                         #The action button prevents an action firing before we're ready
-                        # actionButton("Filtro", "Filtro")
-                       #),
                       box(title="Estructura del Dataset",verbatimTextOutput("TextoSTR",placeholder = TRUE)
                       ),
                       box(#titlePanel("Guardar archivo"),
@@ -90,7 +70,7 @@ dashboardPage(
             ),
       
       tabItem(tabName = "limpieza",
-              verbatimTextOutput("controlDeCarga_Limpieza"),
+              #verbatimTextOutput("mensajes_limpieza"),
               conditionalPanel(condition ="output.filedatacargado",
                 fluidRow(
                   box(title="Limpieza de Datos",width = 12,
@@ -100,15 +80,15 @@ dashboardPage(
                     actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4")
                     )
                   ),
+                fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
                 fluidRow(box(title="Resultados",width = 12, tableOutput("salidaNA"))),
-                fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("NAeliminados_Limpiar"))),
                 fluidRow(box(width = 12,
-                             shinySaveButton("guardarTransformaciones", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
+                             shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
                              )))
               ),
               
       tabItem(tabName = "edicion",
-              verbatimTextOutput("controlDeCarga_Edicion"),
+              verbatimTextOutput("mensajes_edicion"),
               conditionalPanel(condition="output.filedatacargado",
                fluidRow(
                 box(title="Operaciones",width = 12,
@@ -122,11 +102,12 @@ dashboardPage(
                                                                                                      "Multiplicación" = "mul",
                                                                                                      "División" = "div"))),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                  div(style="display: inline-block;vertical-align:top; width: 100px;",textInput("factorNumerico", "Factor Num.:")),
-                  div(style="display: inline-block;vertical-align:top; width: 10px;",HTML("<p>   / </p>")),
-                  div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("otroAtributo")),
                   
-                  #The action button prevents an action firing before we're ready
+                  div(style="display: inline-block;vertical-align:top; width: 100px;",selectInput("edicion_tipoDato", "Tipo de dato:",c("Factor","Atributo"),selected=1,width="150px")),
+                  
+                  div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Factor'",textInput("factorNumerico", "Valor",width="100px"))),
+                  div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Atributo'",div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("otroAtributo")))),
+
                   br(),
                   div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarAtributo", "Ejecutar",style=blueStyle))
                   

@@ -8,7 +8,13 @@ shinyServer(function(input, output, session) {
       return(NULL)
     }
     #Leemos el archivo
-    read.csv(infile$datapath)
+    file<-read.csv(infile$datapath)
+    
+    output$mensajes_carga <- renderText({
+      print("Se muestran los 100 primeros registros del archivo.")
+    })
+      
+    fileout<-file[1:100,]
   })
   
   #Guardamos una salida out para consulta cada vez que se llama a la función filedata()
@@ -16,19 +22,19 @@ shinyServer(function(input, output, session) {
     filedata()
   })
   
-  #devolvemos la condición de que el fichero se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
+  #Devolvemos la condición de que el fichero se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
   outputOptions(output, "filedatacargado", suspendWhenHidden = FALSE) 
   
   ####Mensajes de necesario cargar fichero en todas las secciones#####
   
   #Comprobamos si se ha cargado algún fichero en Edición
-  output$controlDeCarga_Edicion <- renderText({ 
+  output$mensajes_edicion <- renderText({ 
     df <-filedata()
     if (is.null(df)) return("Para EDITAR es necesario haber cargado un archivo previamente.")
     })
   
   #Comprobamos si se ha cargado algún fichero en Limpieza
-  output$controlDeCarga_Limpieza <- renderText({ 
+  output$mensajes_limpieza <- renderText({ 
     df <-filedata()
     if (is.null(df)) return("Para LIMPIAR es necesario haber cargado un archivo previamente.")
   })
@@ -43,18 +49,17 @@ shinyServer(function(input, output, session) {
   
   #------------------MENÚ DE CONSULTA DE DATOS--------------------------
   
-  #Renderiza los combos en funcion de los datos del archivo
+  #Renderizamos los combos en funcion de los datos del archivo
   output$var1 <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    #names(items)=items
     selectInput("Variable1", "Variable 1:",items)
     
   })
   
-  #The following set of functions populate the column selectors
+
   output$val1 <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -65,7 +70,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  #Renderiza los cobos en funcion de los datos del archivo
+
   output$var2 <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -76,7 +81,7 @@ shinyServer(function(input, output, session) {
     
   })
   
-  #The following set of functions populate the column selectors
+
   output$val2 <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -87,24 +92,6 @@ shinyServer(function(input, output, session) {
     
   })
   
-  #The checkbox selector is used to determine whether we want an optional column
-  #output$amountflag <- renderUI({
-  #  df <-filedata()
-  #  if (is.null(df)) return(NULL)
-  #  
-  #  checkboxInput("amountflag", "Use values?", FALSE)
-  #})
-  
-  #If we do want the optional column, this is where it gets created
-  #output$amountCol <- renderUI({
-  #  df <-filedata()
-  #  if (is.null(df)) return(NULL)
-  #  #Let's only show numeric columns
-  # nums <- sapply(df, is.numeric)
-  #  items=names(nums[nums])
-  #  names(items)=items
-  # selectInput("amount", "Amount:",items)
-  #})
   
   output$str <- renderPrint({
    df <-filedata()
@@ -113,36 +100,6 @@ shinyServer(function(input, output, session) {
     str(df)
   })
   
-  #funcionFiltro <-eventReactive(input$Filtro,{
-  # file=filedata()
-  # if (is.null(file)) return(NULL)
-    
-  # #The function acts reactively when one of the variables it uses is changed
-  #  #If we don't want to trigger when particular variables change, we need to isolate them 
-  #  #isolate({
-  #    #Get the CSV file data
-  #    #file=filedata()
-  #   #Which from/to columns did the user select?
-  #  var1=input$Variable1
-  #  val1=input$Valor1
-  #   var2=input$Variable2
-  #   val2=input$Valor2
-      # locations are duplicated in from/to columns, dedupe so we don't geocode same location more than once
-  #   if(val2==""){
-  #      file %>% filter_(paste(var1, "==", val1))
-  #   }else{
-  #     fileout<-file %>% filter_(paste(var1, "==", val1))
-  #     fileout %>% filter_(paste(var2, "==", val2))
-  #    }
-  # #filter(file,weather=="2")
-  # #})
-  # })
-  
-  #observeEvent(input$Filtro, {
-  #  output$filetablecolumnas <- renderTable({
-  #    funcionFiltro()
-  #  })
-  #})
   
   #Se visualiza el contenido delarchivo
   output$filetable <- renderTable({
@@ -150,26 +107,12 @@ shinyServer(function(input, output, session) {
   })
   
   
-  #This previews the CSV data file
-  #output$tablafiltro <- renderTable({
-    #filedata()
-  #})
-  
-  #output$strcarga <- renderPrint({
-  # df <-filedata()
-  # if (is.null(df)) return(NULL)
-    
-  # str(df)
-  #})
-
-  #MENU DE CONSULTA DE DATOS
   #Renderiza los combos en funcion de los datos del archivo
   output$variables <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    #names(items)=items
     checkboxGroupInput("variablesLista", "Variables del archivo:",items,selected=items,inline=TRUE,width="100%")
     
   })
@@ -185,15 +128,13 @@ shinyServer(function(input, output, session) {
     file=filedata()
     if (is.null(file)) return(NULL)
     
-    #fileColumnas<-select(file,names(file) %in% contains(input$variablesLista))
-    #fileColumnas<-select(df,datetime )
     file.subset <- file[, input$variablesLista]
     
     var1=input$Variable1
     val1=input$Valor1
     var2=input$Variable2
     val2=input$Valor2
-    # locations are duplicated in from/to columns, dedupe so we don't geocode same location more than once
+
    if(val1!="" && val2=="" ){
       fileout <- file.subset[file.subset[,var1]==val1,]
     }else if(val2!="" && val1!="" ){
@@ -231,6 +172,11 @@ shinyServer(function(input, output, session) {
   Funcion_valoresNA<-eventReactive(input$valoresNA,{
     df <-filedata()
     if (is.null(df)) return(NULL)
+    
+    output$mensajes_limpieza <- renderText({
+      print("Se ejecuta la operación")
+    })
+    
     if (eliminadosNA=="False") {
     fileout<-table(is.na(df)) 
     }else{
@@ -256,7 +202,7 @@ shinyServer(function(input, output, session) {
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$eliminarNA_Limpiar, {
     Funcion_eliminarValoresNA()
-    output$NAeliminados_Limpiar <- renderText({
+    output$mensajes_limpieza <- renderText({
       if (segundaeliminacion=="False"){
         segundaeliminacion<<-"True"
         print("Registros con valores NA eliminados")
@@ -271,8 +217,8 @@ shinyServer(function(input, output, session) {
   #Para guardar el nuevo archivo con la limpieza de vlores NA generado
   observe({
     volumes <- c("UserFolder"=getwd())
-    shinyFileSave(input, "guardarTransformaciones", roots=volumes, session=session)
-    fileinfo <- parseSavePath(volumes, input$guardarTransformaciones)
+    shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
+    fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
     data <- Funcion_eliminarValoresNA()
     if (nrow(fileinfo) > 0) {
       write.csv(data, as.character(fileinfo$datapath))
@@ -283,6 +229,7 @@ shinyServer(function(input, output, session) {
   Funcion_restauraValoresNA<-eventReactive(input$restaurar_Limpiar,{
     df <-filedata()
     if (is.null(df)) return(NULL)
+      segundaeliminacion<<-"False"
       fileout<-df
   })
   
@@ -290,7 +237,7 @@ shinyServer(function(input, output, session) {
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$restaurar_Limpiar, {
     Funcion_restauraValoresNA()
-    output$NAeliminados_Limpiar <- renderText({
+    output$mensajes_limpieza <- renderText({
       if (eliminadosNA=="False"){
         print("Aún no se ha realizado ninguna operación sobre el dataset")
       }else{
@@ -312,7 +259,6 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    #names(items)=items
     selectInput("atributosEdicion", "Atributo Origen:",items)
     
   })
@@ -322,7 +268,6 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    #names(items)=items
     selectInput("otroAtributo", "Otro Atributo:",items)
     
   })
