@@ -7,8 +7,8 @@ shinyServer(function(input, output, session) {
       #Aún no se ha introducido ningún archivo en el editable
       return(NULL)
     }
-    #Leemos el archivo
-    file<-read.csv(infile$datapath)
+    #Leemos el archivo y tratamos los '?' como NA
+    file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
     
     output$mensajes_carga <- renderText({
       print("Se muestran los 100 primeros registros del archivo.")
@@ -28,13 +28,13 @@ shinyServer(function(input, output, session) {
   ####Mensajes de necesario cargar fichero en todas las secciones#####
   
   #Comprobamos si se ha cargado algún fichero en Edición
-  output$mensajes_edicion <- renderText({ 
+  output$controlDeCarga_Edicion <- renderText({ 
     df <-filedata()
     if (is.null(df)) return("Para EDITAR es necesario haber cargado un archivo previamente.")
     })
   
   #Comprobamos si se ha cargado algún fichero en Limpieza
-  output$mensajes_limpieza <- renderText({ 
+  output$controlDeCarga_Limpieza <- renderText({ 
     df <-filedata()
     if (is.null(df)) return("Para LIMPIAR es necesario haber cargado un archivo previamente.")
   })
@@ -219,6 +219,7 @@ shinyServer(function(input, output, session) {
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
     fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
+    #Revisamos esta parte, ya que ejecuta si o si...
     data <- Funcion_eliminarValoresNA()
     if (nrow(fileinfo) > 0) {
       write.csv(data, as.character(fileinfo$datapath))
@@ -248,6 +249,44 @@ shinyServer(function(input, output, session) {
     })
     #Evento que reinicia los resultados de la tabla
     output$salidaNA <- renderTable({})
+  })
+  
+  
+  
+  output$atributosLimpieza <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("atributosLimpieza", "Atributo a analizar:",items)
+    
+  })
+  
+  #Función que restaura los valores NA eliminados previamente
+  Funcion_buscaValoresErroneos<-eventReactive(input$valoresErroneos_Limpiar,{
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    atributo<-input$atributosLimpieza
+    if(input$tipoDato_Limpieza=="string"){
+    subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]") 
+    }else{
+      subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
+    }
+    location <- str_detect(as.vector(df[,atributo]), subset) 
+    fileout<-df[location, ] 
+
+  })
+  
+  #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
+  observeEvent(input$valoresErroneos_Limpiar, {
+    #Evento que dibuja el resultado
+    output$salidaNA <- renderTable({Funcion_buscaValoresErroneos()})
+    output$mensajes_limpieza <- renderText({
+
+        print("Ejecutada búsqueda de valores anómalos")
+      
+    })
+   
   })
   
   #------------------FIN DE TRASFORMACIONES--------------------------

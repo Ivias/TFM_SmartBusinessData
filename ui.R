@@ -1,11 +1,11 @@
 library(dplyr)
 library(shinydashboard)
 library(shinyFiles)
+library(stringr)
 
 
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
-
 
 dashboardPage(
   dashboardHeader(title = "SMART DATA"),
@@ -20,12 +20,14 @@ dashboardPage(
               menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower")),
               menuSubItem("Edición", tabName = "edicion",icon = icon("edit"))
                ),
-
+     
+      menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("line-chart")),
+               
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
-               collapsible = TRUE,
-               menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira"))
-      )
-  )),
+           collapsible = TRUE,
+           menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
+      )),
+  
   dashboardBody(
     tabItems(
       tabItem(tabName = "carga",
@@ -33,14 +35,15 @@ dashboardPage(
                         box(fileInput('datafile', 'Selecciona CSV',
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain'))
                             )),
-                      fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga"))),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
                                     box(title = "Datos Cargados", width = NULL, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
-                                   )))
+                                   ))),
+                      fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
               ),
                     
       tabItem(tabName = "consulta",
+              tags$style(type='text/css', '#controlDeCarga_Consulta {background-color: rgba(0,0,255,0.10);font-weight: bold; color: black;font-size: 14px}'),             
               verbatimTextOutput("controlDeCarga_Consulta"),
               conditionalPanel(condition="output.filedatacargado",
               fluidRow(
@@ -70,28 +73,44 @@ dashboardPage(
             ),
       
       tabItem(tabName = "limpieza",
-              #verbatimTextOutput("mensajes_limpieza"),
+              tags$style(type='text/css', '#controlDeCarga_Limpieza {background-color: rgba(0,0,255,0.10); color: blue;}'),
+              verbatimTextOutput("controlDeCarga_Limpieza"),
               conditionalPanel(condition ="output.filedatacargado",
                 fluidRow(
-                  box(title="Limpieza de Datos",width = 12,
+                  box(title="Buscar Valores NA",width = 12,
                     actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                     div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
                     actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                     actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4")
                     )
                   ),
-                fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
+                
+                fluidRow(
+                  box(title="Buscar Valores Anómalos",width = 12,
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosLimpieza")),
+                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                    div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoDato_Limpieza", "Tipo de Dato:",
+                                                                                                     c("String" = "string",
+                                                                                                       "Número" = "numero"
+                                                                                                       ))),
+                    br(),
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresErroneos_Limpiar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+                    
+              )),
+                
                 fluidRow(box(title="Resultados",width = 12, tableOutput("salidaNA"))),
+                fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
                 fluidRow(box(width = 12,
                              shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
                              )))
               ),
               
       tabItem(tabName = "edicion",
-              verbatimTextOutput("mensajes_edicion"),
+              tags$style(type='text/css', '#controlDeCarga_Edicion {background-color: rgba(0,0,255,0.10); color: blue;}'),
+              verbatimTextOutput("controlDeCarga_Edicion"),
               conditionalPanel(condition="output.filedatacargado",
                fluidRow(
-                box(title="Operaciones",width = 12,
+                box(title="Añadir Atributos",width = 12,
                   div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosEdicion")),
