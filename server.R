@@ -45,6 +45,12 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return("Para CONSULTAR es necesario haber cargado un archivo previamente.")
   })
   
+  #Comprobamos si se ha cargado algún fichero en Consulta
+  output$controlDeCarga_Exploracion1 <- renderText({ 
+    df <-filedata()
+    if (is.null(df)) return("Para EXPLORAR es necesario haber cargado un archivo previamente.")
+  })
+  
   ###FIN de los mensajes en las secciones###
   
   #------------------MENÚ DE CONSULTA DE DATOS--------------------------
@@ -185,7 +191,7 @@ shinyServer(function(input, output, session) {
   })
   #Evento que ejecuta la función anterior
   observeEvent(input$valoresNA, {
-    output$salidaNA <- renderTable({
+    output$resultados_limpieza <- renderTable({
       Funcion_valoresNA()
     })
   })
@@ -196,7 +202,7 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return(NULL)
     #Cambia el valor de la varibale para saber que ya se ha ejecutado
     eliminadosNA<<-"True"
-    na.omit(df)
+    fileout<-na.omit(df)
   })
   
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
@@ -211,7 +217,7 @@ shinyServer(function(input, output, session) {
       }
     })
     #Evento que reinicia los resultados de la tabla
-    output$salidaNA <- renderTable({})
+    output$resultados_limpieza <- renderTable({})
   })
   
   #Para guardar el nuevo archivo con la limpieza de vlores NA generado
@@ -248,47 +254,93 @@ shinyServer(function(input, output, session) {
       }
     })
     #Evento que reinicia los resultados de la tabla
-    output$salidaNA <- renderTable({})
+    output$resultados_limpieza <- renderTable({})
   })
   
   
-  
+  #---Pasamos a la búsqueda de valores anómalos---------
+  buscadosvaloreserror<-"False"
+  borradosvaloreserror<<-"False"
+
   output$atributosLimpieza <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
-    
+
     items=names(df)
     selectInput("atributosLimpieza", "Atributo a analizar:",items)
-    
+
   })
-  
+
   #Función que restaura los valores NA eliminados previamente
   Funcion_buscaValoresErroneos<-eventReactive(input$valoresErroneos_Limpiar,{
     df <-filedata()
     if (is.null(df)) return(NULL)
     atributo<-input$atributosLimpieza
     if(input$tipoDato_Limpieza=="string"){
-    subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]") 
+    subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]")
     }else{
       subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
     }
-    location <- str_detect(as.vector(df[,atributo]), subset) 
-    fileout<-df[location, ] 
+    location <- str_detect(as.vector(df[,atributo]), subset)
+    buscadosvaloreserror<<-"True"
+    fileout<-df[location, ]
 
   })
-  
+
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$valoresErroneos_Limpiar, {
     #Evento que dibuja el resultado
-    output$salidaNA <- renderTable({Funcion_buscaValoresErroneos()})
+    output$resultados_limpieza <- renderTable({Funcion_buscaValoresErroneos()})
     output$mensajes_limpieza <- renderText({
 
         print("Ejecutada búsqueda de valores anómalos")
-      
+
     })
-   
+
   })
   
+  # 
+  # #Borramos los valores anómalos ya buscados
+  # Funcion_eliminaValoresErroneos<-eventReactive(input$eliminarValoresErroneos_Limpiar,{
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   atributo<-input$atributosLimpieza
+  #   if(input$tipoDato_Limpieza=="string"){
+  #     subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]") 
+  #   }else{
+  #     subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
+  #   }
+  #   location <- str_detect(as.vector(df[,atributo]), subset)
+  #   buscadosvaloreserror<<-"True"
+  #   file1<<-df[-location, ]
+  #   file2<-df[location, ] 
+  #   fileout<-list(file1,file2)
+  # 
+  # })
+  # 
+  # #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
+  # observeEvent(input$eliminarValoresErroneos_Limpiar, {
+  #   lista<-Funcion_eliminaValoresErroneos()
+  #   #Evento que dibuja el resultado
+  #   output$resultados_limpieza <- renderTable({lista[2]})
+  #   output$mensajes_limpieza <- renderText({
+  #     borradosvaloreserror<<-"True"
+  #     print("Se han borrado los valores mostrados.")
+  #   })
+  #   
+  # })
+  
+  
+  #Botón de guardado
+  observe({
+    volumes <- c("UserFolder"=getwd())
+    shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
+    fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
+    data <- Funcion_eliminarValoresNA()
+    if (nrow(fileinfo) > 0) {
+      write.csv(data, as.character(fileinfo$datapath))
+    }
+  })
   #------------------FIN DE TRASFORMACIONES--------------------------
   
   #------------------MENU DE EDICION DE DATOS--------------------------
@@ -352,4 +404,57 @@ shinyServer(function(input, output, session) {
     })
   })
   
+  #Factorización
+  output$atributosCambioDeTipos <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("_atributosCambioDeTipos", "Atributo:",items)
+    
+  })
+  
+####-------EXPLORACIONES---------#########
+  #Factorización
+  output$atributoUnaVariable <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("atributoUnaVariable", "Atributo:",items)
+    
+  })
+  
+  Funcion_OperacionesExploracion<-eventReactive(input$Exploraciones_ejecutar1,{
+    df=filedata()
+    if (is.null(file)) return(NULL)
+    #Definimos el tipo de operación
+    switch(input$tipoExploracion1, 
+           sumario={
+              fileout<-summary(df[,input$atributoUnaVariable])
+           },
+           media={
+             fileout<-mean(df[,input$atributoUnaVariable])
+           },
+           desviacion={
+             fileout<-sd(df[,input$atributoUnaVariable])   
+           },
+           varianza={
+             fileout<-var(df[,input$atributoUnaVariable])  
+           }
+    )
+    salida<-fileout
+  })
+  
+  #Evento que espera el botón de acción y llama a la función anterior
+  observeEvent(input$Exploraciones_ejecutar1, {
+    salida<-Funcion_OperacionesExploracion()
+    output$resultados_exploracion1 <- renderPrint({
+      salida
+    })
+    output$mensajes_exploracion1 <- renderText({
+      print("Se muestran los datos solicitados")
+    })
+  })
+    
 })

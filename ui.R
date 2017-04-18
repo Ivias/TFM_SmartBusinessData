@@ -21,7 +21,10 @@ dashboardPage(
               menuSubItem("Edición", tabName = "edicion",icon = icon("edit"))
                ),
      
-      menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("line-chart")),
+      menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("line-chart"),
+               collapsible = TRUE,
+               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("upload"))
+               ),
                
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -95,10 +98,11 @@ dashboardPage(
                                                                                                        ))),
                     br(),
                     div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresErroneos_Limpiar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+                    #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarValoresErroneos_Limpiar","Borrar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
                     
               )),
                 
-                fluidRow(box(title="Resultados",width = 12, tableOutput("salidaNA"))),
+                fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
                 fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
                 fluidRow(box(width = 12,
                              shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
@@ -132,11 +136,41 @@ dashboardPage(
                   
               )
       ),
+      fluidRow(
+        box(title="Factorizar",width = 12,
+            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
+            br(),
+            div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
+        )),
       fluidRow(box(title = "Datos resultantes", width = NULL, status = "primary",
                    div(style = 'overflow-x: scroll', tableOutput("filetabledicion"))))
       )
       ),
-      
+      tabItem(tabName = "unaVariable",
+              tags$style(type='text/css', '#controlDeCarga_Exploracion1 {background-color: rgba(0,0,255,0.10); color: blue;}'),
+              verbatimTextOutput("controlDeCarga_Exploracion1"),
+              conditionalPanel(condition ="output.filedatacargado",
+              
+              fluidRow(
+                box(title="Exploración de Una Variable",width = 12,
+                  div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariable")),
+                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                  div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracion1", "Tipo de Exploración:",
+                                                                                                 c("Sumario" = "sumario",
+                                                                                                   "Media" = "media",
+                                                                                                   "Desviación St." = "desviacion",
+                                                                                                   "Varianza" = "varianza"))),
+                  br(),
+                  div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("Exploraciones_ejecutar1", "Ejecutar",style=blueStyle))
+                
+                 )),
+              fluidRow(box(title="Resultados",width = 12,
+                           verbatimTextOutput("resultados_exploracion1",placeholder = TRUE))),
+              fluidRow(box(title="Mensajes",width = 12,
+                           verbatimTextOutput("mensajes_exploracion1")))
+    )),
+                
+      #MongoDB         
       tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
       )
