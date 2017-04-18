@@ -402,20 +402,51 @@ shinyServer(function(input, output, session) {
     output$filetabledicion <- renderTable({
       FuncionAddAtributo()
     })
+
   })
   
+  #--------Factorización--------#####
+  
+
+  
+  #Botón de guardado
+  observe({
+    volumes <- c("UserFolder"=getwd())
+    shinyFileSave(input, "guardar_edicion", roots=volumes, session=session)
+    fileinfo <- parseSavePath(volumes, input$guardar_edicion)
+    data <- Funcion_Factorizar()
+    if (nrow(fileinfo) > 0) {
+      write.csv(data, as.character(fileinfo$datapath),row.names=F)
+    }
+  })
+  
+####-------EXPLORACIONES---------#########
   #Factorización
   output$atributosCambioDeTipos <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    selectInput("_atributosCambioDeTipos", "Atributo:",items)
+    selectInput("atributosCambioDeTipos", "Atributo:",items)
     
   })
   
-####-------EXPLORACIONES---------#########
-  #Factorización
+  #Realizar la factorización
+  Funcion_Factorizar<-eventReactive(input$ejecutarFactorizacion,{
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
+    fileout_factorizado<<-df
+  })
+  
+  #Ejecutamos la función anterior por evento
+  observeEvent(input$ejecutarFactorizacion, {
+    output$edicion_print <- renderPrint({
+      str(Funcion_Factorizar())
+    })
+  })
+  
+  #Variables a explorar
   output$atributoUnaVariable <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -426,7 +457,7 @@ shinyServer(function(input, output, session) {
   })
   
   Funcion_OperacionesExploracion<-eventReactive(input$Exploraciones_ejecutar1,{
-    df=filedata()
+    df=fileout_factorizado
     if (is.null(file)) return(NULL)
     #Definimos el tipo de operación
     switch(input$tipoExploracion1, 
@@ -455,6 +486,11 @@ shinyServer(function(input, output, session) {
     output$mensajes_exploracion1 <- renderText({
       print("Se muestran los datos solicitados")
     })
+    output$explor1_grafica1 <- renderPlot({
+      boxplot(salida)
+    })
+   
+    
   })
     
 })

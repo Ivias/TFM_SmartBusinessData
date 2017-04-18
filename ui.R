@@ -21,9 +21,10 @@ dashboardPage(
               menuSubItem("Edición", tabName = "edicion",icon = icon("edit"))
                ),
      
-      menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("line-chart"),
+      menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
                collapsible = TRUE,
-               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("upload"))
+               menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
+               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("line-chart"))
                ),
                
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
@@ -133,19 +134,26 @@ dashboardPage(
 
                   br(),
                   div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarAtributo", "Ejecutar",style=blueStyle))
-                  
-              )
-      ),
-      fluidRow(
-        box(title="Factorizar",width = 12,
-            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
-            br(),
-            div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
-        )),
-      fluidRow(box(title = "Datos resultantes", width = NULL, status = "primary",
-                   div(style = 'overflow-x: scroll', tableOutput("filetabledicion"))))
-      )
-      ),
+              )),
+      fluidRow(box(title = "Tabla Resultante", width = NULL, status = "primary",
+                   div(style = 'overflow-x: scroll', tableOutput("filetabledicion")))),
+
+      fluidRow(box(width = 12,
+                   shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))))
+      )),
+      
+      tabItem(tabName="factorizar",
+              fluidRow(
+                box(title="Factorizar",width = 12,
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
+                    br(),
+                    div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
+                )),
+              
+              fluidRow(box(title = "Datos Resultantes", width = NULL, status = "primary",
+                           div(style = 'overflow-x: scroll', verbatimTextOutput("edicion_print"))))
+              ),
+      
       tabItem(tabName = "unaVariable",
               tags$style(type='text/css', '#controlDeCarga_Exploracion1 {background-color: rgba(0,0,255,0.10); color: blue;}'),
               verbatimTextOutput("controlDeCarga_Exploracion1"),
@@ -167,7 +175,13 @@ dashboardPage(
               fluidRow(box(title="Resultados",width = 12,
                            verbatimTextOutput("resultados_exploracion1",placeholder = TRUE))),
               fluidRow(box(title="Mensajes",width = 12,
-                           verbatimTextOutput("mensajes_exploracion1")))
+                           verbatimTextOutput("mensajes_exploracion1"))),
+              fluidRow(box(title="Graficas",width = 12,
+                           plotOutput("explor1_grafica1",click = "plot_click1"),
+                           plotOutput("explor1_grafica2",click = "plot_click2"))
+                       
+                       )
+              
     )),
                 
       #MongoDB         
