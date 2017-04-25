@@ -13,9 +13,9 @@ dashboardPage(
     #SideBar con las opciones de la aplicación
     sidebarMenu(
       id = "tabs",
-      menuItem("DATOS", tabName = "cargaDatos", icon = icon("sticky-note-o"),
+      menuItem("CARGA DE DATOS", tabName = "carga",icon = icon("upload")),
+      menuItem("OPERACIONES", tabName = "operaciones", icon = icon("sticky-note-o"),
               collapsible = TRUE,
-              menuSubItem("Carga", tabName = "carga",icon = icon("upload")),
               menuSubItem("Consultas", tabName = "consulta",icon = icon("book")),
               menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower")),
               menuSubItem("Edición", tabName = "edicion",icon = icon("edit"))
@@ -36,14 +36,14 @@ dashboardPage(
     tabItems(
       tabItem(tabName = "carga",
                       fluidRow(
-                        box(fileInput('datafile', 'Selecciona CSV',
-                                      accept=c('text/csv', 'text/comma-separated-values,text/plain'))
-                            )),
+                                box(fileInput('datafile', 'Selecciona CSV',
+                                      accept=c('text/csv', 'text/comma-separated-values,text/plain')),
+                                    verbatimTextOutput("mensajes_carga"))),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
                                     box(title = "Datos Cargados", width = NULL, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
-                                   ))),
-                      fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
+                                   )))
+                      #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
               ),
                     
       tabItem(tabName = "consulta",
@@ -85,7 +85,11 @@ dashboardPage(
                     actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                     div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
                     actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                    actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4")
+                    actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                    br(),
+                    br(),
+                    verbatimTextOutput("mensajes_limpiezaNA"),
+                    tableOutput("resultados_limpiezaNA")
                     )
                   ),
                 
@@ -97,14 +101,21 @@ dashboardPage(
                                                                                                      c("String" = "string",
                                                                                                        "Número" = "numero"
                                                                                                        ))),
+                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                    tags$style(type='text/css', "#valoresAnomalos_Buscar { width:100%; margin-top: 25px;}"),
+                    div(style="display: inline-block;vertical-align:top; width: 100px;",actionButton("valoresAnomalos_Buscar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+                    div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
+                    tags$style(type='text/css', "#valoresAnomalos_Limpiar { width:100%; margin-top: 25px;}"),
+                    div(style="display: inline-block;vertical-align:top; width: 120px;",actionButton("valoresAnomalos_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
                     br(),
-                    div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresErroneos_Limpiar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+                    verbatimTextOutput("mensajes_limpiezaAnomalos"),
+                    tableOutput("resultados_limpiezaAnomalos")
                     #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarValoresErroneos_Limpiar","Borrar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
                     
               )),
                 
-                fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
-                fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
+                #fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
+                #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
                 fluidRow(box(width = 12,
                              shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
                              )))
@@ -146,10 +157,12 @@ dashboardPage(
               fluidRow(
                 box(title="Factorizar",width = 12,
                     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("factores", "Factores (;)")),
                     br(),
                     div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
                 )),
-              
+              fluidRow(box(title="Mensajes",width = 12,
+                           verbatimTextOutput("mensajes_factorizar"))),
               fluidRow(box(title = "Datos Resultantes", width = NULL, status = "primary",
                            div(style = 'overflow-x: scroll', verbatimTextOutput("edicion_print"))))
               ),
@@ -160,7 +173,7 @@ dashboardPage(
               conditionalPanel(condition ="output.filedatacargado",
               
               fluidRow(
-                box(title="Exploración de Una Variable",width = 12,
+                box(title="Exploración Tabular de una Variable",width = 12,
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariable")),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracion1", "Tipo de Exploración:",
@@ -168,19 +181,42 @@ dashboardPage(
                                                                                                    "Media" = "media",
                                                                                                    "Desviación St." = "desviacion",
                                                                                                    "Varianza" = "varianza"))),
+                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                  #Añadimos el estilo al botón de Ejecutar
+                  tags$style(type='text/css', "#Exploraciones_ejecutar1 { width:100%; margin-top: 25px;}"),
+                  div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("Exploraciones_ejecutar1", "Ejecutar",style=blueStyle)),
                   br(),
-                  div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("Exploraciones_ejecutar1", "Ejecutar",style=blueStyle))
-                
+                 verbatimTextOutput("mensajes_exploracion1"),
+                 verbatimTextOutput("resultados_exploracion1",placeholder = TRUE)
                  )),
-              fluidRow(box(title="Resultados",width = 12,
-                           verbatimTextOutput("resultados_exploracion1",placeholder = TRUE))),
-              fluidRow(box(title="Mensajes",width = 12,
-                           verbatimTextOutput("mensajes_exploracion1"))),
-              fluidRow(box(title="Graficas",width = 12,
-                           plotOutput("explor1_grafica1",click = "plot_click1"),
-                           plotOutput("explor1_grafica2",click = "plot_click2"))
+
+              fluidRow(box(title="Exploración Gráfica de una Variable",width = 12,
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica")),
+                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                           div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica1", "Gráfica 1:",
+                                                                                                     c("Histograma" = "histograma",
+                                                                                                       "Diagrama de Caja" = "caja",
+                                                                                                       "Plot" = "plot"))),
+                           verbatimTextOutput("mensajes_exploracionGrafica"),
+                           
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica2")),
+                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                           div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica2", "Gráfica 2:",
+                                                                                                            c("Histograma" = "histograma",
+                                                                                                              "Diagrama de Caja" = "caja",
+                                                                                                              "Plot" = "plot"))),
+                           verbatimTextOutput("mensajes_exploracionGrafica2")
+                           #br(),
+                           #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("ExploracionesGraficas_ejecutar1", "Ejecutar",style=blueStyle))
+                )),
+                # fluidRow(box(title="Mensajes Gráficos",width = 12,
+                #              verbatimTextOutput("mensajes_exploracionGrafica"))),
+                fluidRow(box(title="Gráfica 1",width = 6,
+                           plotOutput("explor1_grafica1",click = "plot1_click")),
+                       box(title="Grafica 2",width = 6,
+                           plotOutput("explor1_grafica2",click = "plot2_click2"))
                        
-                       )
+              )
               
     )),
                 

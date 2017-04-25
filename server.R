@@ -14,7 +14,7 @@ shinyServer(function(input, output, session) {
       print("Se muestran los 100 primeros registros del archivo.")
     })
       
-    fileout<-file[1:100,]
+    fileout<-file
   })
   
   #Guardamos una salida out para consulta cada vez que se llama a la función filedata()
@@ -109,7 +109,8 @@ shinyServer(function(input, output, session) {
   
   #Se visualiza el contenido delarchivo
   output$filetable <- renderTable({
-    filedata()
+    file<-filedata()
+    fileReduced<-file[1:100,]
   })
   
   
@@ -168,7 +169,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  #------------------MENÚ DE TRASFORMACIONES DE DATOS--------------------------
+  #------------------MENÚ DE LIMPIEZA DE DATOS--------------------------
   
   #Inicializamos las varibales globales que indican segunda vuelta de las funciones
   eliminadosNA<-"False"
@@ -179,7 +180,7 @@ shinyServer(function(input, output, session) {
     df <-filedata()
     if (is.null(df)) return(NULL)
     
-    output$mensajes_limpieza <- renderText({
+    output$mensajes_limpiezaNA <- renderText({
       print("Se ejecuta la operación")
     })
     
@@ -191,7 +192,7 @@ shinyServer(function(input, output, session) {
   })
   #Evento que ejecuta la función anterior
   observeEvent(input$valoresNA, {
-    output$resultados_limpieza <- renderTable({
+    output$resultados_limpiezaNA <- renderTable({
       Funcion_valoresNA()
     })
   })
@@ -208,7 +209,7 @@ shinyServer(function(input, output, session) {
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$eliminarNA_Limpiar, {
     Funcion_eliminarValoresNA()
-    output$mensajes_limpieza <- renderText({
+    output$mensajes_limpiezaNA <- renderText({
       if (segundaeliminacion=="False"){
         segundaeliminacion<<-"True"
         print("Registros con valores NA eliminados")
@@ -217,20 +218,20 @@ shinyServer(function(input, output, session) {
       }
     })
     #Evento que reinicia los resultados de la tabla
-    output$resultados_limpieza <- renderTable({})
+    output$resultados_limpiezaNA <- renderTable({})
   })
   
   #Para guardar el nuevo archivo con la limpieza de vlores NA generado
-  observe({
-    volumes <- c("UserFolder"=getwd())
-    shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
-    fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
-    #Revisamos esta parte, ya que ejecuta si o si...
-    data <- Funcion_eliminarValoresNA()
-    if (nrow(fileinfo) > 0) {
-      write.csv(data, as.character(fileinfo$datapath))
-    }
-  })
+  # observe({
+  #   volumes <- c("UserFolder"=getwd())
+  #   shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
+  #   fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
+  #   #Revisamos esta parte, ya que ejecuta si o si...
+  #   data <- Funcion_eliminarValoresNA()
+  #   if (nrow(fileinfo) > 0) {
+  #     write.csv(data, as.character(fileinfo$datapath))
+  #   }
+  # })
   
   #Función que restaura los valores NA eliminados previamente
   Funcion_restauraValoresNA<-eventReactive(input$restaurar_Limpiar,{
@@ -244,7 +245,7 @@ shinyServer(function(input, output, session) {
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$restaurar_Limpiar, {
     Funcion_restauraValoresNA()
-    output$mensajes_limpieza <- renderText({
+    output$mensajes_limpiezaNA <- renderText({
       if (eliminadosNA=="False"){
         print("Aún no se ha realizado ninguna operación sobre el dataset")
       }else{
@@ -254,7 +255,7 @@ shinyServer(function(input, output, session) {
       }
     })
     #Evento que reinicia los resultados de la tabla
-    output$resultados_limpieza <- renderTable({})
+    output$resultados_limpiezaNA <- renderTable({})
   })
   
   
@@ -272,8 +273,13 @@ shinyServer(function(input, output, session) {
   })
 
   #Función que restaura los valores NA eliminados previamente
-  Funcion_buscaValoresErroneos<-eventReactive(input$valoresErroneos_Limpiar,{
-    df <-filedata()
+  Funcion_buscaValoresErroneos<-eventReactive(input$valoresAnomalos_Buscar,{
+    if (eliminadosNA=="True"){
+      df<-Funcion_eliminarValoresNA()
+    }else{
+      df <-filedata()
+    }
+    
     if (is.null(df)) return(NULL)
     atributo<-input$atributosLimpieza
     if(input$tipoDato_Limpieza=="string"){
@@ -288,20 +294,56 @@ shinyServer(function(input, output, session) {
   })
 
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
-  observeEvent(input$valoresErroneos_Limpiar, {
+  observeEvent(input$valoresAnomalos_Buscar, {
     #Evento que dibuja el resultado
-    output$resultados_limpieza <- renderTable({Funcion_buscaValoresErroneos()})
-    output$mensajes_limpieza <- renderText({
+    output$resultados_limpiezaAnomalos <- renderTable({Funcion_buscaValoresErroneos()})
+    output$mensajes_limpiezaAnomalos <- renderText({
 
         print("Ejecutada búsqueda de valores anómalos")
 
     })
 
   })
+  #Control de eliminaciones de registros anómalos
+  eliminadosValoresAnomalos<-"False"
+  segundaeliminacionAnomala<-"False"
+  
+  #Función que elimina los valores Anómalos
+  Funcion_eliminarValoresAnomalos<-eventReactive(input$valoresAnomalos_Limpiar,{
+    #Comprobamos si se han eliminado los valores NA
+    if (eliminadosNA=="True"){
+      df<-Funcion_eliminarValoresNA()
+    }else {
+      df <-filedata()
+    }
+    if (is.null(df)) return(NULL)
+    atributo<-input$atributosLimpieza
+    if(input$tipoDato_Limpieza=="string"){
+      subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]")
+    }else{
+      subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
+    }
+    location <- str_detect(as.vector(df[,atributo]), subset)
+    eliminadosValoresAnomalos<<-"True"
+    fileout<-subset(df,location=="FALSE")
+    
+  })
+  
+  #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
+  observeEvent(input$valoresAnomalos_Limpiar, {
+    Funcion_eliminarValoresAnomalos()
+    output$mensajes_limpiezaAnomalos <- renderText({
+      
+        print("Registros eliminados. Para actualizar el dataset debe guardar los cambios.")
+      
+    })
+    #Evento que reinicia los resultados de la tabla
+    output$resultados_limpiezaAnomalos <- renderTable({})
+  })
   
   # 
   # #Borramos los valores anómalos ya buscados
-  # Funcion_eliminaValoresErroneos<-eventReactive(input$eliminarValoresErroneos_Limpiar,{
+  # Funcion_eliminaValoresErroneos<-eventReactive(input$eliminarvaloresAnomalos_Buscar,{
   #   df <-filedata()
   #   if (is.null(df)) return(NULL)
   #   atributo<-input$atributosLimpieza
@@ -319,7 +361,7 @@ shinyServer(function(input, output, session) {
   # })
   # 
   # #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
-  # observeEvent(input$eliminarValoresErroneos_Limpiar, {
+  # observeEvent(input$eliminarvaloresAnomalos_Buscar, {
   #   lista<-Funcion_eliminaValoresErroneos()
   #   #Evento que dibuja el resultado
   #   output$resultados_limpieza <- renderTable({lista[2]})
@@ -336,7 +378,13 @@ shinyServer(function(input, output, session) {
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
     fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
-    data <- Funcion_eliminarValoresNA()
+    if (eliminadosValoresAnomalos=="True"){
+        data<-Funcion_eliminarValoresAnomalos()
+    }else if(eliminadosNA=="True"){
+        data<-Funcion_eliminarValoresNA()
+    }else{
+      data<-filedata()
+    }
     if (nrow(fileinfo) > 0) {
       write.csv(data, as.character(fileinfo$datapath))
     }
@@ -405,9 +453,6 @@ shinyServer(function(input, output, session) {
 
   })
   
-  #--------Factorización--------#####
-  
-
   
   #Botón de guardado
   observe({
@@ -421,6 +466,10 @@ shinyServer(function(input, output, session) {
   })
   
 ####-------EXPLORACIONES---------#########
+  
+  #Variables y datos iniciales
+  factorizadoSiNo<-"False"
+
   #Factorización
   output$atributosCambioDeTipos <- renderUI({
     df <-filedata()
@@ -433,9 +482,19 @@ shinyServer(function(input, output, session) {
   
   #Realizar la factorización
   Funcion_Factorizar<-eventReactive(input$ejecutarFactorizacion,{
+    #Comprobamos si es la primera factorización o no.
+    if (factorizadoSiNo=="False"){
     df <-filedata()
+    }else{
+      df<-fileout_factorizado
+    }
     if (is.null(df)) return(NULL)
-    df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
+    factoresArray<-input$factores 
+    arrayList<-strsplit(factoresArray,";")[[1]]
+    df[,input$atributosCambioDeTipos]<-factor(df[,input$atributosCambioDeTipos], ordered=TRUE, levels=arrayList)
+    #df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
+    
+    factorizadoSiNo<<-"True"
     fileout_factorizado<<-df
   })
   
@@ -444,6 +503,11 @@ shinyServer(function(input, output, session) {
     output$edicion_print <- renderPrint({
       str(Funcion_Factorizar())
     })
+    
+    output$mensajes_factorizar <- renderPrint({
+      print(paste("Se ha factorizado el atributo",isolate(input$atributosCambioDeTipos)))
+    })
+      
   })
   
   #Variables a explorar
@@ -456,9 +520,14 @@ shinyServer(function(input, output, session) {
     
   })
   
-  Funcion_OperacionesExploracion<-eventReactive(input$Exploraciones_ejecutar1,{
-    df=fileout_factorizado
-    if (is.null(file)) return(NULL)
+  Funcion_ExploracionTabular<-eventReactive(input$Exploraciones_ejecutar1,{
+    #Seleccionamos el archivo según se ha factorizado o no.
+    if (factorizadoSiNo=="True"){
+    df<-fileout_factorizado
+    }else{
+      df<-filedata()
+    }
+    if (is.null(df)) return(NULL)
     #Definimos el tipo de operación
     switch(input$tipoExploracion1, 
            sumario={
@@ -474,23 +543,152 @@ shinyServer(function(input, output, session) {
              fileout<-var(df[,input$atributoUnaVariable])  
            }
     )
-    salida<-fileout
+    salidaExploraciones1<-fileout
   })
   
   #Evento que espera el botón de acción y llama a la función anterior
   observeEvent(input$Exploraciones_ejecutar1, {
-    salida<-Funcion_OperacionesExploracion()
+    Valores<-Funcion_ExploracionTabular()
     output$resultados_exploracion1 <- renderPrint({
-      salida
+      Valores
     })
     output$mensajes_exploracion1 <- renderText({
-      print("Se muestran los datos solicitados")
+      print(paste("Se muestra: ",isolate(input$tipoExploracion1)," del atributo ",isolate(input$atributoUnaVariable)))
     })
-    output$explor1_grafica1 <- renderPlot({
-      boxplot(salida)
-    })
-   
+
+  })
+
+
+  
+  #--Exploraciones Gráficas---------
+  output$atributoUnaVariableGrafica <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("atributoUnaVariableGrafica", "Atributo:",items)
     
   })
+  
+
+  
+  #Evento que muestra las gráficas sin esperar un ActionButton
+  observe({
     
+    output$explor1_grafica1 <- renderPlot({
+      #Comprobamos si se ha factorizado antes o no
+      if (factorizadoSiNo=="True"){
+        df<-fileout_factorizado
+      }else{
+        df<-filedata()
+      }
+      #Diferenciamos los casos según corresponda
+      #Sólo en caso de que el atributo no sea nominal
+      if(class(df[,input$atributoUnaVariableGrafica])!="character"){
+      switch(input$tipoExploracionGrafica1, 
+             histograma={
+               if (class(df[,input$atributoUnaVariableGrafica])=="numeric"){
+                      hist(df[,input$atributoUnaVariableGrafica],main = "Histograma", xlab=input$atributoUnaVariableGrafica)
+                 #Mensaje positivo
+                      output$mensajes_exploracionGrafica <- renderText(
+                      print(paste("Gráfica 1: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica))
+                      )
+                 
+                 }else{
+                   #Mensaje de error
+                   output$mensajes_exploracionGrafica <- renderText(
+                     print(paste("El atributo: ",input$atributoUnaVariableGrafica," no es numérico o necesita ser factorizado."))
+                   )
+                  }
+             },
+             caja={
+                     boxplot(df[,input$atributoUnaVariableGrafica],main = "Diagrama de Caja", xlab=input$atributoUnaVariableGrafica)
+                #Mensaje positivo 
+                     output$mensajes_exploracionGrafica <- renderText(
+                      print(paste("Gráfica 1: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica))
+               )
+               },
+             plot={
+                     plot(df[,input$atributoUnaVariableGrafica],main = "Plot", xlab=input$atributoUnaVariableGrafica, ylab="Valores")   
+               #Mensaje positivo
+                      output$mensajes_exploracionGrafica <- renderText(
+                      print(paste("Gráfica 1: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica))
+               )
+               }
+          )
+      }else{
+        #Mensaje de error
+        output$mensajes_exploracionGrafica <- renderText(
+          print(paste("El atributo: ",input$atributoUnaVariableGrafica," no es numérico o necesita ser factorizado."))
+        )
+      }
+      
+    })
+    
+  })
+  
+  #Segunda ventana gráfica
+  output$atributoUnaVariableGrafica2 <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("atributoUnaVariableGrafica2", "Atributo:",items)
+    
+  })
+  
+  #Evento que muestra la gráfica 2 sin esperar un ActionButton
+  observe({
+    
+    output$explor1_grafica2 <- renderPlot({
+      #Comprobamos si se ha factorizado antes o no
+      if (factorizadoSiNo=="True"){
+        df<-fileout_factorizado
+      }else{
+        df<-filedata()
+      }
+      #Diferenciamos los casos según corresponda
+      #Sólo en caso de que el atributo no sea nominal
+      if(class(df[,input$atributoUnaVariableGrafica2])!="character"){
+        switch(input$tipoExploracionGrafica2, 
+               histograma={
+                 if (class(df[,input$atributoUnaVariableGrafica2])=="numeric"){
+                   hist(df[,input$atributoUnaVariableGrafica2],main = "Histograma", xlab=input$atributoUnaVariableGrafica2)
+                   #Mensaje positivo
+                   output$mensajes_exploracionGrafica2 <- renderText(
+                     print(paste("Gráfica 2: ",input$tipoExploracionGrafica2," del atributo ",input$atributoUnaVariableGrafica2))
+                   )
+                   
+                 }else{
+                   #Mensaje de error
+                   output$mensajes_exploracionGrafica2 <- renderText(
+                     print(paste("El atributo: ",input$atributoUnaVariableGrafica2," no es numérico o necesita ser factorizado."))
+                   )
+                 }
+               },
+               caja={
+                 boxplot(df[,input$atributoUnaVariableGrafica2],main = "Diagrama de Caja", xlab=input$atributoUnaVariableGrafica2)
+                 #Mensaje positivo 
+                 output$mensajes_exploracionGrafic2a <- renderText(
+                   print(paste("Gráfica 2: ",input$tipoExploracionGrafica2," del atributo ",input$atributoUnaVariableGrafica2))
+                 )
+               },
+               plot={
+                 plot(df[,input$atributoUnaVariableGrafica2],main = "Plot", xlab=input$atributoUnaVariableGrafica2, ylab="Valores")   
+                 #Mensaje positivo
+                 output$mensajes_exploracionGrafica2 <- renderText(
+                   print(paste("Gráfica 2: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica2))
+                 )
+               }
+        )
+      }else{
+        #Mensaje de error
+        output$mensajes_exploracionGrafica2 <- renderText(
+          print(paste("El atributo: ",input$atributoUnaVariableGrafica2," no es numérico o necesita ser factorizado."))
+        )
+      }
+      
+    })
+    
+  })
 })
