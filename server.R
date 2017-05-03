@@ -691,4 +691,119 @@ shinyServer(function(input, output, session) {
     })
     
   })
+  
+  #-------EXPLORACIÓN DE DOS VARIABLES---------------
+  
+  
+  #Mostramos el sumario general del dataset
+  output$dosvariables_sumarioGeneral <- renderPrint({
+      file<-filedata()
+      summary(file)
+   })
+
+  
+  #Renderizamos los atributos en 'dosvariables_Ui_atributos'
+    output$dosvariables_Ui_atributos <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("dosvariables_Ui_atributos", "Atributo:",items)
+    
+  })
+  
+  Funcion_FactorizarConDosVariables<-eventReactive(input$dosvariables_Action_factorizar,{
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    atributo<-input$dosvariables_Ui_atributos
+    if (class(df[,atributo])=="numeric" || class(df[,atributo])=="integer"){
+      df[,paste(atributo,"_factor_",input$dosvariables_TextInput_intervalos,sep="")]<-cut(df[,atributo],as.numeric(input$dosvariables_TextInput_intervalos))
+      atributoNumerico<<-"True"
+      fileout_fact_dosVar<<-df
+    
+    }else{
+      atributoNumerico<<-"False"
+    }
+  })
+  
+  #Ejecutamos la función anterior por evento
+  observeEvent(input$dosvariables_Action_factorizar, {
+    
+    fileout<-Funcion_FactorizarConDosVariables()
+    
+    if (atributoNumerico=="True"){
+      #Mostramos el mensaje
+      output$dosvariables_mensajes_factorizar <- renderPrint({
+        #Mensaje de ejecución
+        print(paste("Se ha factorizado el atributo",isolate(input$dosvariables_Ui_atributos)," en ",input$dosvariables_TextInput_intervalos," intervalos"))
+        
+      })
+      
+      #Mostramos los nuevos intervalos
+        output$dosvariables_mensajes_print <- renderPrint({
+          atributo<-isolate(input$dosvariables_Ui_atributos)
+          summary(fileout[,paste(atributo,"_factor_",isolate(input$dosvariables_TextInput_intervalos),sep="")])
+        })
+      
+      
+      #Actualizamos el sumario general
+      output$dosvariables_sumarioGeneral <- renderPrint({
+        summary(fileout)
+      })
+      
+    }else{
+        #Mostramos el mensaje de que el atributo no es numérico
+        output$dosvariables_mensajes_factorizar <- renderPrint({
+          #Mensaje de ejecución
+          print(paste("El atributo ",isolate(input$dosvariables_Ui_atributos)," no es numérico",sep=""))
+          
+        })
+        #Reiniciamos la salida 
+        output$dosvariables_mensajes_print <- renderPrint({ })
+    }
+  })
+  
+  #--Relacion tabular entre dos variables--
+  
+  #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
+  output$dosvariables_Ui_rela_at1 <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("dosvariables_Ui_rela_at1", "Atributo 1:",items)
+  })
+  
+  
+  #Renderizamos los atributos en 'dosvariables_Ui_rela_at2'
+  output$dosvariables_Ui_rela_at2 <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("dosvariables_Ui_rela_at2", "Atributo 2:",items)
+    
+  })
+  
+  #Evento que cambia los valores de los combos dosvariables_Ui_rela_at1 y dosvariables_Ui_rela_at2, si se ha factorizado algún atributo
+  observeEvent(input$dosvariables_Action_factorizar,{
+               
+    #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
+      output$dosvariables_Ui_rela_at1 <- renderUI({
+      df <-Funcion_FactorizarConDosVariables()
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_rela_at1", "Atributo 1:",items)
+    })
+  
+    
+    #Renderizamos los atributos en 'dosvariables_Ui_rela_at2'
+    output$dosvariables_Ui_rela_at2 <- renderUI({
+      df <-Funcion_FactorizarConDosVariables()
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_rela_at2", "Atributo 2:",items)
+      
+    })
+    
+  })
+  
 })

@@ -7,6 +7,9 @@ library(stringr)
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
 
+#tags$style(type='text/css', "#dosvariables_Action_relacionTab { width:100%; margin-top: 25px;}"),
+#tags$dashboardBody(tags$style(HTML(.sidebar {height: 90vh; overflow-y: auto;})))
+  
 dashboardPage(
   dashboardHeader(title = "SMART DATA"),
   dashboardSidebar(
@@ -24,7 +27,8 @@ dashboardPage(
       menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
                collapsible = TRUE,
                menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
-               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("line-chart"))
+               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("line-chart")),
+               menuSubItem("Dos Variables", tabName = "dosVariables",icon = icon("map-signs"))
                ),
                
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
@@ -32,7 +36,7 @@ dashboardPage(
            menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
       )),
   
-  dashboardBody(
+  dashboardBody(style = 'overflow-y: scroll', #De esta manera añadimos un scroll vertical al Body
     tabItems(
       tabItem(tabName = "carga",
                       fluidRow(
@@ -219,11 +223,40 @@ dashboardPage(
               )
               
     )),
-                
+      
+    tabItem(tabName = "dosVariables",
+            fluidRow(box(title="Sumario del Dataset",width = 12,
+                         verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
+                         
+            fluidRow(box(title="Factorizar una varibale",width = 12,
+                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
+                          div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos")),
+                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                          tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
+                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Ejecutar",style=blueStyle)),
+                          br(), 
+                          br(),
+                          verbatimTextOutput("dosvariables_mensajes_factorizar"),
+                          verbatimTextOutput("dosvariables_mensajes_print")
+                          )),
+            fluidRow(box(title="Relación tabular entre dos variables",width = 12,
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#dosvariables_Action_relacionTab { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_relacionTab", "Ejecutar",style=blueStyle)),
+                         br(), 
+                         br(),
+                         verbatimTextOutput("dosvariables_Print_relacionTab"),
+                         br(),
+                         br()))
+                         
+                     ),
+    
       #MongoDB         
       tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
       )
-    )
+    ) #el del DIV del dashboard
   )
 )
