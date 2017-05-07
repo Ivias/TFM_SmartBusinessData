@@ -1205,7 +1205,150 @@ shinyServer(function(input, output, session) {
       }
   })
   
+#---ANÁLISIS MULTIVARIABLE--------
+  
+  #--Análisis gráfico-----
+  
+  # #Inicializamos los combos
+  # output$multivariable_Ui_gra_at1 <- renderUI({
+  #   df<-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   items=names(df)
+  #   selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
+  #   
+  # })
+  # 
+  # 
+  # #En caso de evento de factorización
+  # observeEvent(input$dosvariables_Action_factorizar,{
+  #   
+  #   output$multivariable_Ui_gra_at1 <- renderUI({
+  #     df<-fileout_fact_dosVar
+  #     if (is.null(df)) return(NULL)
+  #     items=names(df)
+  #     selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
+  #     
+  #   })
+  #   
+  # })
+  # 
+  # #RESET de la factorización
+  # observeEvent(input$dosvariables_Action_factoReset,{
+  #   
+  #   output$multivariable_Ui_gra_at1 <- renderUI({
+  #     df<-filedata()
+  #     if (is.null(df)) return(NULL)
+  #     items=names(df)
+  #     selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
+  #     
+  #   })
+  #   
+  # })
+  # 
+  #--Código que muestra las relaciones gráficas si se pulsa el botónn action
+  observeEvent(input$multivar_Action_gra,{
+    if (ficheroFactorizado=="False"){
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      
+    }else{
+      df<-fileout_fact_dosVar
+    }
+    
+    colcharacter<-"False"
+    
+    #Dibujamos los gráfico 
+    output$multivar_graf_plot <- renderPlot({
+      #Mostramos la relación de todas la variables numéricas
+      #Buscamos las variables no-numéricas
+      for (i in ncol(df)){
+        if (class(df[,i])=="character"){
+          colcharacter<<-"True"
+          df[,i]<-NULL
+        }
+      }
+      pairs(df)
+      
+    })
+    
+    output$multivar_msj_graf <- renderPrint({
+      if (colcharacter=="False"){
+        print("Gráficas de exploración multivariable de todos los atributos")
+      }else{
+        print("Se muestran únicamente las variables de caracter numérico o factor")
+      }
+    })
+    
+  })
+    
+  #------Correlación multivariable
+  
+  #--Código que muestra las relaciones gráficas si se pulsa el botónn action
+  observeEvent(input$multivar_Action_correlacion,{
+    if (ficheroFactorizado=="False"){
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      
+    }else{
+      df<-fileout_fact_dosVar
+    }
+    
+    colcharactermulti<-"False"
+    
+    #Mostramos los resultados
+    output$multivar_print_correlacion <- renderPrint({
+      #Mostramos la relación de todas la variables numéricas
+      #Buscamos las variables no-numéricas
+      for (i in ncol(df)){
+        if (class(df[,i])=="character"){
+          colcharactermulti<<-"True"
+          df[,i]<-NULL
+        }
+      }
+      corr.test(df)
+      
+    })
+    
+    output$multivar_msj_correlacion <- renderPrint({
+      if (colcharactermulti=="False"){
+        print("Se muestran los valores de correlación y p-values de todos los atributos")
+      }else{
+        print("Se muestran únicamente los valores de correlación y p-values de las variables de caracter numérico o factor")
+      }
+    })
+    
+  })
+  
+  #Dibujamos las gráficas
+  observeEvent(input$multivar_Action_correlacion,{
+    if (ficheroFactorizado=="False"){
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      
+    }else{
+      df<-fileout_fact_dosVar
+    }
+    
+  colcharactermulti<-"False"
+  
+  output$multivar_graf_correla <- renderPlot({
+    #Mostramos la relación de todas la variables numéricas
+    #Buscamos las variables no-numéricas
+    for (i in ncol(df)){
+      if (class(df[,i])=="character"){
+        colcharactermulti<<-"True"
+        df[,i]<-NULL
+      }
+    }
+   corrgram(df,order=FALSE,
+            main="Correlograma del dataset",
+            lower.panel=panel.conf, upper.panel=panel.ellipse,
+            diag.panel=panel.minmax, text.panel=panel.txt)
+    
+  })
   
   
   
+})
+    
 })

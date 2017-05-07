@@ -2,6 +2,8 @@ library(dplyr)
 library(shinydashboard)
 library(shinyFiles)
 library(stringr)
+library(psych)
+library(corrgram)
 
 
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
@@ -31,8 +33,11 @@ dashboardPage(
                menuItem("Dos Variables", tabName = "dosVariables",icon = icon("map-signs"),collapsible = TRUE,
                            menuSubItem("Exp. Gráfica", tabName = "expGrafica",icon = icon("map-signs")),
                            menuSubItem("Correlaciones", tabName = "correlacionesdosvar",icon = icon("handshake-o"))
-                        )
-               ),
+                        ),
+               menuItem("Multivariable", tabName = "multivariable",icon = icon("star-o"),collapsible = TRUE,
+                          menuSubItem("Exp. Gráfica", tabName = "multi_expGrafica",icon = icon("map-signs")),
+                          menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
+               )),
                
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -305,9 +310,35 @@ dashboardPage(
             )),
               
            
-                         
+    tabItem(tabName = "multi_expGrafica",
+            fluidRow(box(tags$p("ANÁLISIS GRÁFICO MULTIVARIABLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("multivariable_Ui_gra_at1")),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         #tags$style(type='text/css', "#multivar_Action_gra { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("multivar_Action_gra", "Relaciones Gráficas",style=blueStyle)),
+                         br(), 
+                         br(),
+                         verbatimTextOutput("multivar_msj_graf"),
+                         plotOutput("multivar_graf_plot",click = "multivar_graf_plot_click"))
                      
-            
+            )),          
+                     
+    tabItem(tabName = "multi_cor",
+            fluidRow(box(tags$p("CORRELACIÓN MULTIVARIABLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at1")),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at2")),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         #tags$style(type='text/css', "#multivar_Action_correlacion { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("multivar_Action_correlacion", "Test de Correlación",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("multivar_msj_correlacion"),
+                         verbatimTextOutput("multivar_print_correlacion"),
+                         plotOutput("multivar_graf_correla",width = "100%", height = "800px",click = "plot1_correlamultivar_click"))
+
+            )),
     
       
     #MongoDB         
