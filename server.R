@@ -1,3 +1,4 @@
+
 shinyServer(function(input, output, session) {
 
 #Cargamos el archivo CSV
@@ -453,62 +454,174 @@ shinyServer(function(input, output, session) {
 
   })
   
-  
   #Botón de guardado
   observe({
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardar_edicion", roots=volumes, session=session)
     fileinfo <- parseSavePath(volumes, input$guardar_edicion)
-    data <- Funcion_Factorizar()
+    data <- FuncionAddAtributo
     if (nrow(fileinfo) > 0) {
       write.csv(data, as.character(fileinfo$datapath),row.names=F)
     }
   })
+
   
 ####-------EXPLORACIONES---------#########
   
-  #Variables y datos iniciales
-  factorizadoSiNo<-"False"
-
-  #Factorización
-  output$atributosCambioDeTipos <- renderUI({
+  ####-------Factorización---------#########
+  
+  ficheroFactorizado<-"False"
+  
+  #Mostramos el sumario general del dataset
+  output$dosvariables_sumarioGeneral <- renderPrint({
+    file<-filedata()
+    summary(file)
+  })
+  
+  
+  #Renderizamos los atributos en 'dosvariables_Ui_atributos'
+  output$dosvariables_Ui_atributos <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    selectInput("atributosCambioDeTipos", "Atributo:",items)
+    selectInput("dosvariables_Ui_atributos", "Atributo:",items)
     
   })
   
-  #Realizar la factorización
-  Funcion_Factorizar<-eventReactive(input$ejecutarFactorizacion,{
-    #Comprobamos si es la primera factorización o no.
-    if (factorizadoSiNo=="False"){
-    df <-filedata()
+  #Función que factoriza un atributo en un número de intervalos
+  Funcion_FactorizarConDosVariables<-eventReactive(input$dosvariables_Action_factorizar,{
+    if (ficheroFactorizado=="True"){
+      df<-fileout_fact_dosVar
     }else{
-      df<-fileout_factorizado
+      df <-filedata()
+      if (is.null(df)) return(NULL)
     }
-    if (is.null(df)) return(NULL)
-    factoresArray<-input$factores 
-    arrayList<-strsplit(factoresArray,";")[[1]]
-    df[,input$atributosCambioDeTipos]<-factor(df[,input$atributosCambioDeTipos], ordered=TRUE, levels=arrayList)
-    #df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
+    atributo<-input$dosvariables_Ui_atributos
+    if (class(df[,atributo])=="numeric" || class(df[,atributo])=="integer"){
+      df[,paste(atributo,"_factor_",input$dosvariables_TextInput_intervalos,sep="")]<-cut(df[,atributo],as.numeric(input$dosvariables_TextInput_intervalos))
+      
+      #Mostramos el mensaje
+        output$dosvariables_mensajes_factorizar <- renderPrint({
+        #Mensaje de ejecución
+        print(paste("Se ha factorizado el atributo",isolate(input$dosvariables_Ui_atributos)," en ",input$dosvariables_TextInput_intervalos," intervalos"))
+        
+      })
+      
+      #Mostramos los nuevos intervalos
+      output$dosvariables_mensajes_print <- renderPrint({
+        atributo<-isolate(input$dosvariables_Ui_atributos)
+        summary(df[,paste(atributo,"_factor_",isolate(input$dosvariables_TextInput_intervalos),sep="")])
+      })
+      
+    }else{
+      #En este caso es que alguna variable es de tipo caracter con lo que hay que usar la estrategia names de columna
+      factoresArray<-unique(df[,atributo])
+      #arrayList<-strsplit(factoresArray,";")[[1]]
+      df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
+      
+      output$dosvariables_mensajes_factorizar <- renderPrint({
+        #Mensaje de ejecución
+        print(paste("Se ha factorizado el atributo caracter(mejorar descripcion) intervalos"))
+        
+      })
+      
+      #Reiniciamos la salida 
+      output$dosvariables_mensajes_print <- renderText({ })
+      
+    }
     
-    factorizadoSiNo<<-"True"
-    fileout_factorizado<<-df
+    ficheroFactorizado<<-"True"
+    fileout_fact_dosVar<<-df
+    
   })
   
   #Ejecutamos la función anterior por evento
-  observeEvent(input$ejecutarFactorizacion, {
-    output$edicion_print <- renderPrint({
-      str(Funcion_Factorizar())
+  observeEvent(input$dosvariables_Action_factorizar, {
+    
+    fileout<-Funcion_FactorizarConDosVariables()
+    
+    if (ficheroFactorizado=="True"){
+      
+      #Actualizamos el sumario general
+      output$dosvariables_sumarioGeneral <- renderPrint({
+        summary(fileout)
+      })
+      
+    }else{
+      #Mostramos el mensaje de que el atributo no es numérico
+      output$dosvariables_mensajes_factorizar <- renderPrint({
+        #Mensaje de ejecución
+        print(paste("El atributo ",isolate(input$dosvariables_Ui_atributos)," no es numérico",sep=""))
+        
+      })
+      #Reiniciamos la salida 
+      output$dosvariables_mensajes_print <- renderPrint({ })
+    }
+  })
+  
+  #En caso de que se pulse el botón reset
+  observeEvent(input$dosvariables_Action_factoReset, {
+  
+    #Reiniciamos la variable global que indica que se ha factorizado
+    ficheroFactorizado<<-"False"
+    
+    #Mostramos el sumario general del dataset
+    output$dosvariables_sumarioGeneral <- renderPrint({
+      file<-filedata()
+      summary(file)
     })
     
-    output$mensajes_factorizar <- renderPrint({
-      print(paste("Se ha factorizado el atributo",isolate(input$atributosCambioDeTipos)))
-    })
-      
+    #Reiniciamos las salidas
+    output$dosvariables_mensajes_factorizar <- renderText({ print("Se ha reiniciado el dataset a los tipos originales.")})
+    output$dosvariables_mensajes_print <- renderText({ })
+    
   })
+  
+  # #Variables y datos iniciales
+  # factorizadoSiNo<-"False"
+  # 
+  # #Factorización
+  # output$atributosCambioDeTipos <- renderUI({
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   
+  #   items=names(df)
+  #   selectInput("atributosCambioDeTipos", "Atributo:",items)
+  #   
+  # })
+  # 
+  # #Realizar la factorización
+  # Funcion_Factorizar<-eventReactive(input$ejecutarFactorizacion,{
+  #   #Comprobamos si es la primera factorización o no.
+  #   if (factorizadoSiNo=="False"){
+  #   df <-filedata()
+  #   }else{
+  #     df<-fileout_factorizado
+  #   }
+  #   if (is.null(df)) return(NULL)
+  #   factoresArray<-input$factores 
+  #   arrayList<-strsplit(factoresArray,";")[[1]]
+  #   df[,input$atributosCambioDeTipos]<-factor(df[,input$atributosCambioDeTipos], ordered=TRUE, levels=arrayList)
+  #   #df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
+  #   
+  #   factorizadoSiNo<<-"True"
+  #   fileout_factorizado<<-df
+  # })
+  # 
+  # #Ejecutamos la función anterior por evento
+  # observeEvent(input$ejecutarFactorizacion, {
+  #   output$edicion_print <- renderPrint({
+  #     str(Funcion_Factorizar())
+  #   })
+  #   
+  #   output$mensajes_factorizar <- renderPrint({
+  #     print(paste("Se ha factorizado el atributo",isolate(input$atributosCambioDeTipos)))
+  #   })
+  #     
+  # })
+  
+  #------EXPLORACIÓN DE UNA VARIABLE---------
   
   #Variables a explorar
   output$atributoUnaVariable <- renderUI({
@@ -520,10 +633,36 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #Cambiamos los valores de los combos si se produce el evento de factorización
+  observeEvent(input$dosvariables_Action_factorizar,{
+    
+    output$atributoUnaVariable <- renderUI({
+      df <-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+  })
+  
+  #RESET del evento de factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    output$atributoUnaVariable <- renderUI({
+      df <-filedata()
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+  })
+  
   Funcion_ExploracionTabular<-eventReactive(input$Exploraciones_ejecutar1,{
     #Seleccionamos el archivo según se ha factorizado o no.
-    if (factorizadoSiNo=="True"){
-    df<-fileout_factorizado
+    if (ficheroFactorizado=="True"){
+    df<-fileout_fact_dosVar
     }else{
       df<-filedata()
     }
@@ -561,6 +700,8 @@ shinyServer(function(input, output, session) {
 
   
   #--Exploraciones Gráficas---------
+  
+  #inicializamos el combo
   output$atributoUnaVariableGrafica <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -570,15 +711,40 @@ shinyServer(function(input, output, session) {
     
   })
   
-
+  #En caso de evento de factorización
+  observeEvent(input$dosvariables_Action_factorizar,{
+    
+    output$atributoUnaVariableGrafica <- renderUI({
+      df <-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+  
+  })
+  
+  #RESET de la factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    output$atributoUnaVariableGrafica <- renderUI({
+      df <-filedata()
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+  })
   
   #Evento que muestra las gráficas sin esperar un ActionButton
   observe({
     
     output$explor1_grafica1 <- renderPlot({
       #Comprobamos si se ha factorizado antes o no
-      if (factorizadoSiNo=="True"){
-        df<-fileout_factorizado
+      if (ficheroFactorizado=="True"){
+        df<-fileout_fact_dosVar
       }else{
         df<-filedata()
       }
@@ -637,13 +803,41 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #En caso de evento de factorización
+  observeEvent(input$dosvariables_Action_factorizar,{
+    
+    output$atributoUnaVariableGrafica2 <- renderUI({
+      df <-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+    
+  })
+  
+  #RESET de la factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    output$atributoUnaVariableGrafica2 <- renderUI({
+      df <-filedata()
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("atributoUnaVariable", "Atributo:",items)
+      
+    })
+  })
+  
+  
   #Evento que muestra la gráfica 2 sin esperar un ActionButton
   observe({
     
     output$explor1_grafica2 <- renderPlot({
       #Comprobamos si se ha factorizado antes o no
-      if (factorizadoSiNo=="True"){
-        df<-fileout_factorizado
+      if (ficheroFactorizado=="True"){
+        df<-fileout_fact_dosVar
       }else{
         df<-filedata()
       }
@@ -695,74 +889,6 @@ shinyServer(function(input, output, session) {
   #-------EXPLORACIÓN DE DOS VARIABLES---------------
   
   
-  #Mostramos el sumario general del dataset
-  output$dosvariables_sumarioGeneral <- renderPrint({
-      file<-filedata()
-      summary(file)
-   })
-
-  
-  #Renderizamos los atributos en 'dosvariables_Ui_atributos'
-    output$dosvariables_Ui_atributos <- renderUI({
-    df <-filedata()
-    if (is.null(df)) return(NULL)
-    
-    items=names(df)
-    selectInput("dosvariables_Ui_atributos", "Atributo:",items)
-    
-  })
-  
-  Funcion_FactorizarConDosVariables<-eventReactive(input$dosvariables_Action_factorizar,{
-    df <-filedata()
-    if (is.null(df)) return(NULL)
-    atributo<-input$dosvariables_Ui_atributos
-    if (class(df[,atributo])=="numeric" || class(df[,atributo])=="integer"){
-      df[,paste(atributo,"_factor_",input$dosvariables_TextInput_intervalos,sep="")]<-cut(df[,atributo],as.numeric(input$dosvariables_TextInput_intervalos))
-      atributoNumerico<<-"True"
-      fileout_fact_dosVar<<-df
-    
-    }else{
-      atributoNumerico<<-"False"
-    }
-  })
-  
-  #Ejecutamos la función anterior por evento
-  observeEvent(input$dosvariables_Action_factorizar, {
-    
-    fileout<-Funcion_FactorizarConDosVariables()
-    
-    if (atributoNumerico=="True"){
-      #Mostramos el mensaje
-      output$dosvariables_mensajes_factorizar <- renderPrint({
-        #Mensaje de ejecución
-        print(paste("Se ha factorizado el atributo",isolate(input$dosvariables_Ui_atributos)," en ",input$dosvariables_TextInput_intervalos," intervalos"))
-        
-      })
-      
-      #Mostramos los nuevos intervalos
-        output$dosvariables_mensajes_print <- renderPrint({
-          atributo<-isolate(input$dosvariables_Ui_atributos)
-          summary(fileout[,paste(atributo,"_factor_",isolate(input$dosvariables_TextInput_intervalos),sep="")])
-        })
-      
-      
-      #Actualizamos el sumario general
-      output$dosvariables_sumarioGeneral <- renderPrint({
-        summary(fileout)
-      })
-      
-    }else{
-        #Mostramos el mensaje de que el atributo no es numérico
-        output$dosvariables_mensajes_factorizar <- renderPrint({
-          #Mensaje de ejecución
-          print(paste("El atributo ",isolate(input$dosvariables_Ui_atributos)," no es numérico",sep=""))
-          
-        })
-        #Reiniciamos la salida 
-        output$dosvariables_mensajes_print <- renderPrint({ })
-    }
-  })
-  
   #--Relacion tabular entre dos variables--
   
   #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
@@ -785,19 +911,42 @@ shinyServer(function(input, output, session) {
   
   #Evento que cambia los valores de los combos dosvariables_Ui_rela_at1 y dosvariables_Ui_rela_at2, si se ha factorizado algún atributo
   observeEvent(input$dosvariables_Action_factorizar,{
-               
+
     #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
       output$dosvariables_Ui_rela_at1 <- renderUI({
-      df <-Funcion_FactorizarConDosVariables()
+      df <-fileout_fact_dosVar
       if (is.null(df)) return(NULL)
       items=names(df)
       selectInput("dosvariables_Ui_rela_at1", "Atributo 1:",items)
     })
-  
+
+
+    #Renderizamos los atributos en 'dosvariables_Ui_rela_at2'
+    output$dosvariables_Ui_rela_at2 <- renderUI({
+      df <-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_rela_at2", "Atributo 2:",items)
+
+    })
+
+  })
+
+  #Evento que hace RESET de los combos respecto a la factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
+    output$dosvariables_Ui_rela_at1 <- renderUI({
+      df <-filedata()
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_rela_at1", "Atributo 1:",items)
+    })
+    
     
     #Renderizamos los atributos en 'dosvariables_Ui_rela_at2'
     output$dosvariables_Ui_rela_at2 <- renderUI({
-      df <-Funcion_FactorizarConDosVariables()
+      df <-filedata()
       if (is.null(df)) return(NULL)
       items=names(df)
       selectInput("dosvariables_Ui_rela_at2", "Atributo 2:",items)
@@ -805,5 +954,258 @@ shinyServer(function(input, output, session) {
     })
     
   })
+
+  
+  #En este caso no la función se encuentra incorporada dentro del código
+  observeEvent(input$dosvar_Action_relaTab, {
+    at1=input$dosvariables_Ui_rela_at1
+    at2=input$dosvariables_Ui_rela_at2
+    if (ficheroFactorizado=="False"){
+          df <-filedata()
+         }else{
+          #El fichero que deja la función de factorización en intervalos
+          df<-fileout_fact_dosVar
+         }
+         if (is.null(df)) return(NULL)
+         fileout<-table(df[,at1],df[,at2])
+        
+       output$dosvar_Print_relaTab <- renderPrint({
+          fileout
+       })
+     })
+    
+    
+  # Funcion_relacionTabDosVariables<-eventReactive(input$dosvariables_Action_relacionTab,{
+  #   at1=input$dosvariables_Ui_rela_at1
+  #   at2=input$dosvariables_Ui_rela_at2
+  #   
+  #   if (ficheroFactorizado=="False"){
+  #     df <-filedata()
+  #   }else{
+  #     #El fichero que deja la función de factorización en intervalos
+  #     df<-Funcion_FactorizarConDosVariables()
+  #   }
+  #   if (is.null(df)) return(NULL)
+  #   table(df[,at1],df[,at2])
+  #   
+  #     
+  # })
+  # 
+  # observeEvent(input$dosvariables_Action_relacionTab, {
+  #   output$dosvariables_Print_relacionTab <- renderPrint({
+  #     fileout<-Funcion_relacionTabDosVariables()
+  #   })
+  # })
+  
+  #---Realizamos la relación gráfica de dos variables conjuntamente
+  
+  #Inicializamos los combos
+  output$atributoDosVariablesGraficas1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("atributoDosVariablesGraficas1", "Atributo 1:",items)
+    
+  })
+  
+  output$atributoDosVariablesGraficas2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("atributoDosVariablesGraficas2", "Atributo 2:",items)
+    
+  })
+  
+  #Cambiamos los valores de los combos si se produce el evento
+  observeEvent(input$dosvariables_Action_factorizar,{
+    
+    output$atributoDosVariablesGraficas1 <- renderUI({
+      df<-fileout_fact_dosVar
+      items=names(df)
+      selectInput("atributoDosVariablesGraficas1", "Atributo 1:",items)
+  
+    })
+  
+    output$atributoDosVariablesGraficas2 <- renderUI({
+      df<-fileout_fact_dosVar
+      items=names(df)
+      selectInput("atributoDosVariablesGraficas2", "Atributo 2:",items)
+  
+    })
+  })
+  
+  #Hacemos RESET de los combos respecto a la factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    output$atributoDosVariablesGraficas1 <- renderUI({
+      df<-filedata()
+      items=names(df)
+      selectInput("atributoDosVariablesGraficas1", "Atributo 1:",items)
+      
+    })
+    
+    output$atributoDosVariablesGraficas2 <- renderUI({
+      df<-filedata()
+      items=names(df)
+      selectInput("atributoDosVariablesGraficas2", "Atributo 2:",items)
+      
+    })
+  })
+  
+  #Evento que escucha el cambio de variables en los combos y actualiza las gráficas
+  observe({
+
+    #Renderizamos los atributos en 'dosvariables_Ui_rela_at1'
+    output$explor1_dosvar_grafica1 <- renderPlot({
+      if (ficheroFactorizado=="False"){
+        df <-filedata()
+        if (is.null(df)) return(NULL)
+      }else{
+        df<-fileout_fact_dosVar
+      }
+      at1<-input$atributoDosVariablesGraficas1
+      at2<-input$atributoDosVariablesGraficas2
+      
+      if(class(df[,at1])=="factor" && class(df[,at2])=="factor"){
+        
+        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
+          print("Gráfica Factor/ Factor")
+        })
+        
+        mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"))
+        
+      }else if((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")) {
+        
+        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
+          print("Gráfica Numeral / Numeral")
+        })
+        
+        plot(df[,at1],df[,at2])
+        
+      }else if (class(df[,at1])!="character" && class(df[,at2])=="factor" ){
+        
+        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
+          print("Se muestra el gráfico de Numeral / Factor")
+        })
+        
+        boxplot(df[,at1] ~  df[,at2], main="Factor/Numeral")
+        
+      }else if (class(df[,at1])=="factor" && class(df[,at2])=="numeric"){
+         
+         output$mensajes_dosvar_exploracionGrafica <- renderPrint({
+            print("El atributo tipo factor debe asignarse a la variable Atributo2 para poder mostrar el diagrama de caja")
+          })
+          
+        }else{
+          output$mensajes_dosvar_exploracionGrafica <- renderPrint({
+          print("Alguno de los atributos es de tipo caracter y no puede ser relacionado gráficamente")
+            })
+        }
+
+    })
+
+  }) #Fin del Observe
+  
+  #----CORRELACIONES ENTRE DOS VARIABLES-----#####
+  
+  #Inicializamos los combos
+  output$dosvariables_Ui_correla_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("dosvariables_Ui_correla_at1", "Atributo 1:",items)
+    
+  })
+  
+  output$dosvariables_Ui_correla_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("dosvariables_Ui_correla_at2", "Atributo 2:",items)
+    
+  })
+  
+  #En caso de evento de factorización
+  observeEvent(input$dosvariables_Action_factorizar,{
+    
+    output$dosvariables_Ui_correla_at1 <- renderUI({
+      df<-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_correla_at1", "Atributo 1:",items)
+      
+    })
+    
+    output$dosvariables_Ui_correla_at2 <- renderUI({
+      df<-fileout_fact_dosVar
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_correla_at2", "Atributo 2:",items)
+      
+    })
+    
+  })
+  
+  #RESET de la factorización
+  observeEvent(input$dosvariables_Action_factoReset,{
+    
+    output$dosvariables_Ui_correla_at1 <- renderUI({
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_correla_at1", "Atributo 1:",items)
+      
+    })
+    
+    output$dosvariables_Ui_correla_at2 <- renderUI({
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      items=names(df)
+      selectInput("dosvariables_Ui_correla_at2", "Atributo 2:",items)
+      
+    })
+  })
+
+  #Evento que ejecuta el tets de correlación
+  observeEvent(input$dosvar_Action_correlacion,{
+    
+      at1<-input$dosvariables_Ui_correla_at1
+      at2<-input$dosvariables_Ui_correla_at2
+      if (ficheroFactorizado=="False"){
+        df<-filedata()
+        if (is.null(df)) return(NULL)
+        
+      }else{
+        df<-fileout_fact_dosVar
+      }
+      
+      if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
+        #Mostramos el resultado del test de correlación
+        output$dosvar_Print_correlacion <- renderPrint({
+          #Devolvemos la correlación como variable global
+          correlacion<<-cor(df[,at1],df[,at2])
+          cor.test(df[,at1],df[,at2])
+        })
+        
+        #Dibujamos el gráfico de correlación
+        output$graf_correla_dosVariables <- renderPlot({
+          plot(df[,at1],df[,at2], main=paste("Cor:",correlacion),xlab=at1,ylab=at2)
+          
+        })
+        
+        output$dosvar_msj_correlacion <- renderPrint({
+          print("Se muestran los resultados del test de correlación")
+        })
+        
+      }else{
+        output$dosvar_msj_correlacion <- renderPrint({
+          print("Alguno de los atributos no es numérico, no se puede ejecutar el test de correlación")
+        })
+        
+      }
+  })
+  
+  
+  
   
 })

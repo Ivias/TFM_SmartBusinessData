@@ -28,7 +28,10 @@ dashboardPage(
                collapsible = TRUE,
                menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
                menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("line-chart")),
-               menuSubItem("Dos Variables", tabName = "dosVariables",icon = icon("map-signs"))
+               menuItem("Dos Variables", tabName = "dosVariables",icon = icon("map-signs"),collapsible = TRUE,
+                           menuSubItem("Exp. Gráfica", tabName = "expGrafica",icon = icon("map-signs")),
+                           menuSubItem("Correlaciones", tabName = "correlacionesdosvar",icon = icon("handshake-o"))
+                        )
                ),
                
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
@@ -158,18 +161,36 @@ dashboardPage(
       )),
       
       tabItem(tabName="factorizar",
-              fluidRow(
-                box(title="Factorizar",width = 12,
-                    div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
-                    div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("factores", "Factores (;)")),
-                    br(),
-                    div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
-                )),
-              fluidRow(box(title="Mensajes",width = 12,
-                           verbatimTextOutput("mensajes_factorizar"))),
-              fluidRow(box(title = "Datos Resultantes", width = NULL, status = "primary",
-                           div(style = 'overflow-x: scroll', verbatimTextOutput("edicion_print"))))
-              ),
+              fluidRow(box(title="Sumario del Dataset",width = 12,
+                           verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
+              # fluidRow(
+              #   box(title="Factorizar",width = 12,
+              #       div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
+              #       div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("factores", "Factores (;)")),
+              #       br(),
+              #       div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
+              #   )),
+              fluidRow(box(title="Factorizar una varibale",width = 12,
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
+                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos")),
+                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                           tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
+                           tags$style(type='text/css', "#dosvariables_Action_factoReset { width:100%; margin-top: 25px;}"),
+                           div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Ejecutar",style=blueStyle)),
+                           div(style="display: inline-block;vertical-align:top; width: 25px;",HTML("<br>")),
+                           div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factoReset", "Reset",style=blueStyle)),
+                           br(), 
+                           br(),
+                           verbatimTextOutput("dosvariables_mensajes_factorizar"),
+                           verbatimTextOutput("dosvariables_mensajes_print")
+              ))),
+              
+              # fluidRow(box(title="Mensajes",width = 12,
+              #              verbatimTextOutput("mensajes_factorizar"))),
+              # fluidRow(box(title = "Datos Resultantes", width = NULL, status = "primary",
+              #              div(style = 'overflow-x: scroll', verbatimTextOutput("edicion_print"))))
+              # ),
       
       tabItem(tabName = "unaVariable",
               tags$style(type='text/css', '#controlDeCarga_Exploracion1 {background-color: rgba(0,0,255,0.10); color: blue;}'),
@@ -191,18 +212,19 @@ dashboardPage(
                   div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("Exploraciones_ejecutar1", "Ejecutar",style=blueStyle)),
                   br(),
                  verbatimTextOutput("mensajes_exploracion1"),
-                 verbatimTextOutput("resultados_exploracion1",placeholder = TRUE)
+                 verbatimTextOutput("resultados_exploracion1")
                  )),
 
-              fluidRow(box(title="Exploración Gráfica de una Variable",width = 12,
+              fluidRow(box(title="Exploración Gráfica de una Variable",width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica1", "Gráfica 1:",
                                                                                                      c("Histograma" = "histograma",
                                                                                                        "Diagrama de Caja" = "caja",
                                                                                                        "Plot" = "plot"))),
-                           verbatimTextOutput("mensajes_exploracionGrafica"),
-                           
+                           verbatimTextOutput("mensajes_exploracionGrafica")
+                        ),
+                       box(title="Exploración Gráfica de una Variable",width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica2")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica2", "Gráfica 2:",
@@ -210,11 +232,9 @@ dashboardPage(
                                                                                                               "Diagrama de Caja" = "caja",
                                                                                                               "Plot" = "plot"))),
                            verbatimTextOutput("mensajes_exploracionGrafica2")
-                           #br(),
-                           #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("ExploracionesGraficas_ejecutar1", "Ejecutar",style=blueStyle))
-                )),
-                # fluidRow(box(title="Mensajes Gráficos",width = 12,
-                #              verbatimTextOutput("mensajes_exploracionGrafica"))),
+                       )
+                ),
+            
                 fluidRow(box(title="Gráfica 1",width = 6,
                            plotOutput("explor1_grafica1",click = "plot1_click")),
                        box(title="Grafica 2",width = 6,
@@ -224,37 +244,74 @@ dashboardPage(
               
     )),
       
-    tabItem(tabName = "dosVariables",
-            fluidRow(box(title="Sumario del Dataset",width = 12,
-                         verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
+    tabItem(tabName = "expGrafica",
+            # fluidRow(box(title="Sumario del Dataset",width = 12,
+            #              verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
                          
-            fluidRow(box(title="Factorizar una varibale",width = 12,
-                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
-                          div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos")),
-                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                          tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
-                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Ejecutar",style=blueStyle)),
-                          br(), 
-                          br(),
-                          verbatimTextOutput("dosvariables_mensajes_factorizar"),
-                          verbatimTextOutput("dosvariables_mensajes_print")
-                          )),
+            # fluidRow(box(title="Factorizar una varibale",width = 12,
+            #               div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
+            #               div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos")),
+            #               div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+            #               tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
+            #               div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Ejecutar",style=blueStyle)),
+            #               br(), 
+            #               br(),
+            #               verbatimTextOutput("dosvariables_mensajes_factorizar"),
+            #               verbatimTextOutput("dosvariables_mensajes_print")
+            #               )),
             fluidRow(box(title="Relación tabular entre dos variables",width = 12,
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         tags$style(type='text/css', "#dosvariables_Action_relacionTab { width:100%; margin-top: 25px;}"),
-                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_relacionTab", "Ejecutar",style=blueStyle)),
-                         br(), 
-                         br(),
-                         verbatimTextOutput("dosvariables_Print_relacionTab"),
-                         br(),
-                         br()))
+                         tags$style(type='text/css', "#dosvar_Action_relaTab { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvar_Action_relaTab", "Ejecutar",style=blueStyle)),
+                         verbatimTextOutput("dosvar_Print_relaTab")
+                        )
                          
                      ),
+            fluidRow(box(title="Exploración Gráfica de dos Variables",width = 12,
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas2")),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("dosvar_tipoExploracionGrafica", "Gráfica 1:",
+                         #                                                                                 c("FF" = "ff",
+                         #                                                                                  "FN" = "fn",
+                         #                                                                                   "NN" = "nn"))),
+                         verbatimTextOutput("mensajes_dosvar_exploracionGrafica"),
+                         plotOutput("explor1_dosvar_grafica1",click = "plot1_dosvar_click")
+
+                         #br(),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("ExploracionesGraficas_ejecutar1", "Ejecutar",style=blueStyle))
+                      ))
+            ),
+
+
     
-      #MongoDB         
-      tabItem(tabName = "Mongodb",
+    #CORRELACIONES ENTRE VARIABLES
+    tabItem(tabName = "correlacionesdosvar",
+            fluidRow(box(tags$p("CORRELACIÓN ENTRE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                  br(),
+                  div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at1")),
+                  div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at2")),
+                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                  tags$style(type='text/css', "#dosvar_Action_correlacion { width:100%; margin-top: 25px;}"),
+                  div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvar_Action_correlacion", "Test de Correlación",style=blueStyle)),
+                  br(), 
+                  verbatimTextOutput("dosvar_msj_correlacion"),
+                  verbatimTextOutput("dosvar_Print_correlacion"),
+                  plotOutput("graf_correla_dosVariables",click = "plot1_correladosvar_click"))
+          
+            )),
+              
+           
+                         
+                     
+            
+    
+      
+    #MongoDB         
+    tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
       )
     ) #el del DIV del dashboard
