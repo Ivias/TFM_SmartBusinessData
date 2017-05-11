@@ -1483,24 +1483,24 @@ shinyServer(function(input, output, session) {
       #Mostramos los resultados
       output$reglienalmulti_print <- renderPrint({ summary(modelo) })
       
-      # #Histograma de los residuos
-      # output$reglienalsimple_plot1 <- renderPlot({ 
-      #   hist(modelo$residuals, xlab = "Residuos", col = "gray", 
-      #        main = "Distribución de los residuos") 
-      # })
-      # 
-      # #Q-Q de los residuos
-      # output$reglienalsimple_plot2 <- renderPlot({ 
-      #   qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos") 
-      #   qqline(modelo$residuals) 
-      # })
-      # 
-      # #Variación ecuanime plot
-      # output$reglienalsimple_plot3 <- renderPlot({
-      #   plot(modelo$fitted.values, modelo$residuals, ylab = "Residuos", 
-      #        xlab = "Valores ajustados", main="Distribución de residuos") 
-      #   abline(0, 0, lwd = 3)
-      # })
+      #Histograma de los residuos
+      output$reglienalmulti_plot1 <- renderPlot({
+        hist(modelo$residuals, xlab = "Residuos", col = "gray",
+             main = "Distribución de los residuos")
+      })
+
+      #Q-Q de los residuos
+      output$reglienalmulti_plot2 <- renderPlot({
+        qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos")
+        qqline(modelo$residuals)
+      })
+
+       #Variación ecuanime plot
+       output$reglienalmulti_plot3 <- renderPlot({
+         #Dividimos la pantalla para mostrar las gráficas del modelo
+         layout(matrix(c(1,2,3,4),2,2))
+         plot(modelo)
+       })
       
       #Mostramos el mensaje
       output$reglienalmulti_msj <- renderPrint({ print("Se muestran los datos del modelo lineal múltiple generado.") })
@@ -1512,4 +1512,61 @@ shinyServer(function(input, output, session) {
     }
   })
   
+  #--ANÁLISIS DE CLUSTERS--#
+  
+  output$cluster_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("cluster_at1", "Atributo X:",items)
+    
+  })
+  
+  output$cluster_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("cluster_at2", "Atributo Y:",items)
+    
+  })
+  
+  #Ejecutamos la función de clustering
+  observeEvent(input$cluster_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    #Random
+    set.seed(123)
+    dos<-kmeans(df,as.numeric(input$cluster_n1))
+    tres<-kmeans(df,as.numeric(input$cluster_n2))
+    
+    #Creamos un fichero con dos nuevas columnas con el cluster al que pertenece el registro
+    clus<-cbind(df,clus2=dos$cluster,clus3=tres$cluster)
+    at1<-clus[,input$cluster_at1]
+    at2<-clus[,input$cluster_at2]
+    
+    #Dibujamos cluster 1
+    output$cluster_plot1 <- renderPlot({
+      plot(at1, at2, col=dos$cluster, asp=1, 
+           pch=dos$cluster, main="Dos Clusters",
+           xlab="Atributo X", ylab="Atributo Y")
+      points(dos$centers[,2], dos$centers[,1], pch=23,
+             col="maroon", bg="lightblue", cex=3)
+      text(dos$centers[,2], dos$centers[,1], cex=1.1,
+            col="black", attributes(dos$centers)$dimnames[[1]])
+    })
+    
+    #Dibujamos cluster 2
+    output$cluster_plot2 <- renderPlot({
+      plot(at1, at2, col=tres$cluster, asp=1, 
+           pch=tres$cluster, main="Tres Clusters",
+           xlab="Atributo X", ylab="Atributo Y")
+      points(tres$centers[,2], tres$centers[,1], pch=23,
+             col="maroon", bg="lightblue", cex=3)
+      text(tres$centers[,2], tres$centers[,1], cex=1.1,
+           col="black", attributes(tres$centers)$dimnames[[1]])
+    })
+    
+  })
+  
 })
+

@@ -44,6 +44,11 @@ dashboardPage(
                menuSubItem("RL Simple", tabName = "reglineal_simple",icon = icon("line-chart")),
                menuSubItem("RL Múltiple", tabName = "reglineal_multi",icon = icon("line-chart"))),
       
+      menuItem("CLUSTERS", tabName = "clusters",icon = icon("snowflake-o"),
+               collapsible = TRUE,
+               menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
+               menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree"))),
+      
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
            menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
@@ -379,18 +384,51 @@ dashboardPage(
                                        verbatimTextOutput("SLR_prediccion_print"))
                              )),
     tabItem(tabName = "reglineal_multi",
-            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("reglinealmulti_at1","Columnas X (sep=;)")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealmulti_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         tags$style(type='text/css', "#reglinealsimple_Action { width:100%; margin-top: 25px;}"),
+                         tags$style(type='text/css', "#reglinealmulti_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("reglinealmulti_Action", "Ejecutar",style=blueStyle)),
                          br(),
                          br(),
                          verbatimTextOutput("reglienalmulti_msj"),
                          verbatimTextOutput("reglienalmulti_print"))
+            ),
+            fluidRow(box(width = 6,
+                         plotOutput("reglienalmulti_plot1",click = "reglienalmulti_plot1_click")),
+                     box(width = 6,
+                         plotOutput("reglienalmulti_plot2",click = "reglienalmulti_plot2_click")),
+                     box(tags$p("GRÁFICAS DEL MODELO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click"))
             )),
+    #Clusters
+    tabItem(tabName = "kmeans",
+            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n1","Nº Clusters 1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n2","Nº Clusters 2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#cluster_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("cluster_Action", "Ejecutar",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("cluster_msj")
+                         )),
+                  fluidRow(
+                          box(width = 6, 
+                              plotOutput("cluster_plot1",click = "cluster_plot1_click")),
+                           box(width = 6, 
+                              plotOutput("cluster_plot2",click = "cluster_plot2_click"))
+                          )),
+            
+            
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
