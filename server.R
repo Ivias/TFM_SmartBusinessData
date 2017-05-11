@@ -1345,10 +1345,171 @@ shinyServer(function(input, output, session) {
             lower.panel=panel.conf, upper.panel=panel.ellipse,
             diag.panel=panel.minmax, text.panel=panel.txt)
     
+   })
   })
   
+  #-----REGRESIONES LINEALES-----####
   
-  
-})
+  #---RLS----
+  output$reglinealsimple_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("reglinealsimple_at1", "Atributo X:",items)
     
+  })
+  
+  output$reglinealsimple_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("reglinealsimple_at2", "Atributo Y:",items)
+    
+  })
+  
+  #Ejecutamos la correlación
+  observeEvent(input$reglinealsimple_Action,{
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      at1<-input$reglinealsimple_at1
+      X<-df[,at1]
+      at2<-input$reglinealsimple_at2
+      Y<-df[,at2]
+      
+      if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
+          
+        #Exportamos el modelo como variable global
+         modelo<<-lm( Y ~ X, data=df )
+      
+         #Mostramos los resultados
+         output$reglienalsimple_print <- renderPrint({ summary(modelo) })
+         
+         #Histograma de los residuos
+         output$reglienalsimple_plot1 <- renderPlot({ 
+                hist(modelo$residuals, xlab = "Residuos", col = "gray", 
+                main = "Distribución de los residuos") 
+           })
+         
+         #Q-Q de los residuos
+         output$reglienalsimple_plot2 <- renderPlot({ 
+               qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos") 
+               qqline(modelo$residuals) 
+           })
+         
+         #Variación ecuanime plot
+         output$reglienalsimple_plot3 <- renderPlot({
+              plot(modelo$fitted.values, modelo$residuals, ylab = "Residuos", 
+                xlab = "Valores ajustados", main="Distribución de residuos") 
+               abline(0, 0, lwd = 3)
+         })
+         
+         #Mostramos el mensaje
+         output$reglienalsimple_msj <- renderPrint({ print("Se muestran los datos del modelo lineal generado.") })
+      }else{
+        
+        #Mostramos el mensaje
+        output$reglienalsimple_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
+        
+      }
+  })
+  
+  #Predicción de valores de Y en función de X
+  observeEvent(input$SLR_prediccion_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+
+    #Obtenemos la lista de posibles valores de X
+    valoresX<-input$valorX 
+    arrayList<-strsplit(valoresX,";")[[1]]
+    #Cuidado con definir X=, pues el modelo se construyó con lm(Y ~ X), hay que seguir la misma estructura
+    prediccion<-predict.lm(modelo, data.frame(X=as.numeric(arrayList)), level= as.numeric(input$intervaloConfianza), interval = "prediction",na.action = na.pass) 
+    
+    #Mostramos los resultados
+    output$SLR_prediccion_print <- renderPrint({ prediccion })
+    
+  })
+  
+  #-------REgresión lineal Múltiple--------
+  
+  
+  
+  output$reglinealmulti_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("reglinealmulti_at2", "Atributo Y:",items)
+    
+  })
+  
+  #Ejecutamos la correlación
+  observeEvent(input$reglinealmulti_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    
+    
+    #Obtenemos la lista de columnas
+    valoresX<-input$reglinealmulti_at1 
+    arrayList<-strsplit(valoresX,";")[[1]]
+    X<-df[,as.numeric(arrayList)]
+    
+    at2<-input$reglinealmulti_at2
+    Y<-df[,at2]
+    
+    #Comprobamos si algún valor no es numérico
+    valorCaracter<-"False"
+    xnom<-c("")
+    
+    for (i in 1:length(arrayList)){
+      if (class(df[,as.numeric(arrayList[i])])!="integer" && class(df[,as.numeric(arrayList[i])])!="numeric"){
+        valorCaracter<-"True"
+      }
+      assign(paste("X",i,sep=""),df[,as.numeric(arrayList[i])])
+        
+    }
+        xnom <- paste("X",arrayList,sep="")
+        formu<-paste(xnom,collapse="+")
+
+    if (valorCaracter=="False"){
+      
+      #Exportamos el modelo como variable global
+      modelo<<-lm( as.formula(paste("Y ~", formu)), data=df )
+      
+      #xnam <- paste("x", 1:3, sep="")
+      #fmla <- as.formula(paste("y ~ ", paste(formula, collapse= "+")))
+      #lm(fmla, data = myData).
+      
+      #formula=paste(df[,as.numeric(arrayList[1])],df[,as.numeric(arrayList[2])],df[,as.numeric(arrayList[3])],sep="+")
+     
+      #Mostramos los resultados
+      output$reglienalmulti_print <- renderPrint({ summary(modelo) })
+      
+      # #Histograma de los residuos
+      # output$reglienalsimple_plot1 <- renderPlot({ 
+      #   hist(modelo$residuals, xlab = "Residuos", col = "gray", 
+      #        main = "Distribución de los residuos") 
+      # })
+      # 
+      # #Q-Q de los residuos
+      # output$reglienalsimple_plot2 <- renderPlot({ 
+      #   qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos") 
+      #   qqline(modelo$residuals) 
+      # })
+      # 
+      # #Variación ecuanime plot
+      # output$reglienalsimple_plot3 <- renderPlot({
+      #   plot(modelo$fitted.values, modelo$residuals, ylab = "Residuos", 
+      #        xlab = "Valores ajustados", main="Distribución de residuos") 
+      #   abline(0, 0, lwd = 3)
+      # })
+      
+      #Mostramos el mensaje
+      output$reglienalmulti_msj <- renderPrint({ print("Se muestran los datos del modelo lineal múltiple generado.") })
+    }else{
+      
+      #Mostramos el mensaje
+      output$reglienalmulti_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
+      
+    }
+  })
+  
 })

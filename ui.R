@@ -38,7 +38,12 @@ dashboardPage(
                           menuSubItem("Exp. Gráfica", tabName = "multi_expGrafica",icon = icon("map-signs")),
                           menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
                )),
-               
+      
+      menuItem("R.LINEAL", tabName = "regresionlineal", icon = icon("line-chart"),
+               collapsible = TRUE,
+               menuSubItem("RL Simple", tabName = "reglineal_simple",icon = icon("line-chart")),
+               menuSubItem("RL Múltiple", tabName = "reglineal_multi",icon = icon("line-chart"))),
+      
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
            menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
@@ -340,7 +345,52 @@ dashboardPage(
 
             )),
     
-      
+    tabItem(tabName = "reglineal_simple",
+            fluidRow(box(tags$p("REGRESIÓN LINEAL SIMPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealsimple_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealsimple_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#reglinealsimple_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("reglinealsimple_Action", "Ejecutar",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("reglienalsimple_msj"),
+                         verbatimTextOutput("reglienalsimple_print"))
+                     ),
+                         
+                         fluidRow(box(width = 6,
+                                      plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1")),
+                                  box(width = 6,
+                                      plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2")),
+                                  box(width = 12,
+                                      plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))
+                         ),
+                          fluidRow(box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                                       br(),
+                                       div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("valorX", "Valores de X (sep=;)")),
+                                       div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                       div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("intervaloConfianza", "Int. de Confianza",
+                                                                                                                        c("99%" = ".99",
+                                                                                                                          "95%" = ".95",
+                                                                                                                          "90%" = ".90"))),
+                                       tags$style(type='text/css', "#SLR_prediccion_Action { width:100%; margin-top: 25px;}"),
+                                       div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir Valores",style=blueStyle)),
+                                       verbatimTextOutput("SLR_prediccion_print"))
+                             )),
+    tabItem(tabName = "reglineal_multi",
+            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("reglinealmulti_at1","Columnas X (sep=;)")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealmulti_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#reglinealsimple_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("reglinealmulti_Action", "Ejecutar",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("reglienalmulti_msj"),
+                         verbatimTextOutput("reglienalmulti_print"))
+            )),
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
