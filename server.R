@@ -1463,7 +1463,7 @@ shinyServer(function(input, output, session) {
       if (class(df[,as.numeric(arrayList[i])])!="integer" && class(df[,as.numeric(arrayList[i])])!="numeric"){
         valorCaracter<-"True"
       }
-      assign(paste("X",i,sep=""),df[,as.numeric(arrayList[i])])
+      assign(paste("X",arrayList[i],sep=""),df[,as.numeric(arrayList[i])])
         
     }
         xnom <- paste("X",arrayList,sep="")
@@ -1536,13 +1536,19 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return(NULL)
     #Random
     set.seed(123)
-    dos<-kmeans(df,as.numeric(input$cluster_n1))
-    tres<-kmeans(df,as.numeric(input$cluster_n2))
+    #Hacemos globales los modelos
+    dos<<-kmeans(df,as.numeric(input$cluster_n1))
+    tres<<-kmeans(df,as.numeric(input$cluster_n2))
+    
+    #Pintamos las salidas tabulares de los clusters genrados
+    output$cluster_print1 <- renderPrint({ dos })
+    output$cluster_print2 <- renderPrint({ tres })
+    
     
     #Creamos un fichero con dos nuevas columnas con el cluster al que pertenece el registro
     clus<-cbind(df,clus2=dos$cluster,clus3=tres$cluster)
-    at1<-clus[,input$cluster_at1]
-    at2<-clus[,input$cluster_at2]
+    at1<<-clus[,input$cluster_at1]
+    at2<<-clus[,input$cluster_at2]
     
     #Dibujamos cluster 1
     output$cluster_plot1 <- renderPlot({
@@ -1567,6 +1573,94 @@ shinyServer(function(input, output, session) {
     })
     
   })
+ 
+
+      
+    
+    
+  
+  
+   #Actualizamos la salida en función de los valores de los combos
+  observe({
+    clus1<-input$cluster_explo1
+    output$cluster_print1 <- renderPrint({
+      
+      switch(clus1, 
+             Sumario={
+               dos
+             },
+             Clusters={
+               dos$cluster
+             },
+             Centers={
+               dos$centers
+             },
+             Totss={
+               dos$totss   
+             },
+             Withinss={
+               dos$withinss
+             },
+             Tot.Withinss={
+               dos$tot.withinss
+             },
+             Betweens={
+               dos$betweens
+             },
+             Size={
+               dos$size
+             },
+             Iter={
+               dos$iter
+             },
+             Ifault={
+               dos$ifault
+             }
+      )
+    })
+  })
+  
+  observe({
+    clus2<-input$cluster_explo2
+    output$cluster_print2 <- renderPrint({
+      
+      switch(clus2, 
+             Sumario={
+               tres
+             },
+             Clusters={
+               tres$cluster
+             },
+             Centers={
+               tres$centers
+             },
+             Totss={
+               tres$totss   
+             },
+             Withinss={
+               tres$withinss
+             },
+             Tot.Withinss={
+               tres$tot.withinss
+             },
+             Betweens={
+               tres$betweens
+             },
+             Size={
+               tres$size
+             },
+             Iter={
+               tres$iter
+             },
+             Ifault={
+               tres$ifault
+             }
+             
+      )
+    })
+  })
+  
+  
   
 })
 

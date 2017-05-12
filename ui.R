@@ -421,12 +421,45 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("cluster_msj")
                          )),
+
                   fluidRow(
-                          box(width = 6, 
-                              plotOutput("cluster_plot1",click = "cluster_plot1_click")),
-                           box(width = 6, 
-                              plotOutput("cluster_plot2",click = "cluster_plot2_click"))
-                          )),
+                           conditionalPanel(condition ="input.cluster_Action",
+                              box(width = 6, 
+                              plotOutput("cluster_plot1",click = "cluster_plot1_click"),
+                              div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo1", "Cluster 1",
+                                                                                                               c("sumario"="Sumario",
+                                                                                                                 "cluster" = "Clusters",
+                                                                                                                 "centers" = "Centers",
+                                                                                                                 "totss" = "Totss",
+                                                                                                                 "withinss"="Withinss",
+                                                                                                                 "tot.withinss"="Tot.Withinss",
+                                                                                                                 "betweens"="Betweens",
+                                                                                                                 "size"="Size",
+                                                                                                                 "iter"="Iter",
+                                                                                                                 "ifault"="Ifault"),
+                                                                                                                  selected="Sumario"
+                                                                                                                 )),
+                              verbatimTextOutput("cluster_print1"))),
+                           
+                          conditionalPanel(condition ="input.cluster_Action",
+                              box(width = 6, 
+                              plotOutput("cluster_plot2",click = "cluster_plot2_click"),
+                              div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo2", "Cluster 2",
+                                                                                                                c("sumario"="Sumario",
+                                                                                                                "cluster" = "Clusters",
+                                                                                                                "centers" = "Centers",
+                                                                                                                "totss" = "Totss",
+                                                                                                                "withinss"="Withinss",
+                                                                                                                "tot.withinss"="Tot.Withinss",
+                                                                                                                "betweens"="Betweens",
+                                                                                                                "size"="Size",
+                                                                                                                "iter"="Iter",
+                                                                                                                "ifault"="Ifault"),
+                                                                                                                  selected="Sumario"
+                                                                                                               )),
+                              verbatimTextOutput("cluster_print2")))
+                  )),
+                         
             
             
     #MongoDB         
