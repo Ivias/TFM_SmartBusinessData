@@ -406,7 +406,10 @@ dashboardPage(
             )),
     #Clusters
     tabItem(tabName = "kmeans",
-            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+            fluidRow(tabBox(id="tabset1",width=12,
+                            tabPanel(tags$p("MODELOS INDIVIDUALES", style = "font-size: 100%;color:blue;font-weight: bold"),
+              
+              box(tags$p("MODELOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -420,7 +423,7 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("cluster_Action", "Ejecutar",style=blueStyle)),
                          br(),
                          verbatimTextOutput("cluster_msj")
-                         )),
+                         ),
 
                   fluidRow(
                            conditionalPanel(condition ="input.cluster_Action",
@@ -459,6 +462,12 @@ dashboardPage(
                                                                                                                )),
                               verbatimTextOutput("cluster_print2")))
                   )),
+            
+            
+                      tabPanel(tags$p("MODELO HiBRIDO", style = "font-size: 100%;color:blue;font-weight: bold"),
+                                     
+                             verbatimTextOutput("cluster_printeded"))
+            ))),
                          
             
             
