@@ -87,7 +87,10 @@ dashboardPage(
                             br(),
                             
                             #The action button prevents an action firing before we're ready
-                            actionButton("SeleccionarVariables", "Seleccionar Variables",style=blueStyle)
+                            actionButton("SeleccionarVariables", "Seleccionar Variables",style=blueStyle),
+                            br(),
+                            br(),
+                            verbatimTextOutput("consulta_msj")
                           ),
                       box(title="Estructura del Dataset",verbatimTextOutput("TextoSTR",placeholder = TRUE)
                       ),
@@ -406,7 +409,7 @@ dashboardPage(
             )),
     #Clusters
     tabItem(tabName = "kmeans",
-            fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+            fluidRow(box(tags$p("ALGORITMO K-MEANS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -461,8 +464,22 @@ dashboardPage(
                           
                           
                   )),
-                         
+    #Jerarquía
+    tabItem(tabName = "jerarquia",
+            fluidRow(box(tags$p("CLUSTERING JERARQUICO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clusterj_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clusterj_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#clusterj_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_Action", "Ejecutar",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("clusterj_msj")
+            ))
+            ),
             
+          
             
     #MongoDB         
     tabItem(tabName = "Mongodb",

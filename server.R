@@ -1,4 +1,4 @@
-
+2
 shinyServer(function(input, output, session) {
 
 #Cargamos el archivo CSV
@@ -138,26 +138,49 @@ shinyServer(function(input, output, session) {
     
     file.subset <- file[, input$variablesLista]
     
-    var1=input$Variable1
-    val1=input$Valor1
-    var2=input$Variable2
-    val2=input$Valor2
-
-   if(val1!="" && val2=="" ){
-      fileout <- file.subset[file.subset[,var1]==val1,]
-    }else if(val2!="" && val1!="" ){
-      fileout_pre<-file.subset[file.subset[,var1]==val1,]
-      fileout<- fileout_pre[fileout_pre[,var2]==val2,]
-    }else{
-      fileout<-file.subset
-    }
+    #Necesitamos incorporar un mensaje que diga que se necesitan al menos dos columnas seleccionadas
+   if (length(input$variablesLista)>1){
+     var1=input$Variable1
+     val1=input$Valor1
+     var2=input$Variable2
+     val2=input$Valor2
+     
+     if(val1!="" && val2=="" ){
+       fileout <- file.subset[file.subset[,var1]==val1,]
+     }else if(val2!="" && val1!="" ){
+       fileout_pre<-file.subset[file.subset[,var1]==val1,]
+       fileout<- fileout_pre[fileout_pre[,var2]==val2,]
+     }else{
+       fileout<-file.subset
+     }
+     
+     
+   }else{
+     return(NULL)
+   }
+   
     
   })
   
   observeEvent(input$SeleccionarVariables, {
-    output$filetablecolumnas <- renderTable({
-      FuncionFiltroColumnas()
-    })
+    
+    filtroCol<-FuncionFiltroColumnas()
+    if(is.null(filtroCol)){
+      output$consulta_msj <- renderText({
+        print("Se debe seleccionar más de un atributo para consultar.")
+      })
+      #Reiniciamos la tabla
+      output$filetablecolumnas <- renderTable({})
+      
+    }else{
+      output$filetablecolumnas <- renderTable({
+        filtroCol
+      })
+      output$consulta_msj <- renderText({
+        print("Se muestran los resultados de la consulta.")
+      })
+    }
+    
   })
   
   observe({
@@ -753,7 +776,7 @@ shinyServer(function(input, output, session) {
       if(class(df[,input$atributoUnaVariableGrafica])!="character"){
       switch(input$tipoExploracionGrafica1, 
              histograma={
-               if (class(df[,input$atributoUnaVariableGrafica])=="numeric"){
+               if (class(df[,input$atributoUnaVariableGrafica])=="numeric" || class(df[,input$atributoUnaVariableGrafica])=="integer"){
                       hist(df[,input$atributoUnaVariableGrafica],main = "Histograma", xlab=input$atributoUnaVariableGrafica)
                  #Mensaje positivo
                       output$mensajes_exploracionGrafica <- renderText(
@@ -846,7 +869,7 @@ shinyServer(function(input, output, session) {
       if(class(df[,input$atributoUnaVariableGrafica2])!="character"){
         switch(input$tipoExploracionGrafica2, 
                histograma={
-                 if (class(df[,input$atributoUnaVariableGrafica2])=="numeric"){
+                 if (class(df[,input$atributoUnaVariableGrafica2])=="numeric" || class(df[,input$atributoUnaVariableGrafica2])=="integer"){
                    hist(df[,input$atributoUnaVariableGrafica2],main = "Histograma", xlab=input$atributoUnaVariableGrafica2)
                    #Mensaje positivo
                    output$mensajes_exploracionGrafica2 <- renderText(
@@ -1733,8 +1756,29 @@ shinyServer(function(input, output, session) {
   #   })
   # })
   
+  #-------Clustering Jerarquico----
   
+  output$clusterj_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("clusterj_at1", "Atributo X:",items)
+    
+  })
   
+  output$clusterj_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("clusterj_at2", "Atributo Y:",items)
+    
+  })
+  
+  observeEvent(input$clusterj_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    
+  })
   
   
 })
