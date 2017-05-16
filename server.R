@@ -518,8 +518,8 @@ shinyServer(function(input, output, session) {
       #En este caso es que alguna variable es de tipo caracter con lo que hay que usar la estrategia names de columna
       factoresArray<-unique(df[,atributo])
       #arrayList<-strsplit(factoresArray,";")[[1]]
-      df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
-      
+      #df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
+      df[,atributo]<-factor(df[,atributo], levels=sort(factoresArray))
       output$dosvariables_mensajes_factorizar <- renderPrint({
         #Mensaje de ejecución
         print(paste("Se ha factorizado el atributo caracter(mejorar descripcion) intervalos"))
@@ -719,7 +719,7 @@ shinyServer(function(input, output, session) {
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("atributoUnaVariable", "Atributo:",items)
+      selectInput("atributoUnaVariableGrafica", "Atributo:",items)
       
     })
   
@@ -733,7 +733,7 @@ shinyServer(function(input, output, session) {
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("atributoUnaVariable", "Atributo:",items)
+      selectInput("atributoUnaVariableGrafica", "Atributo:",items)
       
     })
   })
@@ -811,7 +811,7 @@ shinyServer(function(input, output, session) {
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("atributoUnaVariable", "Atributo:",items)
+      selectInput("atributoUnaVariableGrafica2", "Atributo:",items)
       
     })
     
@@ -825,7 +825,7 @@ shinyServer(function(input, output, session) {
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("atributoUnaVariable", "Atributo:",items)
+      selectInput("atributoUnaVariableGrafica2", "Atributo:",items)
       
     })
   })
@@ -871,7 +871,7 @@ shinyServer(function(input, output, session) {
                  plot(df[,input$atributoUnaVariableGrafica2],main = "Plot", xlab=input$atributoUnaVariableGrafica2, ylab="Valores")   
                  #Mensaje positivo
                  output$mensajes_exploracionGrafica2 <- renderText(
-                   print(paste("Gráfica 2: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica2))
+                   print(paste("Gráfica 2: ",input$tipoExploracionGrafica2," del atributo ",input$atributoUnaVariableGrafica2))
                  )
                }
         )
@@ -1066,7 +1066,7 @@ shinyServer(function(input, output, session) {
       at1<-input$atributoDosVariablesGraficas1
       at2<-input$atributoDosVariablesGraficas2
       
-      if(class(df[,at1])=="factor" && class(df[,at2])=="factor"){
+      if( (class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered")   && (class(df[,at2][[1]])=="factor" || class(df[,at2][[1]])=="ordered")){
         
         output$mensajes_dosvar_exploracionGrafica <- renderPrint({
           print("Gráfica Factor/ Factor")
@@ -1082,7 +1082,7 @@ shinyServer(function(input, output, session) {
         
         plot(df[,at1],df[,at2])
         
-      }else if (class(df[,at1])!="character" && class(df[,at2])=="factor" ){
+      }else if (class(df[,at1])!="character" && (class(df[,at2][[1]])=="factor" || class(df[,at2][[1]])=="ordered")){
         
         output$mensajes_dosvar_exploracionGrafica <- renderPrint({
           print("Se muestra el gráfico de Numeral / Factor")
@@ -1090,10 +1090,10 @@ shinyServer(function(input, output, session) {
         
         boxplot(df[,at1] ~  df[,at2], main="Factor/Numeral")
         
-      }else if (class(df[,at1])=="factor" && class(df[,at2])=="numeric"){
+      }else if ((class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
          
          output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-            print("El atributo tipo factor debe asignarse a la variable Atributo2 para poder mostrar el diagrama de caja")
+            print("El atributo tipo factor debe asignarse a la variable Atributo 2, para poder mostrar el diagrama de caja")
           })
           
         }else{
@@ -1530,12 +1530,18 @@ shinyServer(function(input, output, session) {
     
   })
   
+  
   #Ejecutamos la función de clustering
   observeEvent(input$cluster_Action,{
     df<-filedata()
     if (is.null(df)) return(NULL)
     #Random
     set.seed(123)
+    
+    #EL dataset debe contener las 2 columnas seleccionadas únicamente
+    df<-df[,c(input$cluster_at2,input$cluster_at1)]
+    
+    
     #Hacemos globales los modelos
     dos<<-kmeans(df,as.numeric(input$cluster_n1))
     tres<<-kmeans(df,as.numeric(input$cluster_n2))
@@ -1544,17 +1550,32 @@ shinyServer(function(input, output, session) {
     output$cluster_print1 <- renderPrint({ dos })
     output$cluster_print2 <- renderPrint({ tres })
     
+    # #Generramos el modelo hibrido
+    # ncolsDF<-ncol(df)
+    # clusTotal<-cbind (df, clus1<-dos$cluster, clus2<-tres$cluster)
+    # hibrido<-cbind(clusTotal, forma_hibrida=rep(0, dim(clusTotal)[1]))
+    # for (e in 1:dim(hibrido[1])[1]){
+    #   if (hibrido[e,ncolsDF+1] == hibrido[e,ncolsDF+2]){
+    #     hibrido[e,ncolsDF+3]<-hibrido[e,ncolsDF+3]
+    #   }
+    #   if (hibrido[e,ncolsDF+1] != hibrido[e,ncolsDF+2]){
+    #     hibrido[e,ncolsDF+3]<-hibrido[e,ncolsDF+3]+15
+    #   }
+    # }
+    # hibridoCluster<<-hibrido
     
     #Creamos un fichero con dos nuevas columnas con el cluster al que pertenece el registro
     clus<-cbind(df,clus2=dos$cluster,clus3=tres$cluster)
     at1<<-clus[,input$cluster_at1]
     at2<<-clus[,input$cluster_at2]
     
+    
     #Dibujamos cluster 1
     output$cluster_plot1 <- renderPlot({
-      plot(at1, at2, col=dos$cluster, asp=1, 
+      plot(at1, at2, col=dos$cluster, #asp=1
            pch=dos$cluster, main="Dos Clusters",
-           xlab="Atributo X", ylab="Atributo Y")
+           xlab="Atributo X", ylab="Atributo Y",
+           xlim=c(min(at1),max(at1)), ylim=c(min(at2),max(at2)))
       points(dos$centers[,2], dos$centers[,1], pch=23,
              col="maroon", bg="lightblue", cex=3)
       text(dos$centers[,2], dos$centers[,1], cex=1.1,
@@ -1563,7 +1584,7 @@ shinyServer(function(input, output, session) {
     
     #Dibujamos cluster 2
     output$cluster_plot2 <- renderPlot({
-      plot(at1, at2, col=tres$cluster, asp=1, 
+      plot(at1, at2, col=tres$cluster, #asp=1, 
            pch=tres$cluster, main="Tres Clusters",
            xlab="Atributo X", ylab="Atributo Y")
       points(tres$centers[,2], tres$centers[,1], pch=23,
@@ -1572,6 +1593,18 @@ shinyServer(function(input, output, session) {
            col="black", attributes(tres$centers)$dimnames[[1]])
     })
     
+    # #Dibujamos el modelo hibrido
+    # output$cluster_plot3 <- renderPlot({
+    #   plot(at1, at2, col=dos$cluster,
+    #        main="Modelo Hibrido",
+    #        pch=hibrido$forma_hibrida, cex=1.1,
+    #        xlab="Atributo X", ylab="Atributo Y", asp=1)
+    #   points(tres$centers[1:2,2], tres$centers[1:2,1], pch=23,
+    #          col="maroon", bg="lightblue", cex=3)
+    #   text(tres$centers[1:2,2], tres$centers[1:2,1], cex=1.1,
+    #        col="black", attributes(dos$centers)$dimnames[[1]])
+    # })
+    
   })
  
 
@@ -1579,13 +1612,13 @@ shinyServer(function(input, output, session) {
     
     
   
-  
+
    #Actualizamos la salida en función de los valores de los combos
   observe({
     clus1<-input$cluster_explo1
     output$cluster_print1 <- renderPrint({
-      
-      switch(clus1, 
+
+      switch(clus1,
              Sumario={
                dos
              },
@@ -1596,7 +1629,7 @@ shinyServer(function(input, output, session) {
                dos$centers
              },
              Totss={
-               dos$totss   
+               dos$totss
              },
              Withinss={
                dos$withinss
@@ -1619,12 +1652,12 @@ shinyServer(function(input, output, session) {
       )
     })
   })
-  
+
   observe({
     clus2<-input$cluster_explo2
     output$cluster_print2 <- renderPrint({
-      
-      switch(clus2, 
+
+      switch(clus2,
              Sumario={
                tres
              },
@@ -1635,7 +1668,7 @@ shinyServer(function(input, output, session) {
                tres$centers
              },
              Totss={
-               tres$totss   
+               tres$totss
              },
              Withinss={
                tres$withinss
@@ -1655,10 +1688,52 @@ shinyServer(function(input, output, session) {
              Ifault={
                tres$ifault
              }
-             
+
       )
     })
   })
+  
+  # #Actualizamos la salida del modelo hibrido
+  # observe({
+  #   clus3<-input$cluster_explo3
+  #   output$cluster_print3 <- renderPrint({
+  #     
+  #     switch(clus3, 
+  #            Sumario={
+  #              hibridoCluster
+  #            },
+  #            Clusters={
+  #              hibridoCluster$cluster
+  #            },
+  #            Centers={
+  #              hibridoCluster$centers
+  #            },
+  #            Totss={
+  #              hibridoCluster$totss   
+  #            },
+  #            Withinss={
+  #              hibridoCluster$withinss
+  #            },
+  #            Tot.Withinss={
+  #              hibridoCluster$tot.withinss
+  #            },
+  #            Betweens={
+  #              hibridoCluster$betweens
+  #            },
+  #            Size={
+  #              hibridoCluster$size
+  #            },
+  #            Iter={
+  #              hibridoCluster$iter
+  #            },
+  #            Ifault={
+  #              hibridoCluster$ifault
+  #            }
+  #     )
+  #   })
+  # })
+  
+  
   
   
   
