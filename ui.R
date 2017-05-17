@@ -4,7 +4,7 @@ library(shinyFiles)
 library(stringr)
 library(psych)
 library(corrgram)
-
+library(dendextend)
 
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
@@ -472,12 +472,24 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clusterj_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clusterj_nclusters","Número de clusters:")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#clusterj_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_Action", "Ejecutar",style=blueStyle)),
                          br(),
                          verbatimTextOutput("clusterj_msj")
-            ))
-            ),
+            )),
+            fluidRow(
+              conditionalPanel(condition ="input.clusterj_Action",
+                               box(width = 12, 
+                                   plotOutput("clusterj_plot1",click = "clusterj_plot1_click"),
+                                   div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clusterj_corte","Valor de corte:")),
+                                   tags$style(type='text/css', "#clusterj_AddValorCorte { width:100%; margin-top: 25px;}"),
+                                   div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_AddValorCorte", "Dibujar",style=blueStyle)),
+                                   br(),
+                                   verbatimTextOutput("clusterj_print")
+                               ))
+            )),
             
           
             

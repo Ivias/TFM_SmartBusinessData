@@ -1,4 +1,4 @@
-2
+
 shinyServer(function(input, output, session) {
 
 #Cargamos el archivo CSV
@@ -1774,11 +1774,52 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #Funciones que se ejecutan al pulsar el botón de acción
   observeEvent(input$clusterj_Action,{
     df<-filedata()
     if (is.null(df)) return(NULL)
+    #Guardamos las variables
+    at1<-input$clusterj_at1
+    at2<-input$clusterj_at2
+    
+    #Generamos un nuevo fichero a partir de las dos columnas
+    df<-df[,c(at1,at2)]
+    
+   #Nomalizamos las escalas añadiendo dos nuevas columnas al dataset
+    df[,paste(at1,"scale",sep="_")]<-as.numeric(scale(df[,at1]))
+    df[,paste(at2,"scale",sep="_")]<-as.numeric(scale(df[,at2]))
+   #Creamos la semilla y el modelo jerarquico
+    set.seed(456)
+    hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
+    #Visualizacion del modelo y exportamos a variable global
+    dendro<<-as.dendrogram(hc_model)
+    #Exportamos como variable global para que pueda ser recogido por el siguiente evento
+    dendro_six_color<<-color_branches(dendro, k=input$clusterj_nclusters)
+    
+    output$clusterj_plot1 <- renderPlot({
+      plot(dendro_six_color,leaflab="none", horiz=TRUE,
+           main="Dendrograma de los atributos seleccionados", xlab="Altura")
+      #abline(v=37.5, lty="dashed", col="blue")
+    })
+    
+   
     
   })
+  
+  observeEvent(input$clusterj_AddValorCorte,{
+    valor<-input$clusterj_corte
+    output$clusterj_plot1 <- renderPlot({
+      plot(dendro_six_color,leaflab="none", horiz=TRUE,
+           main="Dendrograma de los atributos seleccionados", xlab="Altura")
+      abline(v=valor, lty="dashed", col="blue")
+    })
+    
+    output$clusterj_print <- renderPrint({
+      str(cut(dendro,h=valor)$upper)
+    })
+    
+  })
+  
   
   
 })
