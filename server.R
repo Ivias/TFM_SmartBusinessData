@@ -1820,7 +1820,72 @@ shinyServer(function(input, output, session) {
     
   })
   
+  #Evaluación de los modelos de clustering
+  output$clustereva_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("clustereva_at1", "Atributo X:",items)
+    
+  })
   
+  output$clustereva_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("clustereva_at2", "Atributo Y:",items)
+    
+  })
+  
+  observeEvent(input$clustereva_Action,{
+    
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    #Guardamos las variables
+    at1<-input$clustereva_at1
+    at2<-input$clustereva_at2
+    
+    #Generamos un nuevo fichero a partir de las dos columnas
+    df<-df[,c(at1,at2)]
+    
+    #Nomalizamos las escalas añadiendo dos nuevas columnas al dataset
+    df[,paste(at1,"scale",sep="_")]<-as.numeric(scale(df[,at1]))
+    df[,paste(at2,"scale",sep="_")]<-as.numeric(scale(df[,at2]))
+    
+    set.seed(456) 
+    dos <- kmeans(df[, 3:4], 2) 
+    tres <- kmeans(df[, 3:4], 3) 
+    cuatro <- kmeans(df[, 3:4], 4) 
+    cinco <- kmeans(df[, 3:4], 5) 
+    seis <- kmeans(df[, 3:4], 6) 
+    siete <- kmeans(df[, 3:4], 7) 
+    ocho <- kmeans(df[, 3:4], 8) 
+    nueve <- kmeans(df[, 3:4], 9) 
+    diez <- kmeans(df[, 3:4], 10) 
+   
+    
+  # Evaluamos los modelos 
+    optimizado <- data.frame(clusters = c(2:10), wss = rep(0, 9)) 
+    optimizado[1, 2] <- as.numeric(dos$tot.withinss) 
+    optimizado[2, 2] <- as.numeric(tres$tot.withinss) 
+    optimizado[3, 2] <- as.numeric(cuatro$tot.withinss) 
+    optimizado[4, 2] <- as.numeric(cinco$tot.withinss) 
+    optimizado[5, 2] <- as.numeric(seis$tot.withinss) 
+    optimizado[6, 2] <- as.numeric(siete$tot.withinss) 
+    optimizado[7, 2] <- as.numeric(ocho$tot.withinss) 
+    optimizado[8, 2] <- as.numeric(nueve$tot.withinss) 
+    optimizado[9, 2] <- as.numeric(diez$tot.withinss) 
+    
+    output$clusterelbow_plot1 <- renderPlot({
+      
+      plot(optimizado$wss ~ optimizado$clusters, type = "b",  
+                  ylim = c(0, 12000), ylab = 'Suma del Error Cuadrático', 
+                  main = 'Número óptimo del cluster basado en el error', 
+                  xlab = 'Número de clusters', pch = 17, col = 'black') 
+       })
+    
+    #Continuamos mostrando las graficas comparadas
+  })
   
 })
 

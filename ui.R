@@ -47,7 +47,8 @@ dashboardPage(
       menuItem("CLUSTERS", tabName = "clusters",icon = icon("snowflake-o"),
                collapsible = TRUE,
                menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
-               menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree"))),
+               menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree")),
+               menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("tree"))),
       
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -491,8 +492,39 @@ dashboardPage(
                                ))
             )),
             
-          
+    #Evaluación de los clusters    
+    tabItem(tabName = "evaluaciones",
+            fluidRow(box(tags$p("EVALUACIONES DE LOS ALGORITMOS DE CLUSTERING", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clustereva_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clustereva_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#clustereva_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_Action", "Evaluar",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("clustereva_msj"))),
+            fluidRow(conditionalPanel(condition ="input.clustereva_Action",
+                     box(tags$p("GRÁFICAS DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                          plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click"),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clustereva_compa","2 valores (;)")),
+                         tags$style(type='text/css', "#clustereva_CompaAction { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_CompaAction", "Comparar",style=blueStyle)),
+                         br()))),
+            fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
+                       box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
+                          plotOutput("clustereva_plot1",click = "clustereva_plot1_click"),
+                          plotOutput("clustereva_plot2",click = "clustereva_plot2_click")),
+                       box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
+                          plotOutput("clustereva_plot3",click = "clustereva_plot3_click"),
+                          plotOutput("clustereva_plot4",click = "clustereva_plot4_click")),
+                          br(),
+                          verbatimTextOutput("clustereva_print")
+                      ))
+                    ),
             
+                 
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
