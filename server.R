@@ -1788,6 +1788,10 @@ shinyServer(function(input, output, session) {
    #Nomalizamos las escalas añadiendo dos nuevas columnas al dataset
     df[,paste(at1,"scale",sep="_")]<-as.numeric(scale(df[,at1]))
     df[,paste(at2,"scale",sep="_")]<-as.numeric(scale(df[,at2]))
+    
+    #Lo globalizamos para que sea accesible
+    fileClusterNorm<<-df
+    
    #Creamos la semilla y el modelo jerarquico
     set.seed(456)
     hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
@@ -1808,6 +1812,7 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$clusterj_AddValorCorte,{
     valor<-input$clusterj_corte
+    
     output$clusterj_plot1 <- renderPlot({
       plot(dendro_six_color,leaflab="none", horiz=TRUE,
            main="Dendrograma de los atributos seleccionados", xlab="Altura")
@@ -1817,10 +1822,62 @@ shinyServer(function(input, output, session) {
     output$clusterj_print <- renderPrint({
       str(cut(dendro,h=valor)$upper)
     })
+  
+    output$clusterj_plotFinal <- renderPlot({
+      #Incluimos la gráfica de análisis para jerarquía
+      #Preparing the Results 
+      df<-fileClusterNorm
+      
+      #Guardamos las variables
+      at1<-input$clusterj_at1
+      at2<-input$clusterj_at2
+      
+      #Creamos la semilla y el modelo jerarquico
+      set.seed(456)
+      hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
+      
+      #Visualizacion del modelo y exportamos a variable global
+      
+      dendrog<<-as.dendrogram(hc_model)
+      
+      modelo <- kmeans(df[, 3:4], as.numeric(input$clusterj_nclusters)) 
+      
+      
+      #Continuamos mostrando las graficas comparadas
+      df$clusModelo <- modelo$cluster 
+      dend_modelo <- cutree(dendrog, k = as.numeric(input$clusterj_nclusters)) 
+      df$dendModelo <- dend_modelo 
+      
+      
+      if(!require("dplyr")) install.packages("dplyr") 
+      suppressMessages(suppressWarnings(library(dplyr))) 
+      
+      #Tenemos que cambiar el valor de age e incoming para poder 
+      #usarlos como simbolos en la agrupación siguiente de labels
+      colnames(df)[1] <- "var1"
+      colnames(df)[2] <- "var2"
+      
+      #Creamos un nuevo dataframe agrupando
+      labels <- as.data.frame(df %>%  
+                                group_by(dendModelo) %>%  
+                                summarise(avg_age = median(var1), avg_inc = median(var2))) 
+      
+      #Dibujamos la gráfica teniendo en cuenta que hemocs cambiado el nombre de las 2 primeras columnas
+      plot(df$var1, df$var2, col = df$dendModelo, 
+           pch = df$dendModelo - 1, xlab = at1, ylab = at2, 
+           main = "Marketing Clusters from Hierarchical Clustering \n (Labels show medians of age and income for cluster)") 
+      #Añadimos los centros
+      points(labels[ ,2], labels[ ,3], pch = 21, col = 'maroon', bg = 'white', cex = 3) 
+      #Texto de los centros
+      text(labels[, 2], labels[, 3], cex = 1.1, col = 'black', labels[, 1]) 
+    })
     
   })
   
-  #Evaluación de los modelos de clustering
+  
+  
+  
+  #-----------Evaluación de los modelos de clustering
   output$clustereva_at1 <- renderUI({
     df<-filedata()
     if (is.null(df)) return(NULL)
@@ -1884,8 +1941,99 @@ shinyServer(function(input, output, session) {
                   xlab = 'Número de clusters', pch = 17, col = 'black') 
        })
     
-    #Continuamos mostrando las graficas comparadas
+   
   })
   
+  observeEvent(input$clustereva_CompaAction,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    #Guardamos las variables
+    at1<-input$clustereva_at1
+    at2<-input$clustereva_at2
+    
+    #Generamos un nuevo fichero a partir de las dos columnas
+    df<-df[,c(at1,at2)]
+    
+    #Nomalizamos las escalas añadiendo dos nuevas columnas al dataset
+    df[,paste(at1,"scale",sep="_")]<-as.numeric(scale(df[,at1]))
+    df[,paste(at2,"scale",sep="_")]<-as.numeric(scale(df[,at2]))
+    
+    #Creamos la semilla y el modelo jerarquico
+    set.seed(456)
+    hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
+    
+    #Visualizacion del modelo y exportamos a variable global
+    dendro<<-as.dendrogram(hc_model)
+    
+    cinco <- kmeans(df[, 3:4], as.numeric(input$cluster_eval1)) 
+    seis <- kmeans(df[, 3:4], as.numeric(input$cluster_eval2)) 
+    
+    #Continuamos mostrando las graficas comparadas
+    df$clus5 <- cinco$cluster 
+    dend_five <- cutree(dendro, k = as.numeric(input$cluster_eval1)) 
+    df$dend5 <- dend_five 
+    
+    
+    df$clus6 <- seis$cluster 
+    dend_six <- cutree(dendro, k = as.numeric(input$cluster_eval2)) 
+    df$dend6 <- dend_six 
+    
+    # Choosing a Model 
+    output$clustereva_plot1 <- renderPlot({
+      #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
+      plot(df$age, df$income, col = cinco$cluster, 
+        pch = cinco$cluster, xlab = '', main = '5-means Clustering') 
+    })
+    
+    output$clustereva_plot3 <- renderPlot({
+      #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
+      plot(df$age, df$income, col = seis$cluster, xlab = '', 
+        ylab = '', pch = seis$cluster, main = '6-means Clustering') 
+    
+    })
+    
+    output$clustereva_plot2 <- renderPlot({
+      #par(mar = c(5, 4, 2, 2) + 0.1) 
+      plot(df$age, df$income, col = df$dend5, 
+             pch = df$dend5, main = 'k = 5 Hierarchical') 
+    })
+    
+    output$clustereva_plot4 <- renderPlot({
+      #par(mar = c(5, 4, 2, 2) + 0.1) 
+      plot(df$age, df$income, col = df$dend6, ylab = '',  
+            pch = df$dend6, main = 'k = 6 Hierarchical') 
+    })
+   # par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1) 
+   
+    # output$cluster_EvalFinal <- renderUI({
+    #   # var1=input$cluster_eval1
+    #   # var2=paste(input$cluster_eval1
+    #   # var3=paste(input$cluster_eval2,"_K-means")
+    #   # var4=paste(input$cluster_eval2,"_K-means")
+    #   
+    #   items=names(df)
+    #   # selectInput("cluster_EvalFinal", "Selec. Modelo",
+    #   #             c(paste0(input$cluster_eval1,"-means")="modelo1",
+    #   #               # paste(input$cluster_eval1,"K-means")="modelo2",
+    #   #               # paste(input$cluster_eval2,"K-means")="modelo3",
+    #   #               var2="modelo4"),
+    #   #             selected="modelo1")
+    #   selectInput("cluster_EvalFinal", "Selec. Modelo",
+    #               list(`K-means` = c(paste0(input$cluster_eval1,"-means"), paste0(input$cluster_eval2,"-means")),
+    #                    `Jerarquía` = c(paste0(input$cluster_eval1,"-Jerarquico"), paste0(input$cluster_eval2,"-Jerarquico"))
+    #                    )
+    #   )
+    #})
+    
+    #Esta parte finalmente se incluye en el apartado de clustering jerarquico.
+    
+  })
+  
+  observeEvent(input$clustereva_SelectAction,{
+
+    print("Hola")
+    print("q")
+  })
+    
 })
 

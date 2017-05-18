@@ -489,8 +489,12 @@ dashboardPage(
                                    div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_AddValorCorte", "Dibujar",style=blueStyle)),
                                    br(),
                                    verbatimTextOutput("clusterj_print")
-                               ))
-            )),
+                               ),
+                               box(width = 12, 
+                                   plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click")
+                               )
+                            
+            ))),
             
     #Evaluación de los clusters    
     tabItem(tabName = "evaluaciones",
@@ -505,24 +509,56 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("clustereva_msj"))),
             fluidRow(conditionalPanel(condition ="input.clustereva_Action",
+             box(tags$p("EVALUACIONES DE LOS ALGORITMOS DE CLUSTERING", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                
+                fluidRow(conditionalPanel(condition ="input.clustereva_Action",
                      box(tags$p("GRÁFICAS DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                           plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click"),
                          br(),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clustereva_compa","2 valores (;)")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval1", "Grupo 1",
+                                                                                                         c("2"="2",
+                                                                                                           "3" = "3",
+                                                                                                           "4" = "4",
+                                                                                                           "5"="5",
+                                                                                                           "6"="6",
+                                                                                                           "7"="7",
+                                                                                                           "8"="8",
+                                                                                                           "9"="9",
+                                                                                                           "10"="10"),
+                                                                                                         selected="dos$cluster"
+                         )),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval2", "Grupo 2",
+                                                                                                         c("2"="2",
+                                                                                                           "3" = "3",
+                                                                                                           "4" = "4",
+                                                                                                           "5"="5",
+                                                                                                           "6"="6",
+                                                                                                           "7"="7",
+                                                                                                           "8"="8",
+                                                                                                           "9"="9",
+                                                                                                           "10"="10"),
+                                                                                                         selected="tres$cluster"
+                         )),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#clustereva_CompaAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_CompaAction", "Comparar",style=blueStyle)),
                          br()))),
-            fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
+             fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
                        box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                           plotOutput("clustereva_plot1",click = "clustereva_plot1_click"),
                           plotOutput("clustereva_plot2",click = "clustereva_plot2_click")),
                        box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                           plotOutput("clustereva_plot3",click = "clustereva_plot3_click"),
-                          plotOutput("clustereva_plot4",click = "clustereva_plot4_click")),
-                          br(),
-                          verbatimTextOutput("clustereva_print")
-                      ))
-                    ),
+                          plotOutput("clustereva_plot4",click = "clustereva_plot4_click"))
+                       # box(tags$p("SELECCIÓN ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                       #     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_EvalFinal")),
+                       #     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                       #     tags$style(type='text/css', "#clustereva_SelectAction { width:100%; margin-top: 25px;}"),
+                       #     div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_SelectAction", "Seleccionar",style=blueStyle)),
+                       #     verbatimTextOutput("clustereva_print"))
+             ))   
+            )))),
             
                  
     #MongoDB         
