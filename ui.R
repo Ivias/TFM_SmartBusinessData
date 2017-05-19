@@ -5,6 +5,9 @@ library(stringr)
 library(psych)
 library(corrgram)
 library(dendextend)
+library(TSA)
+library(forecast)
+library(lubridate)
 
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
@@ -491,7 +494,9 @@ dashboardPage(
                                    verbatimTextOutput("clusterj_print")
                                ),
                                box(width = 12, 
-                                   plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click")
+                                   plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%"),
+                                   verbatimTextOutput("clusterj_print1"),
+                                   verbatimTextOutput("clusterj_print2")
                                )
                             
             ))),
@@ -551,6 +556,8 @@ dashboardPage(
                        box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                           plotOutput("clustereva_plot3",click = "clustereva_plot3_click"),
                           plotOutput("clustereva_plot4",click = "clustereva_plot4_click"))
+                       
+                           
                        # box(tags$p("SELECCIÓN ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                        #     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_EvalFinal")),
                        #     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),

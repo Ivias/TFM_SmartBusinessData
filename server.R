@@ -1857,6 +1857,9 @@ shinyServer(function(input, output, session) {
       colnames(df)[1] <- "var1"
       colnames(df)[2] <- "var2"
       
+      #Esportamos para que lo recojan las funciones de print más abajo
+      dfmodelado<<-df
+      
       #Creamos un nuevo dataframe agrupando
       labels <- as.data.frame(df %>%  
                                 group_by(dendModelo) %>%  
@@ -1864,7 +1867,7 @@ shinyServer(function(input, output, session) {
       
       #Dibujamos la gráfica teniendo en cuenta que hemocs cambiado el nombre de las 2 primeras columnas
       plot(df$var1, df$var2, col = df$dendModelo, 
-           pch = df$dendModelo - 1, xlab = at1, ylab = at2, 
+           pch = df$dendModelo - 1, xlab = at1, ylab = at2,
            main = "Marketing Clusters from Hierarchical Clustering \n (Labels show medians of age and income for cluster)") 
       #Añadimos los centros
       points(labels[ ,2], labels[ ,3], pch = 21, col = 'maroon', bg = 'white', cex = 3) 
@@ -1872,6 +1875,17 @@ shinyServer(function(input, output, session) {
       text(labels[, 2], labels[, 3], cex = 1.1, col = 'black', labels[, 1]) 
     })
     
+    output$clusterj_print1 <- renderPrint({
+      dfmodelado %>% group_by(dendModelo) %>% summarise(ClusterSize = n()) 
+    })
+    
+    output$clusterj_print2 <- renderPrint({ 
+      dfmodelado %>% group_by(dendModelo) %>%  
+        summarise(min_age = min(var1), med_age = median(var1), 
+                  max_age = max(var1), med_inc = median(var2), 
+                  min_inc = min(var2), max_inc = max(var2)) 
+    })
+      
   })
   
   
