@@ -26,8 +26,8 @@ dashboardPage(
       menuItem("OPERACIONES", tabName = "operaciones", icon = icon("sticky-note-o"),
               collapsible = TRUE,
               menuSubItem("Consultas", tabName = "consulta",icon = icon("book")),
-              menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower")),
-              menuSubItem("Edición", tabName = "edicion",icon = icon("edit"))
+              menuSubItem("Edición", tabName = "edicion",icon = icon("edit")),
+              menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower"))
                ),
      
       menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
@@ -67,7 +67,7 @@ dashboardPage(
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain')),
                                     verbatimTextOutput("mensajes_carga"))),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
-                                    box(title = "Datos Cargados", width = NULL, status = "primary",
+                                    box(title = "Datos Cargados", width = 12, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
                                    )))
                       #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
@@ -78,8 +78,13 @@ dashboardPage(
               verbatimTextOutput("controlDeCarga_Consulta"),
               conditionalPanel(condition="output.filedatacargado",
               fluidRow(
-                       box(
-                            uiOutput("variables"),
+                        box(width = 12,
+                            title="Estructura del Dataset",verbatimTextOutput("TextoSTR",placeholder = TRUE)
+                        ),
+                        box(width = 12,
+                            div(style="padding: 0 5px 0 0; display: block;width: 100%; float: left",uiOutput("variables")),
+                            br(),
+                            br(),
                             div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("var1")),
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                             div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("val1")),
@@ -93,96 +98,95 @@ dashboardPage(
                             
                             #The action button prevents an action firing before we're ready
                             actionButton("SeleccionarVariables", "Seleccionar Variables",style=blueStyle),
+                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                            shinySaveButton("guardarFiltro", "Guardar Filtro", class="shinySave btn-primary", "Guardar archivo como ...", filetype=list(csv="csv")),
                             br(),
                             br(),
                             verbatimTextOutput("consulta_msj")
-                          ),
-                      box(title="Estructura del Dataset",verbatimTextOutput("TextoSTR",placeholder = TRUE)
-                      ),
-                      box(#titlePanel("Guardar archivo"),
-                          shinySaveButton("guardarFiltro", "Guardar Filtro", "Guardar archivo como ...", filetype=list(csv="csv"))
-                          
-                      )),
-              fluidRow(tableOutput("filetablecolumnas")))
-            ),
+                            )),
+                      
+                    fluidRow(box(title = "Datos Filtrados", width = 12, status = "primary",
+                  div(style = 'overflow-x: scroll', tableOutput("filetablecolumnas"))))
+            )),
       
-      tabItem(tabName = "limpieza",
-              tags$style(type='text/css', '#controlDeCarga_Limpieza {background-color: rgba(0,0,255,0.10); color: blue;}'),
-              verbatimTextOutput("controlDeCarga_Limpieza"),
-              conditionalPanel(condition ="output.filedatacargado",
-                fluidRow(
-                  box(title="Buscar Valores NA",width = 12,
-                    actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                    div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
-                    actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                    actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                    br(),
-                    br(),
-                    verbatimTextOutput("mensajes_limpiezaNA"),
-                    tableOutput("resultados_limpiezaNA")
-                    )
-                  ),
-                
-                fluidRow(
-                  box(title="Buscar Valores Anómalos",width = 12,
-                    div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosLimpieza")),
-                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
-                    div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoDato_Limpieza", "Tipo de Dato:",
-                                                                                                     c("String" = "string",
-                                                                                                       "Número" = "numero"
-                                                                                                       ))),
-                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
-                    tags$style(type='text/css', "#valoresAnomalos_Buscar { width:100%; margin-top: 25px;}"),
-                    div(style="display: inline-block;vertical-align:top; width: 100px;",actionButton("valoresAnomalos_Buscar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
-                    div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
-                    tags$style(type='text/css', "#valoresAnomalos_Limpiar { width:100%; margin-top: 25px;}"),
-                    div(style="display: inline-block;vertical-align:top; width: 120px;",actionButton("valoresAnomalos_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
-                    br(),
-                    verbatimTextOutput("mensajes_limpiezaAnomalos"),
-                    tableOutput("resultados_limpiezaAnomalos")
-                    #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarValoresErroneos_Limpiar","Borrar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
-                    
-              )),
-                
-                #fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
-                #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
-                fluidRow(box(width = 12,
-                             shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
-                             )))
-              ),
               
       tabItem(tabName = "edicion",
               tags$style(type='text/css', '#controlDeCarga_Edicion {background-color: rgba(0,0,255,0.10); color: blue;}'),
               verbatimTextOutput("controlDeCarga_Edicion"),
               conditionalPanel(condition="output.filedatacargado",
                fluidRow(
-                box(title="Añadir Atributos",width = 12,
-                  div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
-                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                  div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosEdicion")),
-                  div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
-                  div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("operacion", "Operacion:",
-                                                                                                   c("Suma" = "sum",
-                                                                                                     "Resta" = "rest",
-                                                                                                     "Multiplicación" = "mul",
-                                                                                                     "División" = "div"))),
-                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                  
-                  div(style="display: inline-block;vertical-align:top; width: 100px;",selectInput("edicion_tipoDato", "Tipo de dato:",c("Factor","Atributo"),selected=1,width="150px")),
-                  
-                  div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Factor'",textInput("factorNumerico", "Valor",width="100px"))),
-                  div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Atributo'",div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("otroAtributo")))),
-
-                  br(),
-                  div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarAtributo", "Ejecutar",style=blueStyle))
-              )),
-      fluidRow(box(title = "Tabla Resultante", width = NULL, status = "primary",
-                   div(style = 'overflow-x: scroll', tableOutput("filetabledicion")))),
-
-      fluidRow(box(width = 12,
-                   shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))))
-      )),
-      
+                  box(title="Añadir Atributos",width = 12,
+                    div(style="display: inline-block;vertical-align:top; width: 130px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
+                    div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosEdicion")),
+                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                    div(style="display: inline-block;vertical-align:top; width: 130px;", selectInput("operacion", "Operacion:",
+                                                                                                     c("Suma" = "sum",
+                                                                                                       "Resta" = "rest",
+                                                                                                       "Multiplicación" = "mul",
+                                                                                                       "División" = "div"))),
+                    div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                    
+                    div(style="display: inline-block;vertical-align:top; width: 100px;",selectInput("edicion_tipoDato", "Tipo de dato:",c("Factor","Atributo"),selected=1,width="150px")),
+                    
+                    div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Factor'",textInput("factorNumerico", "Valor",width="100px"))),
+                    div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Atributo'",div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("otroAtributo")))),
+                    br(),
+                    br(),
+                    div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarAtributo", "Añadir Atributo",style=blueStyle)),
+                    div(style="display: inline-block;vertical-align:middle; width: 20px;",HTML("<br>")),
+                    shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
+                  )),
+               
+      fluidRow(box(width=12, 
+                   title = "Dataset Resultante", status = "primary",
+                   div(style = 'overflow-x: scroll', tableOutput("filetabledicion")))
+               ))),
+        
+      tabItem(tabName = "limpieza",
+              tags$style(type='text/css', '#controlDeCarga_Limpieza {background-color: rgba(0,0,255,0.10); color: blue;}'),
+              verbatimTextOutput("controlDeCarga_Limpieza"),
+              conditionalPanel(condition ="output.filedatacargado",
+                               fluidRow(
+                                 box(title="Buscar Valores NA",width = 12,
+                                     actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                     div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
+                                     actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                     actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+                                     br(),
+                                     br(),
+                                     verbatimTextOutput("mensajes_limpiezaNA"),
+                                     tableOutput("resultados_limpiezaNA")
+                                 )
+                               ),
+                               
+                               fluidRow(
+                                 box(title="Buscar Valores Anómalos",width = 12,
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosLimpieza")),
+                                     div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoDato_Limpieza", "Tipo de Dato:",
+                                                                                                                      c("String" = "string",
+                                                                                                                        "Número" = "numero"
+                                                                                                                      ))),
+                                     div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                                     tags$style(type='text/css', "#valoresAnomalos_Buscar { width:100%; margin-top: 25px;}"),
+                                     div(style="display: inline-block;vertical-align:top; width: 100px;",actionButton("valoresAnomalos_Buscar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+                                     div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
+                                     tags$style(type='text/css', "#valoresAnomalos_Limpiar { width:100%; margin-top: 25px;}"),
+                                     div(style="display: inline-block;vertical-align:top; width: 120px;",actionButton("valoresAnomalos_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+                                     br(),
+                                     verbatimTextOutput("mensajes_limpiezaAnomalos"),
+                                     tableOutput("resultados_limpiezaAnomalos")
+                                     #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarValoresErroneos_Limpiar","Borrar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+                                     
+                                 )),
+                               
+                               #fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
+                               #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
+                               fluidRow(box(width = 12,
+                                            shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
+                               )))
+      ),
       tabItem(tabName="factorizar",
               fluidRow(box(title="Sumario del Dataset",width = 12,
                            verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
@@ -195,8 +199,8 @@ dashboardPage(
               #   )),
               fluidRow(box(title="Factorizar una varibale",width = 12,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
-                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos")),
+                           div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")), 
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="input.dosvariables_Ui_atributos!='pop_density'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos"))),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
                            tags$style(type='text/css', "#dosvariables_Action_factoReset { width:100%; margin-top: 25px;}"),

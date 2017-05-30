@@ -56,46 +56,94 @@ shinyServer(function(input, output, session) {
   
   #------------------MENÚ DE CONSULTA DE DATOS--------------------------
   
-  #Renderizamos los combos en funcion de los datos del archivo
-  output$var1 <- renderUI({
-    df <-filedata()
-    if (is.null(df)) return(NULL)
+  # #Renderizamos los combos en funcion de los datos del archivo
+  # output$var1 <- renderUI({
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  # 
+  #   items=names(df)
+  #   selectInput("Variable1", "Variable 1:",items)
+  # 
+  # })
+  # 
+  # 
+  # output$val1 <- renderUI({
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   fr=input$Variable1
+  #   items=df[,fr]
+  # 
+  #   selectInput("Valor1", "Valor:",choices=c("",items))
+  # 
+  # })
+  # 
+  # 
+  # output$var2 <- renderUI({
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  # 
+  #   items=names(df)
+  #   #names(items)=items
+  #   selectInput("Variable2", "Variable 2:",items)
+  # 
+  # })
+  # 
+  # 
+  # output$val2 <- renderUI({
+  #   df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   fr=input$Variable2
+  #   items=df[,fr]
+  # 
+  #   selectInput("Valor2", "Valor:",choices=c("",items))
+  # 
+  # })
+  # 
+  #Los combos los atributos deben actualizarse de acuerdo a los checkbox seleccionados
+  observeEvent(input$variablesLista,{
+    file<- filedata()
+    file.subset <- file[, input$variablesLista]
     
-    items=names(df)
-    selectInput("Variable1", "Variable 1:",items)
+    output$var1 <- renderUI({
+      df <-file.subset
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      selectInput("Variable1", "Variable 1:",items)
+      
+    })
     
-  })
-  
-
-  output$val1 <- renderUI({
-    df <-filedata()
-    if (is.null(df)) return(NULL)
-    fr=input$Variable1
-    items=df[,fr]
     
-    selectInput("Valor1", "Valor:",items,selected = NULL)
+    output$val1 <- renderUI({
+      df <-file.subset
+      if (is.null(df)) return(NULL)
+      fr=input$Variable1
+      items=df[,fr]
+      
+      selectInput("Valor1", "Valor:",choices=c("",items))
+      
+    })
     
-  })
-  
-
-  output$var2 <- renderUI({
-    df <-filedata()
-    if (is.null(df)) return(NULL)
+    output$var2 <- renderUI({
+      df <-file.subset
+      if (is.null(df)) return(NULL)
+      
+      items=names(df)
+      #names(items)=items
+      selectInput("Variable2", "Variable 2:",items)
+      
+    })
     
-    items=names(df)
-    #names(items)=items
-    selectInput("Variable2", "Variable 2:",items)
     
-  })
-  
-
-  output$val2 <- renderUI({
-    df <-filedata()
-    if (is.null(df)) return(NULL)
-    fr=input$Variable2
-    items=df[,fr]
-    
-    selectInput("Valor2", "Valor:",items,selected = NULL)
+    output$val2 <- renderUI({
+      df <-file.subset
+      if (is.null(df)) return(NULL)
+      fr=input$Variable2
+      items=df[,fr]
+      
+      selectInput("Valor2", "Valor:",choices=c("",items))
+      
+    })
     
   })
   
@@ -121,7 +169,7 @@ shinyServer(function(input, output, session) {
     if (is.null(df)) return(NULL)
     
     items=names(df)
-    checkboxGroupInput("variablesLista", "Variables del archivo:",items,selected=items,inline=TRUE,width="100%")
+    checkboxGroupInput("variablesLista", "Atributos del Dataset:",items,selected=items, inline = TRUE)
     
   })
   
@@ -144,7 +192,7 @@ shinyServer(function(input, output, session) {
      val1=input$Valor1
      var2=input$Variable2
      val2=input$Valor2
-     
+    
      if(val1!="" && val2=="" ){
        fileout <- file.subset[file.subset[,var1]==val1,]
      }else if(val2!="" && val1!="" ){
