@@ -1473,7 +1473,7 @@ shinyServer(function(input, output, session) {
     #Obtenemos la lista de columnas
     valoresX<-input$reglinealmulti_at1 
     arrayList<-strsplit(valoresX,";")[[1]]
-    X<-df[,as.numeric(arrayList)]
+    X<-df[,arrayList]
     
     at2<-input$reglinealmulti_at2
     Y<-df[,at2]
@@ -1483,10 +1483,10 @@ shinyServer(function(input, output, session) {
     xnom<-c("")
     
     for (i in 1:length(arrayList)){
-      if (class(df[,as.numeric(arrayList[i])])!="integer" && class(df[,as.numeric(arrayList[i])])!="numeric"){
+      if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric"){
         valorCaracter<-"True"
       }
-      assign(paste("X",arrayList[i],sep=""),df[,as.numeric(arrayList[i])])
+      assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
         
     }
         xnom <- paste("X",arrayList,sep="")
@@ -1776,6 +1776,7 @@ shinyServer(function(input, output, session) {
   
   #Funciones que se ejecutan al pulsar el botón de acción
   observeEvent(input$clusterj_Action,{
+    
     df<-filedata()
     if (is.null(df)) return(NULL)
     #Guardamos las variables
@@ -1795,16 +1796,18 @@ shinyServer(function(input, output, session) {
    #Creamos la semilla y el modelo jerarquico
     set.seed(456)
     hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
+    print("Voy a petar")
     #Visualizacion del modelo y exportamos a variable global
-    dendro<<-as.dendrogram(hc_model)
-    #Exportamos como variable global para que pueda ser recogido por el siguiente evento
-    dendro_six_color<<-color_branches(dendro, k=input$clusterj_nclusters)
-    
-    output$clusterj_plot1 <- renderPlot({
-      plot(dendro_six_color,leaflab="none", horiz=TRUE,
-           main="Dendrograma de los atributos seleccionados", xlab="Altura")
+    dendro<<-stats::as.dendrogram(hc_model)
+    print("dendr")
+     #Exportamos como variable global para que pueda ser recogido por el siguiente evento
+     dendro_six_color<<-color_branches(dendro, k=as.numeric(input$clusterj_nclusters))
+     print("dendrsix")
+      output$clusterj_plot1 <- renderPlot({
+        plot(dendro_six_color,leaflab="none", horiz=TRUE,
+             main="Dendrograma de los atributos seleccionados", xlab="Altura")
       #abline(v=37.5, lty="dashed", col="blue")
-    })
+      })
     
    
     
@@ -1812,13 +1815,13 @@ shinyServer(function(input, output, session) {
   
   observeEvent(input$clusterj_AddValorCorte,{
     valor<-input$clusterj_corte
-    
-    output$clusterj_plot1 <- renderPlot({
+
+     output$clusterj_plot1 <- renderPlot({
       plot(dendro_six_color,leaflab="none", horiz=TRUE,
-           main="Dendrograma de los atributos seleccionados", xlab="Altura")
-      abline(v=valor, lty="dashed", col="blue")
-    })
-    
+            main="Dendrograma de los atributos seleccionados", xlab="Altura")
+          abline(v=valor, lty="dashed", col="blue")
+     })
+
     output$clusterj_print <- renderPrint({
       str(cut(dendro,h=valor)$upper)
     })
@@ -1845,7 +1848,7 @@ shinyServer(function(input, output, session) {
       
       #Continuamos mostrando las graficas comparadas
       df$clusModelo <- modelo$cluster 
-      dend_modelo <- cutree(dendrog, k = as.numeric(input$clusterj_nclusters)) 
+      dend_modelo <- dendextend::cutree(dendrog, k = as.numeric(input$clusterj_nclusters)) 
       df$dendModelo <- dend_modelo 
       
       
@@ -1984,12 +1987,12 @@ shinyServer(function(input, output, session) {
     
     #Continuamos mostrando las graficas comparadas
     df$clus5 <- cinco$cluster 
-    dend_five <- cutree(dendro, k = as.numeric(input$cluster_eval1)) 
+    dend_five <- dendextend::cutree(dendro, k = as.numeric(input$cluster_eval1)) 
     df$dend5 <- dend_five 
     
     
     df$clus6 <- seis$cluster 
-    dend_six <- cutree(dendro, k = as.numeric(input$cluster_eval2)) 
+    dend_six <- dendextend::cutree(dendro, k = as.numeric(input$cluster_eval2)) 
     df$dend6 <- dend_six 
     
     # Choosing a Model 
