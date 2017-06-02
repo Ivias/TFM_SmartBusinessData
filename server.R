@@ -560,6 +560,19 @@ shinyServer(function(input, output, session) {
     
   })
   
+
+  #---------------Para dibujar en UI.R el cuadro de intervalos---------
+
+    output$intervalos<-reactive({
+      df <-filedata()
+      if (is.null(df)) return(NULL)
+      atributo<-input$dosvariables_Ui_atributos
+      if(class(df[,atributo])=="numeric"){interv<-"TRUE"}else{inter<-"FALSE"}
+    })
+    outputOptions(output, 'intervalos', suspendWhenHidden = FALSE)
+
+  #---------------Fin para dibujar en UI.R el cuadro de intervalos---------
+  
   #Función que factoriza un atributo en un número de intervalos
   Funcion_FactorizarConDosVariables<-eventReactive(input$dosvariables_Action_factorizar,{
     if (ficheroFactorizado=="True"){
@@ -568,7 +581,9 @@ shinyServer(function(input, output, session) {
       df <-filedata()
       if (is.null(df)) return(NULL)
     }
+    
     atributo<-input$dosvariables_Ui_atributos
+    
     if (class(df[,atributo])=="numeric" || class(df[,atributo])=="integer"){
       df[,paste(atributo,"_factor_",input$dosvariables_TextInput_intervalos,sep="")]<-cut(df[,atributo],as.numeric(input$dosvariables_TextInput_intervalos))
       
@@ -2094,11 +2109,95 @@ shinyServer(function(input, output, session) {
     
   })
   
-  observeEvent(input$clustereva_SelectAction,{
+  # observeEvent(input$clustereva_SelectAction,{
+  # 
+  #   print("Hola")
+  #   print("q")
+  # })
+  #   
+  
+  
+  #-------SERIES TEMPORALES---------
+  #------------ARIMA----------------
+  
 
-    print("Hola")
-    print("q")
-  })
+  #Evento que ejecuta la función anterior
+  observeEvent(input$arima_predAction, {
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    condicion<-Funcion_arimaModelCondicion(df)
+    if (condicion=="TRUE"){
+      
+      mensual<<-Funcion_arimaTabla(condicion,df)
+      #Print de la representación tabular de la tabla temporal generada
+      output$arima_print1 <- renderPrint({
+        mensual
+      })
+      
+      #Mensaje de ejecución
+      output$arima_msj <- renderPrint({
+        print("Se muestran los resultados de la conversión de la serie temporal")
+      })
+      
+      #Plot de las gráficas de descomposición en componentes
+      output$arima_plot1 <- renderPlot(height = 600,{
+        plot(decompose(mensual))
+                                      
+      })
+      
+      #Plot de las gráficas diff
+      output$arima_plot2 <- renderPlot({
+        par(mfrow = c(1, 3))
+        plot(mensual, ylim = c(-30000, max(mensual)))
+        plot(diff(mensual), ylim = c(-30000, max(mensual)))
+        plot(diff(diff(mensual), lag = 12), ylim = c(-30000, max(mensual)))
+        par(mfrow = c(1, 1))
+      })
+      
+      #Plot de las gráficas ACF y PACF
+      output$arima_plot3 <- renderPlot({
+        par(mfrow = c(1, 2))
+        acf(mensual, xlim = c(0, 2))
+        pacf(mensual, xlim = c(0, 2))
+      })
+      
+    }else{
+      
+      output$arima_msj <- renderPrint({
+        print("El dataset no cumple las condiciones para ser transformado en una serie temporal.")
+      })
+    }
     
+  })
+  
+  #Evento que genera el modelo
+  observeEvent(input$arima_generModelArima, {
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    modeloNoEsta<-gsub("\\(","",input$modeloNoEsta)
+    modeloNoEsta2<-gsub("\\)","",modeloNoEsta)
+    modeloNoEsta3<-as.numeric(unlist(strsplit(modeloNoEsta2, split=",")))
+    
+    modeloEsta<-gsub("\\(","",input$modeloEsta)
+    modeloEsta2<-gsub("\\)","",modeloEsta)
+    modeloEsta3<-as.numeric(unlist(strsplit(modeloEsta2, split=",")))
+    
+    
+    modelo <- arima(mensual, modeloNoEsta3,
+                  seasonal = list(order = modeloEsta3))
+    
+    #Mensaje de salida
+    output$arima_msj2 <- renderPrint({
+      print("Se muestran las gráficas de modelo ARIMA generado")
+    })
+    
+    #Plot del modelo ARIMA generado
+    output$arima_plot4 <- renderPlot({
+      tsdiag(modelo)
+    })
+    
+    
+    
+  })
 })
 

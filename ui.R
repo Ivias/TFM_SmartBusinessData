@@ -6,9 +6,12 @@ library(stringr)
 library(psych)
 library(corrgram)
 library(dendextend)
-library(TSA)
+#library(TSA) 'Solo para ejemplo
 library(forecast)
-library(lubridate)
+library(lubridate) #Agregacion de datos en series temporales
+
+
+source('global.R')
 
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
@@ -17,7 +20,7 @@ blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
 #tags$dashboardBody(tags$style(HTML(.sidebar {height: 90vh; overflow-y: auto;})))
   
 dashboardPage(
-  dashboardHeader(title = "SMART DATA"),
+  dashboardHeader(title = "SMART DATA ANALYTICS"),
   dashboardSidebar(
     #SideBar con las opciones de la aplicación
     sidebarMenu(
@@ -43,16 +46,21 @@ dashboardPage(
                           menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
                )),
       
-      menuItem("R.LINEAL", tabName = "regresionlineal", icon = icon("line-chart"),
+      menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("line-chart"),
                collapsible = TRUE,
-               menuSubItem("RL Simple", tabName = "reglineal_simple",icon = icon("line-chart")),
-               menuSubItem("RL Múltiple", tabName = "reglineal_multi",icon = icon("line-chart"))),
+               menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
+               menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("line-chart"))),
       
-      menuItem("CLUSTERS", tabName = "clusters",icon = icon("snowflake-o"),
+      menuItem("CLUSTERING", tabName = "clusters",icon = icon("snowflake-o"),
                collapsible = TRUE,
                menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
                menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree")),
                menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("tree"))),
+      
+      menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("sticky-note-o"),
+               collapsible = TRUE,
+               menuSubItem("ARIMA", tabName = "arima",icon = icon("book"))
+      ),
       
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -200,7 +208,7 @@ dashboardPage(
               fluidRow(box(title="Factorizar una varibale",width = 12,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")), 
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="input.dosvariables_Ui_atributos!='pop_density'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos"))),
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="output.intervalos=='TRUE'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos"))),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
                            tags$style(type='text/css', "#dosvariables_Action_factoReset { width:100%; margin-top: 25px;}"),
@@ -572,7 +580,61 @@ dashboardPage(
              ))   
             )))),
             
-                 
+    #Series temporales
+    tabItem(tabName = "arima",
+            fluidRow(box(tags$p("ANÁLISIS ARIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("tipoPrediccion", "Tipo de Predicción",
+                                                                                                         c("Mensual"="mensual",
+                                                                                                           "Anual" = "anual"),
+                                                                                                         selected="mensual")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#arima_predAction { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Predecir",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("arima_msj"),
+                         verbatimTextOutput("arima_print1"),
+                         conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS DE DESCOMPOSICIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
+                                                                              plotOutput("arima_plot1",click = "arima_plot1_click"))
+                            ),
+                         conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS DE DIFERENCIACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                                                               plotOutput("arima_plot2",click = "arima_plot2_click"))
+                         ),
+                         conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS ACF Y PACF", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                                                               plotOutput("arima_plot3",click = "arima_plot3_click"))
+                         ),
+                         conditionalPanel(condition ="output.arima_print1",box(tags$p("GENERACIÓN DE MODELOS ARIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("modeloNoEsta", "No Estacionaria",
+                                                                                                                                                               c("(0,0,0)" = "(0,0,0)",
+                                                                                                                                                                 "(0,0,1)" = "(0,0,1)",
+                                                                                                                                                                 "(0,1,1)" = "(0,1,1)",
+                                                                                                                                                                 "(1,0,0)" = "(1,0,0)",
+                                                                                                                                                                 "(1,0,1)" = "(1,0,1)",
+                                                                                                                                                                 "(1,1,1)" = "(1,1,1)"),
+                                                                                                                                                               selected="(0,0,0)")),
+                                                                               div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("modeloEsta", "Estacionaria",
+                                                                                                                                                               c("(0,0,0)" = "(0,0,0)",
+                                                                                                                                                                 "(0,0,1)" = "(0,0,1)",
+                                                                                                                                                                 "(0,1,1)" = "(0,1,1)",
+                                                                                                                                                                 "(1,0,0)" = "(1,0,0)",
+                                                                                                                                                                 "(1,0,1)" = "(1,0,1)",
+                                                                                                                                                                 "(1,1,1)" = "(1,1,1)"),
+                                                                                                                                                               selected="(0,0,0)")),
+                                                                               div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                                                               tags$style(type='text/css', "#arima_generModelArima { width:100%; margin-top: 25px;}"),
+                                                                               div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_generModelArima", "Generar Modelo",style=blueStyle))),
+                                                                               br(),
+                                                                               verbatimTextOutput("arima_msj2")
+                                                                               
+                         ),
+                         conditionalPanel(condition ="input.arima_generModelArima",box(tags$p("MODELO ARIMA GENERADO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                                                               plotOutput("arima_plot4",click = "arima_plot4_click"))
+                         )
+                         
+    ))),
+    
+    
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")
