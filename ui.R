@@ -9,7 +9,8 @@ library(dendextend)
 #library(TSA) 'Solo para ejemplo
 library(forecast)
 library(lubridate) #Agregacion de datos en series temporales
-
+library(ggplot2)
+library(scales)
 
 source('global.R')
 
@@ -61,6 +62,8 @@ dashboardPage(
                collapsible = TRUE,
                menuSubItem("ARIMA", tabName = "arima",icon = icon("book"))
       ),
+      
+      menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("sticky-note-o")),
       
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -634,7 +637,39 @@ dashboardPage(
                          
     ))),
     
-    
+    #Series temporales
+    tabItem(tabName = "visualizaciones",
+            fluidRow(box(tags$p("VISUALIZACIONES DE LOS DATOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_at2")),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         br(),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_factor")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("visual_grupos", "Nº de Grupos", 
+                                                                                                      min = 2, max = 10, value = 1, step= 1)),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         br(),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_color")),
+                         
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",conditionalPanel(condition="output.variableColor=='TRUE'",sliderInput("visual_colorIntervalos", "Nº de Intervalos de Densidad", 
+                                                                                                                                                                    min = 2, max = 10, value = 1, step= 1))),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         #tags$style(type='text/css', "#arima_predAction { width:100%; margin-top: 25px;}"),
+                         #div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Predecir",style=blueStyle)),
+                         br(),
+                          conditionalPanel(condition ="input.visual_at1!=''",box(tags$p("GRÁFICAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
+                                                                           plotOutput("visual_plot1",click = "visual_plot1_click")))
+            ))),
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")

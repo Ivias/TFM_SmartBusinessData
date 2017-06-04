@@ -3,6 +3,9 @@ title:
 account: smartbusinessdata
 server: shinyapps.io
 appId: 178600
-bundleId: 846767
+bundleId: 852418
 url: https://smartbusinessdata.shinyapps.io/tfm_smartbusinessdata/
-when: 1496212872.10445
+when: 1496572401.12888
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: OLD/server_old.R|OLD/TFM_SmartBusinessData_old.Rproj|OLD/ui_old.R

@@ -2195,9 +2195,122 @@ shinyServer(function(input, output, session) {
     output$arima_plot4 <- renderPlot({
       tsdiag(modelo)
     })
+
+  })
+  
+  #--------------------VISUALIZACIONES-----------------------
+  
+  #Renderiza los combos en funcion de los datos del archivo
+  output$visual_at1 <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
     
-    
+    items=names(df)
+    selectInput("visual_at1", "Valor X:",choices=c("",items))
     
   })
+  
+  output$visual_at2 <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("visual_at2", "Valor Y:",choices=c("",items))
+    
+  })
+  
+  output$visual_factor <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("visual_factor", "Atributo de Agrupación",choices=c("",items))
+    
+  })
+  
+  output$visual_color <- renderUI({
+    df <-filedata()
+    if (is.null(df)) return(NULL)
+    
+    items=names(df)
+    selectInput("visual_color", "Atributo de Densidad",choices=c("",items))
+    
+  })
+  
+  
+  esfactorvisual<-"NULL"
+  
+  
+  #En caso de que no sea de tipo caracter la variable seleccionada para la densidad del color
+  #La factorizamos
+  
+ output$variableColor<-reactive({
+    
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    if (class(df[,input$visual_color])!="character" && input$visual_color!="NULL"){
+      esfactorvisual<<-"TRUE"
+      }else{
+        esfactorvisual<<-"FALSE"
+      }
+  })
+  outputOptions(output, 'variableColor', suspendWhenHidden = FALSE)
+  
+#Visualizaciones gráficas
+  visuales<-reactive({
+    tipovisualizacion<-input$tipoVisual
+    ngrupos<-input$visual_grupos
+    
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    
+    if (input$visual_at1!="" && input$visual_at2!="" && input$visual_grupos>1 && input$visual_colorIntervalos>1){
+    #if(tipovisualizacion=="puntoscolores"){
+      
+   
+    df$emp_size <- cut(df[,input$visual_factor], breaks = ngrupos)
+                             #labels = c("Employees: 3 - 6", "7 - 9", "10+"))
+    
+    #if(!require("ggplot2")) install.packages("ggplot2")
+    #suppressMessages(suppressWarnings(library(ggplot2)))
+    #if(!require("scales")) install.packages("scales")
+    #suppressMessages(suppressWarnings(library(scales)))
+    
+    #En caso de que sea necesario factorizar la variable continua en grupos
+    if(esfactorvisual=="TRUE"){
+      df[,paste(input$visual_color,"_factor_",input$visual_colorIntervalos,sep="")]<-cut(df[,input$visual_color],as.numeric(input$visual_colorIntervalos))
+      
+    
+    
+        plot <- ggplot(data = df, aes(x = df[,input$visual_at1],
+                                            y = df[,input$visual_at2]))
+        
+        plot <- plot + facet_grid(. ~ emp_size) + 
+          geom_point(aes(color = df[,paste(input$visual_color,"_factor_",input$visual_colorIntervalos,sep="")]), shape = 18, size = 4)
+       
+          plot + 
+            scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
+            xlab(input$visual_at1) + ylab(input$visual_at2) 
+    }else{
+      plot <- ggplot(data = df, aes(x = df[,input$visual_at1],
+                                          y = df[,input$visual_at2]))
+      
+      plot <- plot + facet_grid(. ~ emp_size) + 
+        geom_point(aes(color = df[,input$visual_color]), shape = 18, size = 4)
+      
+      plot + 
+        scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
+        xlab(input$visual_at1) + ylab(input$visual_at2) 
+
+        }
+     #}#else if(df!=NULL)
+    }
+  })  
+    
+    output$visual_plot1<-renderPlot({
+      visuales()
+    })
+
+  
 })
 
