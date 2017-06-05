@@ -9,8 +9,12 @@ library(dendextend)
 #library(TSA) 'Solo para ejemplo
 library(forecast)
 library(lubridate) #Agregacion de datos en series temporales
+#Visualizaciones
 library(ggplot2)
 library(scales)
+library(magrittr)
+library(leaflet)
+library(TSP)
 
 source('global.R')
 
@@ -63,7 +67,12 @@ dashboardPage(
                menuSubItem("ARIMA", tabName = "arima",icon = icon("book"))
       ),
       
-      menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("sticky-note-o")),
+      menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("sticky-note-o"),
+               collapsible = TRUE,
+               menuSubItem("Agrupaciones", tabName = "agrupaciones",icon = icon("book")),
+               menuSubItem("Geolocalización", tabName = "geolocalizacion",icon = icon("book")),
+               menuSubItem("RutaOptima", tabName = "rutaoptima",icon = icon("book"))
+               ),
       
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
            collapsible = TRUE,
@@ -638,7 +647,7 @@ dashboardPage(
     ))),
     
     #Series temporales
-    tabItem(tabName = "visualizaciones",
+    tabItem(tabName = "agrupaciones",
             fluidRow(box(tags$p("VISUALIZACIONES DE LOS DATOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_at1")),
@@ -670,6 +679,33 @@ dashboardPage(
                           conditionalPanel(condition ="input.visual_at1!=''",box(tags$p("GRÁFICAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
                                                                            plotOutput("visual_plot1",click = "visual_plot1_click")))
             ))),
+    
+    #Geolocalización
+    tabItem(tabName = "geolocalizacion",
+            fluidRow(box(tags$p("MAPA DE COORDENADAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                        
+                         tags$style(type='text/css', "#geo_action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("geo_action", "Geolocalización",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("geo_msj"),
+                         br(),
+                         conditionalPanel(condition ="input.geo_action",leafletOutput("geo_plot"))))
+            ),
+    
+    #Ruta Optima
+    tabItem(tabName = "rutaoptima",
+            fluidRow(box(tags$p("RUTA OPTIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         
+                         tags$style(type='text/css', "#ruta_action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("ruta_action", "Ruta Optima",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("ruta_msj"),
+                     br(),
+                     conditionalPanel(condition ="input.ruta_action",leafletOutput("ruta_plot"))))
+    ),
+    
     #MongoDB         
     tabItem(tabName = "Mongodb",
               h2("Mongodb tab content")

@@ -44,3 +44,6 @@ Funcion_arimaTabla<-function(condicion,df){
     
   }
 }
+
+#----------Funciones de GEOLOCALIZACIÓN----------
+

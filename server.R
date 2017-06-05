@@ -2258,11 +2258,11 @@ shinyServer(function(input, output, session) {
   
 #Visualizaciones gráficas
   visuales<-reactive({
-    tipovisualizacion<-input$tipoVisual
-    ngrupos<-input$visual_grupos
-    
     df<-filedata()
     if (is.null(df)) return(NULL)
+    
+    tipovisualizacion<-input$tipoVisual
+    ngrupos<-input$visual_grupos
     
     if (input$visual_at1!="" && input$visual_at2!="" && input$visual_grupos>1 && input$visual_colorIntervalos>1){
     #if(tipovisualizacion=="puntoscolores"){
@@ -2284,11 +2284,10 @@ shinyServer(function(input, output, session) {
     
         plot <- ggplot(data = df, aes(x = df[,input$visual_at1],
                                             y = df[,input$visual_at2]))
-        
         plot <- plot + facet_grid(. ~ emp_size) + 
           geom_point(aes(color = df[,paste(input$visual_color,"_factor_",input$visual_colorIntervalos,sep="")]), shape = 18, size = 4)
        
-          plot + 
+        plot + 
             scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
             xlab(input$visual_at1) + ylab(input$visual_at2) 
     }else{
@@ -2311,6 +2310,116 @@ shinyServer(function(input, output, session) {
       visuales()
     })
 
+    
+    #-----Incorporamos la GEOlOCALIZACIÓN------------
+    
+    
+    observeEvent(input$geo_action,{
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      
+      #Comprobamos si hay longitud y latitud en el datset
+      if (length(grep("lati.*",names(df)))!=0 && length(grep("long.*",names(df)))!=0){
+        esgeolocalizable<-TRUE
+        latitud<-grep("lati.*",names(df),value=TRUE)
+        longitud<-grep("long.*",names(df),value=TRUE)
+      }else{
+        esgeolocalizable<-FALSE
+        }
+      
+      if(esgeolocalizable==TRUE){
+        
+       
+          
+          #Añadimos el pop-up
+          df$popup <- paste0("Localización #",
+                                 seq(1, nrow(df))," ","Lon:",df[,longitud]," ","Lat:",df[,latitud])
+          #Dibujamos el mapa
+          output$geo_plot<-renderLeaflet({
+          leaflet() %>%
+                      addTiles() %>%
+                      addMarkers(data = df, ~df[,longitud], ~df[,latitud],
+                                 popup = ~popup)
+          })
+        
+        output$geo_msj<-renderPrint({
+          print("Se muestra la localización de los datos")
+        })
+ 
+      }else{
+        
+        output$geo_msj<-renderPrint({
+          print("No hay datos de geolocalización en el dataset.")
+        })
+        
+        #Reiniciamos el mapa de cooordenadas
+        output$geo_plot<-renderLeaflet({ })
+        
+      }
+      
+    })
+    
+    #--Ruta Optima---------
+    
+    observeEvent(input$ruta_action,{
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      
+      #Comprobamos si hay longitud y latitud en el datset
+      if (length(grep("lati.*",names(df)))!=0 && length(grep("long.*",names(df)))!=0){
+        esgeolocalizable<-TRUE
+        latitud<-grep("lati.*",names(df),value=TRUE)
+        longitud<-grep("long.*",names(df),value=TRUE)
+      }else{
+        esgeolocalizable<-FALSE
+      }
+      
+      if(esgeolocalizable==TRUE){
+        
+        tsp <- TSP(dist(df))
+        tsp <- insert_dummy(tsp, label = "cut")
+        tour <- solve_TSP(tsp, method="2-opt", control=list(rep=10))
+        path.tsp <- unname(cut_tour(tour, "cut"))
+        
+        
+        #Ordenamos df de acuerdo a la ruta TSP
+        df_ordenado<-df[path.tsp,] 
+        
+        
+        #Añadimos el pop-up 
+        df_ordenado$popup <- paste0("Localización #",
+                           seq(1, nrow(df))," ","Lon:",df[,longitud]," ","Lat:",df[,latitud])
+        
+        #Dibujamos el mapa
+        output$ruta_plot<-renderLeaflet({
+        
+          leaflet() %>% 
+            addTiles() %>% 
+            addCircleMarkers(data = df_ordenado, lat = ~df_ordenado[,latitud], 
+                             lng = ~df_ordenado[,longitud], radius = 3, 
+                             popup = ~popup) %>% 
+            addPolylines(data =df_ordenado, lat = ~df_ordenado[,latitud], 
+                         lng = ~df_ordenado[,longitud], color = "#C94339", 
+                         opacity = .7) 
+          
+        })
+        
+        output$ruta_msj<-renderPrint({
+          print("Se muestra la localización de los datos")
+        })
+        
+      }else{
+        
+        output$ruta_msj<-renderPrint({
+          print("No hay datos de geolocalización en el dataset.")
+        })
+        
+        #Reiniciamos el mapa de cooordenadas
+        output$ruta_plot<-renderLeaflet({ })
+        
+      }
+      
+    })
   
 })
 
