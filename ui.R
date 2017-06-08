@@ -15,15 +15,19 @@ library(scales)
 library(magrittr)
 library(leaflet)
 library(TSP)
+library(shinycssloaders) #Animaciones CSS
 
 source('global.R')
 
+#---------CSS----------------------------------------
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
 
+
+
 #tags$style(type='text/css', "#dosvariables_Action_relacionTab { width:100%; margin-top: 25px;}"),
 #tags$dashboardBody(tags$style(HTML(.sidebar {height: 90vh; overflow-y: auto;})))
-  
+
 dashboardPage(
   dashboardHeader(title = "SMART DATA ANALYTICS"),
   dashboardSidebar(
@@ -64,7 +68,8 @@ dashboardPage(
       
       menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("sticky-note-o"),
                collapsible = TRUE,
-               menuSubItem("ARIMA", tabName = "arima",icon = icon("book"))
+               menuSubItem("ARIMA", tabName = "arima",icon = icon("book")),
+               menuSubItem("TBATS", tabName = "tbats",icon = icon("book"))
       ),
       
       menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("sticky-note-o"),
@@ -283,9 +288,9 @@ dashboardPage(
                 ),
             
                 fluidRow(box(title="Gráfica 1",width = 6,
-                           plotOutput("explor1_grafica1",click = "plot1_click")),
+                             withSpinner(plotOutput("explor1_grafica1",click = "plot1_click"))),
                        box(title="Grafica 2",width = 6,
-                           plotOutput("explor1_grafica2",click = "plot2_click2"))
+                           withSpinner(plotOutput("explor1_grafica2",click = "plot2_click2")))
                        
               )
               
@@ -326,7 +331,7 @@ dashboardPage(
                          #                                                                                  "FN" = "fn",
                          #                                                                                   "NN" = "nn"))),
                          verbatimTextOutput("mensajes_dosvar_exploracionGrafica"),
-                         plotOutput("explor1_dosvar_grafica1",click = "plot1_dosvar_click")
+                         withSpinner(plotOutput("explor1_dosvar_grafica1",click = "plot1_dosvar_click"))
 
                          #br(),
                          #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("ExploracionesGraficas_ejecutar1", "Ejecutar",style=blueStyle))
@@ -347,7 +352,7 @@ dashboardPage(
                   br(), 
                   verbatimTextOutput("dosvar_msj_correlacion"),
                   verbatimTextOutput("dosvar_Print_correlacion"),
-                  plotOutput("graf_correla_dosVariables",click = "plot1_correladosvar_click"))
+                  withSpinner(plotOutput("graf_correla_dosVariables",click = "plot1_correladosvar_click")))
           
             )),
               
@@ -362,7 +367,7 @@ dashboardPage(
                          br(), 
                          br(),
                          verbatimTextOutput("multivar_msj_graf"),
-                         plotOutput("multivar_graf_plot",click = "multivar_graf_plot_click"))
+                         withSpinner(plotOutput("multivar_graf_plot",click = "multivar_graf_plot_click")))
                      
             )),          
                      
@@ -378,7 +383,7 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("multivar_msj_correlacion"),
                          verbatimTextOutput("multivar_print_correlacion"),
-                         plotOutput("multivar_graf_correla",width = "100%", height = "800px",click = "plot1_correlamultivar_click"))
+                         withSpinner(plotOutput("multivar_graf_correla",width = "100%", height = "800px",click = "plot1_correlamultivar_click")))
 
             )),
     
@@ -397,11 +402,11 @@ dashboardPage(
                      ),
                          
                          fluidRow(box(width = 6,
-                                      plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1")),
+                                      withSpinner(plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1"))),
                                   box(width = 6,
-                                      plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2")),
+                                      withSpinner(plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2"))),
                                   box(width = 12,
-                                      plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))
+                                      withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3")))
                          ),
                           fluidRow(box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                                        br(),
@@ -430,11 +435,11 @@ dashboardPage(
                          verbatimTextOutput("reglienalmulti_print"))
             ),
             fluidRow(box(width = 6,
-                         plotOutput("reglienalmulti_plot1",click = "reglienalmulti_plot1_click")),
+                         withSpinner(plotOutput("reglienalmulti_plot1",click = "reglienalmulti_plot1_click"))),
                      box(width = 6,
-                         plotOutput("reglienalmulti_plot2",click = "reglienalmulti_plot2_click")),
+                         withSpinner(plotOutput("reglienalmulti_plot2",click = "reglienalmulti_plot2_click"))),
                      box(tags$p("GRÁFICAS DEL MODELO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                         plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click"))
+                         withSpinner(plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click")))
             )),
     #Clusters
     tabItem(tabName = "kmeans",
@@ -457,7 +462,7 @@ dashboardPage(
                   fluidRow(
                            conditionalPanel(condition ="input.cluster_Action",
                               box(width = 6, 
-                              plotOutput("cluster_plot1",click = "cluster_plot1_click"),
+                              withSpinner(plotOutput("cluster_plot1",click = "cluster_plot1_click")),
                               div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo1", "Cluster 1",
                                                                                                                c("sumario"="Sumario",
                                                                                                                  "cluster" = "Clusters",
@@ -475,7 +480,7 @@ dashboardPage(
                            
                           conditionalPanel(condition ="input.cluster_Action",
                               box(width = 6, 
-                              plotOutput("cluster_plot2",click = "cluster_plot2_click"),
+                              withSpinner(plotOutput("cluster_plot2",click = "cluster_plot2_click")),
                               div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo2", "Cluster 2",
                                                                                                                 c("sumario"="Sumario",
                                                                                                                 "cluster" = "Clusters",
@@ -511,7 +516,7 @@ dashboardPage(
             fluidRow(
               conditionalPanel(condition ="input.clusterj_Action",
                                box(width = 12, 
-                                   plotOutput("clusterj_plot1",click = "clusterj_plot1_click"),
+                                   withSpinner(plotOutput("clusterj_plot1",click = "clusterj_plot1_click")),
                                    div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clusterj_corte","Valor de corte:")),
                                    tags$style(type='text/css', "#clusterj_AddValorCorte { width:100%; margin-top: 25px;}"),
                                    div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_AddValorCorte", "Dibujar",style=blueStyle)),
@@ -519,7 +524,7 @@ dashboardPage(
                                    verbatimTextOutput("clusterj_print")
                                ),
                                box(width = 12, 
-                                   plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%"),
+                                   withSpinner(plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%")),
                                    verbatimTextOutput("clusterj_print1"),
                                    verbatimTextOutput("clusterj_print2")
                                )
@@ -543,7 +548,7 @@ dashboardPage(
                 
                 fluidRow(conditionalPanel(condition ="input.clustereva_Action",
                      box(tags$p("GRÁFICAS DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                          plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click"),
+                         withSpinner(plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click")),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval1", "Grupo 1",
                                                                                                          c("2"="2",
@@ -576,11 +581,11 @@ dashboardPage(
                          br()))),
              fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
                        box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
-                          plotOutput("clustereva_plot1",click = "clustereva_plot1_click"),
-                          plotOutput("clustereva_plot2",click = "clustereva_plot2_click")),
+                           withSpinner(plotOutput("clustereva_plot1",click = "clustereva_plot1_click")),
+                          withSpinner(plotOutput("clustereva_plot2",click = "clustereva_plot2_click"))),
                        box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
-                          plotOutput("clustereva_plot3",click = "clustereva_plot3_click"),
-                          plotOutput("clustereva_plot4",click = "clustereva_plot4_click"))
+                           withSpinner(plotOutput("clustereva_plot3",click = "clustereva_plot3_click")),
+                          withSpinner(plotOutput("clustereva_plot4",click = "clustereva_plot4_click")))
                        
                            
                        # box(tags$p("SELECCIÓN ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
@@ -602,38 +607,40 @@ dashboardPage(
                                                                                                          selected="mensual")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#arima_predAction { width:100%; margin-top: 25px;}"),
-                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Predecir",style=blueStyle)),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Analizar",style=blueStyle)),
                          br(),
                          verbatimTextOutput("arima_msj"),
                          verbatimTextOutput("arima_print1"),
                          conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS DE DESCOMPOSICIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
-                                                                              plotOutput("arima_plot1",click = "arima_plot1_click"))
+                                                                               withSpinner(plotOutput("arima_plot1",click = "arima_plot1_click")))
                             ),
                          conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS DE DIFERENCIACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                                                                               plotOutput("arima_plot2",click = "arima_plot2_click"))
+                                                                               withSpinner(plotOutput("arima_plot2",click = "arima_plot2_click")))
                          ),
                          conditionalPanel(condition ="output.arima_print1",box(tags$p("GRÁFICAS ACF Y PACF", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                                                                               plotOutput("arima_plot3",click = "arima_plot3_click"))
+                                                                               withSpinner(plotOutput("arima_plot3",click = "arima_plot3_click")))
                          ),
                          conditionalPanel(condition ="output.arima_print1",box(tags$p("GENERACIÓN DE MODELOS ARIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("modeloNoEsta", "No Estacionaria",
-                                                                                                                                                               c("(0,0,0)" = "(0,0,0)",
-                                                                                                                                                                 "(0,0,1)" = "(0,0,1)",
-                                                                                                                                                                 "(0,1,1)" = "(0,1,1)",
-                                                                                                                                                                 "(1,0,0)" = "(1,0,0)",
-                                                                                                                                                                 "(1,0,1)" = "(1,0,1)",
-                                                                                                                                                                 "(1,1,1)" = "(1,1,1)"),
-                                                                                                                                                               selected="(0,0,0)")),
+                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",h4('No Estacional'), selectInput("modeloNoEsta_p", "p",
+                                                                                                                                                               c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                               selected="0"),
+                                                                                                                                                  selectInput("modeloNoEsta_d", "d",
+                                                                                                                                                               c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                               selected="0"),     
+                                                                                                                                                  selectInput("modeloNoEsta_q", "q",
+                                                                                                                                                              c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                                selected="0")),
                                                                                div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("modeloEsta", "Estacionaria",
-                                                                                                                                                               c("(0,0,0)" = "(0,0,0)",
-                                                                                                                                                                 "(0,0,1)" = "(0,0,1)",
-                                                                                                                                                                 "(0,1,1)" = "(0,1,1)",
-                                                                                                                                                                 "(1,0,0)" = "(1,0,0)",
-                                                                                                                                                                 "(1,0,1)" = "(1,0,1)",
-                                                                                                                                                                 "(1,1,1)" = "(1,1,1)"),
-                                                                                                                                                               selected="(0,0,0)")),
-                                                                               div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                                                               div(style="display: inline-block;vertical-align:top; width: 150px;",h4('Estacional'), selectInput("modeloEsta_P", "P",
+                                                                                                                                                               c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                                 selected="0"),
+                                                                                                                                                   selectInput("modeloEsta_D", "D",
+                                                                                                                                                               c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                                 selected="0"),     
+                                                                                                                                                   selectInput("modeloEsta_Q", "Q",
+                                                                                                                                                               c("0"="0","1"="1","2"="2","3"="3", "4"="4","5"="5","6"="6","7"="7","8"="8","9"="9","10"="10"),
+                                                                                                                                                                 selected="0")),
+                                                                               br(),
                                                                                tags$style(type='text/css', "#arima_generModelArima { width:100%; margin-top: 25px;}"),
                                                                                div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_generModelArima", "Generar Modelo",style=blueStyle))),
                                                                                br(),
@@ -641,10 +648,29 @@ dashboardPage(
                                                                                
                          ),
                          conditionalPanel(condition ="input.arima_generModelArima",box(tags$p("MODELO ARIMA GENERADO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                                                                               plotOutput("arima_plot4",click = "arima_plot4_click"))
+                                                                                       withSpinner(plotOutput("arima_plot4",click = "arima_plot4_click")))
+                         ),
+                         conditionalPanel(condition ="output.arima_plot4",box(tags$p("PREDICCIONES", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                                                              sliderInput("slider_predarima", "Nº de puntos proyectados", 
+                                                                                          min = 2, max = 100, value = 1, step= 1),
+                                                                              tags$style(type='text/css', "#arima_predicAction { width:100%; margin-top: 25px;}"),
+                                                                              div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predicAction", "Predicción",style=blueStyle)),
+                                                                              withSpinner(plotOutput("arima_plot5",click = "arima_plot5_click")))
                          )
                          
     ))),
+    
+    #Time series con TBATS
+    tabItem(tabName = "tbats",
+            fluidRow(box(tags$p("PROYECCIÓN TBATS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         sliderInput("slider_predtbats", "Nº de puntos proyectados", 
+                                     min = 2, max = 100, value = 1, step= 1),
+                         tags$style(type='text/css', "#tbats_predAction { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("tbats_predAction", "Predicción",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("tbats_msj"),
+                         withSpinner(plotOutput("tbats_plot1"))))
+    ),
     
     #Series temporales
     tabItem(tabName = "agrupaciones",
@@ -677,7 +703,7 @@ dashboardPage(
                          #div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Predecir",style=blueStyle)),
                          br(),
                           conditionalPanel(condition ="input.visual_at1!=''",box(tags$p("GRÁFICAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
-                                                                           plotOutput("visual_plot1",click = "visual_plot1_click")))
+                                                                                 withSpinner(plotOutput("visual_plot1",click = "visual_plot1_click"))))
             ))),
     
     #Geolocalización
@@ -713,3 +739,4 @@ dashboardPage(
     ) #el del DIV del dashboard
   )
 )
+

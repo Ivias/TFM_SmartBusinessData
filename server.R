@@ -2174,17 +2174,18 @@ shinyServer(function(input, output, session) {
   observeEvent(input$arima_generModelArima, {
     df<-filedata()
     if (is.null(df)) return(NULL)
-    modeloNoEsta<-gsub("\\(","",input$modeloNoEsta)
-    modeloNoEsta2<-gsub("\\)","",modeloNoEsta)
-    modeloNoEsta3<-as.numeric(unlist(strsplit(modeloNoEsta2, split=",")))
+    # modeloNoEsta<-gsub("\\(","",input$modeloNoEsta)
+    # modeloNoEsta2<-gsub("\\)","",modeloNoEsta)
+    # modeloNoEsta3<-as.numeric(unlist(strsplit(modeloNoEsta2, split=",")))
+    # 
+    # modeloEsta<-gsub("\\(","",input$modeloEsta)
+    # modeloEsta2<-gsub("\\)","",modeloEsta)
+    # modeloEsta3<-as.numeric(unlist(strsplit(modeloEsta2, split=",")))
+    modeloNoEsta=as.numeric(c(input$modeloNoEsta_p,input$modeloNoEsta_d,input$modeloNoEsta_q))
+    modeloEsta=as.numeric(c(input$modeloEsta_P,input$modeloEsta_D,input$modeloEsta_Q))
     
-    modeloEsta<-gsub("\\(","",input$modeloEsta)
-    modeloEsta2<-gsub("\\)","",modeloEsta)
-    modeloEsta3<-as.numeric(unlist(strsplit(modeloEsta2, split=",")))
-    
-    
-    modelo <- arima(mensual, modeloNoEsta3,
-                  seasonal = list(order = modeloEsta3))
+    modeloARIMA <<- arima(mensual, modeloNoEsta,
+                  seasonal = list(order = modeloEsta))
     
     #Mensaje de salida
     output$arima_msj2 <- renderPrint({
@@ -2193,10 +2194,87 @@ shinyServer(function(input, output, session) {
     
     #Plot del modelo ARIMA generado
     output$arima_plot4 <- renderPlot({
-      tsdiag(modelo)
+      tsdiag(modeloARIMA)
     })
 
   })
+  
+  #Plot de la predicción 
+  observeEvent(input$arima_predicAction,{
+
+    #Predicción gráfica
+    output$arima_plot5<-renderPlot({
+      prediccion<-forecast(modeloARIMA,h=input$slider_predarima)
+      plot(prediccion)
+      
+    })
+  })
+  
+  
+    #Usando el método TBATS
+    observeEvent(input$tbats_predAction,{
+      
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      #obtenemos el primer año del dataset
+      annoComienzo<-year(df[1,1])
+      #Agrupamos mensualmente
+      
+      
+      usuarios_mensuales <- as.data.frame(df %>%
+                                            group_by(anno = year(df[,1]),
+                                                     mes = month(df[,1])) %>%
+                                            summarise(usuarios = sum(count)))
+      
+      usuarios <- usuarios_mensuales[, 3]
+      
+      condicion<-Funcion_arimaModelCondicion(df)
+      
+     
+      
+      if (condicion=="TRUE"){
+        
+            mensual<<-Funcion_arimaTabla(condicion,df)
+            
+            output$tbats_plot1<-renderPlot({
+              
+              
+              #Modelo avanzado
+              modeloAvd <- tbats(mensual)
+              predAvan<-forecast(modeloAvd,h=input$slider_predtbats)
+              plot(predAvan)
+              
+              summary(predAvan$mean)
+              summary(predAvan$upper)
+              summary(predAvan$lower)
+              
+              mean_2011 <- round(as.numeric(
+                filter(usuarios_mensuales, anno == 2011) %>%
+                  summarise(mean = mean(usuarios))), 0)
+              mean_2012 <- round(as.numeric(
+                filter(usuarios_mensuales, anno == 2012) %>%
+                  summarise(mean = mean(usuarios))), 0)
+              mean_2013 <- round(mean(predAvan$mean), 0)
+              max_mean_2013 <- round(max(predAvan$mean), 0)
+              
+              abline(h = max(predAvan$mean), lty = 2, col = "blue")
+              segments(2011, mean_2011, x1 = 2012, y1 = mean_2011,
+                       col = "darkgray", lty = 2, lwd = 2)
+              segments(2012, mean_2012, x1 = 2013, y1 = mean_2012,
+                       col = "darkgray", lty = 2, lwd = 2)
+              segments(2013, mean_2013, x1 = 2014, y1 = mean_2013,
+                       col = "blue", lty = 2, lwd = 2)
+              
+              text(2011.15, mean_2011 + 10000, mean_2011)
+              text(2012, mean_2012 + 10000, mean_2012)
+              text(2013, mean_2013 + 10000, mean_2013)
+              text(2013.85, max_mean_2013 + 10000, max_mean_2013)
+              
+            })
+      }
+    })
+    
+  
   
   #--------------------VISUALIZACIONES-----------------------
   
