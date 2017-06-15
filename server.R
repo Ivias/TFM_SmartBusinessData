@@ -2120,6 +2120,88 @@ shinyServer(function(input, output, session) {
   #   
   
   #-------FILTRADO COLABORATIVO----------
+  
+  #Evaluación de modelos
+  output$modelEval_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("modelEval_at1", "Usuarios:",items)
+    
+  })
+  
+  output$modelEval_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("modelEval_at2", "Items",items)
+    
+  })
+  
+  output$modelEval_at3 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("modelEval_at3", "Valoraciones",items)
+    
+  })
+  
+  Funcion_evaluacionModelosFiltrado<-function(df){
+    
+    #Se genera la matriz a partir del dataframe
+    matriz<-acast(df, df[,input$modelEval_at1]~df[,input$modelEval_at2], value.var=input$modelEval_at3)
+    
+    #Convertimos la matriz
+    r <- as(matriz,"realRatingMatrix")
+    
+  #Creamos una lista con los algoritmos a evaluar para la matriz real.
+  models_to_evaluate <- list(  
+    random = list(name = "RANDOM", param=NULL),
+    PUPULAR = list(name = "POPULAR", param = NULL),
+    IBCF_jac = list(name = "IBCF", param = list(method = "jaccard", k=14)),
+    IBCF_cos = list(name = "IBCF", param = list(method = "cosine", k=14)),  
+    UBCF_jac = list(name = "UBCF", param = list(method= "jaccard", nn=14)),
+    UBCF_cos = list(name = "UBCF", param = list(method = "cosine", nn=14))
+  )
+  
+  eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = 5, goodRating=3)
+  
+  n_recommendations <- c(1, 3, 5)
+  
+  #Generamos los resultados de la evaluación sobre el modelo
+  list_results <- evaluate(x = eval_sets, method = models_to_evaluate, 
+                           n = n_recommendations)
+  
+  #Inspeccionamos los resultados medios del algoritmo UBCF, distancia jaccard
+  #avg_matrices <- lapply(list_results, avg)
+  #avg_matrices$UBCF_jac
+
+  }
+  
+  observeEvent(input$modelEval_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    
+    list_results<-Funcion_evaluacionModelosFiltrado(df)
+    par(mfrow = c(1, 2))
+    #Dibujamos la curva ROC
+    output$modelEval_plot1<-renderPlot({
+      plot(list_results, annotate = 1, legend = "bottomright")
+      title("Curva ROC")
+    })
+    
+    #Dibujamos la curva precision/recall
+    output$modelEval_plot2<-renderPlot({
+      plot(list_results, "prec/rec", ylim = c(0,1), annotate = 6, legend = "topright")
+      title("Precision - Recall")
+    })
+    par(mfrow = c(1, 1))
+    
+  })
+  
+  
+  
+  #--------Recomendaciones
   output$colaborativo_at1 <- renderUI({
     df<-filedata()
     if (is.null(df)) return(NULL)

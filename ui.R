@@ -73,6 +73,7 @@ dashboardPage(
       
       menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("snowflake-o"),
                collapsible = TRUE,
+               menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("braille")),
                menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("braille"))),
       
       menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("sticky-note-o"),
@@ -744,7 +745,31 @@ dashboardPage(
                      conditionalPanel(condition ="input.ruta_action",leafletOutput("ruta_plot"))))
     ),
     
-    #Filtrado Colaborativo
+    #Filtrado Colaborativo - evaluación de modelo
+    tabItem(tabName = "modelEval",
+            fluidRow(box(tags$p("EVALUACIÓN DE MODELOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at3")),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
+                                                                                                         min = 1, max = 10, value = 1, step= 1)),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderEval", "K - Validación Cruzada", 
+                                                                                                         min = 1, max = 10, value = 1, step= 1)),
+                         br(),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("modelEval_Action", "Evaluación",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("modelEval_msj"),
+                         splitLayout(cellWidths = c("50%", "50%"), conditionalPanel(condition ="input.modelEval_Action",withSpinner(plotOutput("modelEval_plot1"))),
+                        conditionalPanel(condition ="input.modelEval_Action",withSpinner(plotOutput("modelEval_plot2"))))
+                         
+            ))),
+    
+    #Filtrado Colaborativo - recomendaciones
     tabItem(tabName = "recomendaciones",
             fluidRow(box(tags$p("RECOMENDACIONES COLABORATIVAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
