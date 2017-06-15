@@ -9,13 +9,18 @@ library(dendextend)
 #library(TSA) 'Solo para ejemplo
 library(forecast)
 library(lubridate) #Agregacion de datos en series temporales
+
+#Filtrado colaborativo
+library(reshape2)
+library(recommenderlab)
+
 #Visualizaciones
 library(ggplot2)
 library(scales)
 library(magrittr)
 library(leaflet)
 library(TSP)
-library(shinycssloaders) #Animaciones CSS
+library(shinycssloaders) #Animaciones CSS - withSpinner
 
 source('global.R')
 
@@ -65,6 +70,10 @@ dashboardPage(
                menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
                menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree")),
                menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("tree"))),
+      
+      menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("snowflake-o"),
+               collapsible = TRUE,
+               menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("braille"))),
       
       menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("sticky-note-o"),
                collapsible = TRUE,
@@ -288,9 +297,12 @@ dashboardPage(
                 ),
             
                 fluidRow(box(title="Gráfica 1",width = 6,
-                             withSpinner(plotOutput("explor1_grafica1",click = "plot1_click"))),
+                             withSpinner(plotOutput("explor1_grafica1",click = "explor1_grafica1_click", dblclick = "explor1_grafica1_dblclick",brush = brushOpts(
+                               id = "explor1_grafica1_brush",
+                               resetOnNew = TRUE
+                             )))),
                        box(title="Grafica 2",width = 6,
-                           withSpinner(plotOutput("explor1_grafica2",click = "plot2_click2")))
+                           withSpinner(plotOutput("explor1_grafica2",click = "explor1_grafica2_click")))
                        
               )
               
@@ -731,6 +743,42 @@ dashboardPage(
                      br(),
                      conditionalPanel(condition ="input.ruta_action",leafletOutput("ruta_plot"))))
     ),
+    
+    #Filtrado Colaborativo
+    tabItem(tabName = "recomendaciones",
+            fluidRow(box(tags$p("RECOMENDACIONES COLABORATIVAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("colaborativo_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("colaborativo_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("colaborativo_at3")),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("colaborativo_metodo", "Método",
+                                                                                                         c("POPULAR"="popular",
+                                                                                                           "UBCF" = "ubcf",
+                                                                                                           "IBCF" = "ibcf",
+                                                                                                           "RANDOM"="random"),
+                                                                                                         selected="popular")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("colaborativo_distancia", "Distancia",
+                                                                                                         c("Jaccard"="jaccard",
+                                                                                                           "Cosine" = "cosine"),
+                                                                                                         selected="cosine")),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("colaborativo_slider", "Nº de Recomendaciones", 
+                                                                                                         min = 1, max = 10, value = 1, step= 1)),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("colaborativo_at4")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#colaborativo_Recomen { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("colaborativo_Recomen", "Recomendaciones",style=blueStyle)),
+                         br(),
+                         verbatimTextOutput("colaborativo_msj"),
+                         br(),
+                         tableOutput("colaborativo_table")
+                         
+            ))),
     
     #MongoDB         
     tabItem(tabName = "Mongodb",

@@ -12,7 +12,7 @@ shinyServer(function(input, output, session) {
     file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
     
     output$mensajes_carga <- renderText({
-      print("Se muestran los 100 primeros registros del archivo.")
+      "Se muestran los 100 primeros registros del archivo."
     })
       
     fileout<-file
@@ -824,6 +824,8 @@ shinyServer(function(input, output, session) {
     })
   })
   
+  
+  
   #Evento que muestra las gráficas sin esperar un ActionButton
   observe({
     
@@ -861,7 +863,7 @@ shinyServer(function(input, output, session) {
                )
                },
              plot={
-                     plot(df[,input$atributoUnaVariableGrafica],main = "Plot", xlab=input$atributoUnaVariableGrafica, ylab="Valores")   
+                     plot(df[,input$atributoUnaVariableGrafica],main = "Plot", xlab=input$atributoUnaVariableGrafica, ylab="Valores")
                #Mensaje positivo
                       output$mensajes_exploracionGrafica <- renderText(
                       print(paste("Gráfica 1: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica))
@@ -878,6 +880,7 @@ shinyServer(function(input, output, session) {
     })
     
   })
+  
   
   #Segunda ventana gráfica
   output$atributoUnaVariableGrafica2 <- renderUI({
@@ -2115,6 +2118,100 @@ shinyServer(function(input, output, session) {
   #   print("q")
   # })
   #   
+  
+  #-------FILTRADO COLABORATIVO----------
+  output$colaborativo_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("colaborativo_at1", "Usuarios:",items)
+    
+  })
+  
+  output$colaborativo_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("colaborativo_at2", "Items",items)
+    
+  })
+  
+  output$colaborativo_at3 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("colaborativo_at3", "Valoraciones",items)
+    
+  })
+  
+  observeEvent(input$colaborativo_at1,{
+    output$colaborativo_at4 <- renderUI({
+      df<-filedata()
+      if (is.null(df)) return(NULL)
+      items=df[,input$colaborativo_at1]
+      selectInput("colaborativo_at4", "Usuario a recomendar",items)
+      
+    })
+  
+  })
+  
+  Funcion_emiteRecomendaciones<-function(df){
+    
+    #Se genera la matriz a partir del dataframe
+    matriz<-acast(df, df[,input$colaborativo_at1]~df[,input$colaborativo_at2], value.var=input$colaborativo_at3)
+    
+    #Convertimos la matriz
+    r <- as(matriz,"realRatingMatrix")
+    
+    #Obtenemos la posición en la matriz, del usuario de análisis
+    pos<-which(rownames(r) ==input$colaborativo_at4, arr.ind = T)
+    
+    #Almacenamos el número de filas de la matriz
+    lim<-nrow(r)
+    
+    #Definimos lel modelo de recomendación
+    modelo <- Recommender(r[c(1:(pos-1),(pos+1):lim)], method = input$colaborativo_metodo, param = list(method = input$colaborativo_distancia))
+    
+    #Predecimos las Top-N recomendaciones
+    recomendaciones <- predict(modelo, r[pos], n=input$colaborativo_slider)
+    
+    #Forecasting de valoraciones sobre los items
+    valoraciones<- predict(modelo, r[pos], n=input$colaborativo_slider,type="ratings")
+    
+    resultado<-list(recomendaciones,valoraciones)
+  }
+  
+  
+
+  
+  #Observamos el evento de acción y mostramos los resultados
+  observeEvent(input$colaborativo_Recomen, {
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    datos<-Funcion_emiteRecomendaciones(df)
+    
+    #Devolvemos las recomendaciones en una tabla
+    recomendaciones<-as.data.frame(as(datos[[1]],"list"))
+    valoraciones<-as.data.frame(as(datos[[2]],"matrix"))
+    
+    
+    #Buscamos los valores predichos en la matriz
+    salida<-recomendaciones
+    for(i in 1:nrow(recomendaciones)){
+      
+      posicionCol<-which(colnames(valoraciones) == recomendaciones[i,1])
+      posicionFil<-which(rownames(valoraciones) == input$colaborativo_at4)
+      prediccion<-valoraciones[posicionFil,posicionCol]
+      salida[i,2]<-prediccion
+    }
+    #Renombramos las columnas de la tabla
+    colnames(salida)<-c("Items Recomendados","Valoraciones Predichas")
+    
+    output$colaborativo_msj = renderPrint({print(paste("Se muestran los resultados para ",input$colaborativo_slider," recomendaciones",sep=""))})
+    
+    output$colaborativo_table = renderTable({salida})
+    
+  })
   
   
   #-------SERIES TEMPORALES---------
