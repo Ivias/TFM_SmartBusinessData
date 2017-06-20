@@ -1,22 +1,198 @@
 
 shinyServer(function(input, output, session) {
 
-#Cargamos el archivo CSV
-  filedata <- reactive({
-    infile <- input$datafile
-    if (is.null(infile)) {
+  filesalida<-NULL
+  fileCSV<-FALSE
+  fileAPI<-FALSE
+  
+  
+api<-function(){
+  if (input$URL!=""){
+    raw.result <<- GET(url = input$URL)
+    
+    if (is.null(raw.result)) {
       #Aún no se ha introducido ningún archivo en el editable
       return(NULL)
     }
-    #Leemos el archivo y tratamos los '?' como NA
-    file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
     
-    output$mensajes_carga <- renderText({
-      "Se muestran los 100 primeros registros del archivo."
-    })
+    this.raw.content <- rawToChar(raw.result$content)
+    
+    this.content <- fromJSON(this.raw.content)
+    
+    this.content.df <- do.call(what = "rbind",
+                               args = lapply(this.content, as.data.frame))
+    fileout<-this.content.df
+  }else{
+    return(NULL)
+  }
+}
+
+
+#Cargamos el archivo CSV
+  observe({
+    
+    tipo<-input$tipoImport
+    
+    
+    if(input$tipoImport=="csv"){
       
+      infile <- input$datafile 
+      
+      if(is.null(infile)){ return(NULL)}
+      
+      #Leemos el archivo y tratamos los '?' como NA
+      file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
+
+     
+      
+      output$API_msj <- renderText({
+        "Se muestran los 100 primeros registros del archivo CSV."
+      })
+      
+      #Se visualiza el contenido del archivo
+      output$filetable <- renderTable({
+        fileReduced<-file[1:100,]
+      })
+      
+      #Sobreescribimos globalmente el dataset cargado
+      fileCSV<<-TRUE
+      fileAPI<<-FALSE
+      filesalida<<-file
+
+    }
+  })
+  
+  observeEvent(input$API_Action,{
+    
+
+    fileAPIcargado<-api()
+    
+    if (is.null(fileAPIcargado)){return(NULL)}
+    
+    if (raw.result$status_code!=404){
+      
+      nmax<-nrow(fileAPIcargado)
+      
+      if(nmax>100 || nmax==100){
+        
+        #Se visualiza el contenido del archivo
+        output$API_msj <- renderPrint({print("Se muestran los primeros 100 registros obtenidos con la API")})
+        
+        #Se visualiza el contenido del archivo
+        output$filetable <- renderTable({fileReduced<-fileAPIcargado[1:100,]})
+        
+      }else{
+        #Se visualiza el contenido del archivo
+        output$API_msj <- renderPrint({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API", sep=""))})
+        
+        #Se visualiza el contenido del archivo
+        output$filetable <- renderTable({fileReduced<-fileAPIcargado[1:nmax,]})
+      }
+    }else{
+      #Se visualiza el contenido del archivo
+      output$API_msj <- renderPrint({
+        print("Error: Status Code 404")
+      })
+      
+      output$filetable <- renderTable({})
+    }
+    
+    #Sobreescribimos globalmente el dataset cargado
+    fileCSV<<-FALSE
+    fileAPI<<-TRUE
+    filesalida<<-fileAPIcargado
+    
+    
+  })  
+  
+
+
+  #-En caso de que haya que seleccionar algún nodo del JSON de la API-WEB
+  
+  
+  output$nodo <- renderUI({
+    
+      df <-filedata()
+      if(fileAPI==TRUE){
+      if (is.null(df)) return(NULL)
+      items=rownames(df)
+      selectInput("Nodo", "Nodo:",choices=c("",items))
+      }
+  })
+  
+  #Definimos la función que es llamada por todas las acciones del script y devuelve el dataset cargado
+  filedata<-reactive({
+    cargaAPI<-input$API_Action
+    cargaCSV<-input$datafile
+    obtenerNodoAPI<-input$API_nodeAction
+    tipoImport<-input$tipoImport
+    file<-filesalida
+    if(is.null(file)){return(NULL)}
     fileout<-file
   })
+  
+  #Función de devuelve el nodo seleccionado
+  funcion_seleccionarNodoAPI<-function(){
+    if(input$requiereNodo=="si"){
+      #Le pasamos el fichero filesalida vigente
+      df<-filesalida
+      if (is.null(df)) return(NULL)
+      #Devolvemos el fichero filesalida, pero únicamente el nodo seleccionado
+      filesalida<<- fromJSON(as.vector(df[input$Nodo,]))[[1]]
+    }
+    
+  }
+
+  #Evento que ejecuta la funcion anterior
+  observeEvent(input$API_nodeAction,{
+    
+    if(fileAPI==TRUE){
+    fileAPIcarganode<-funcion_seleccionarNodoAPI()
+    
+    if (raw.result$status_code!=404){
+      
+      nmax<-nrow(fileAPIcarganode)
+      
+      if(nmax>100 || nmax==100){
+        
+        #Se visualiza el contenido del archivo
+        output$API_msj <- renderPrint({print(paste("Se muestran los primeros 100 registros obtenidos con la API. Nodo ",input$Nodo,sep=""))})
+        
+        #Se visualiza el contenido del archivo
+        output$filetable <- renderTable({fileReduced<-fileAPIcarganode[1:100,]})
+        
+        
+        #Para que no se reinicie el combo de Nodos
+        fileAPI<<-FALSE
+        
+      }else{
+        #Se visualiza el contenido del archivo
+        output$API_msj <- renderPrint({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API. Nodo ",input$Nodo, sep=""))})
+        
+        #Se visualiza el contenido del archivo
+        output$filetable <- renderTable({fileReduced<-fileAPIcarganode[1:nmax,]})
+        
+        #Para que no se reinicie el combo de Nodos
+        fileAPI<<-FALSE
+      }
+    }else{
+      #Se visualiza el contenido del archivo
+      output$API_msj <- renderPrint({
+        print("Error: Status Code 404")
+      })
+      
+      output$filetable <- renderTable({})
+    }
+    }else{
+      #Se estáintentando ejecutar sobre un CSV, y debe ser sobre la API
+      output$API_msj <- renderPrint({
+        print("Error: No se puede ejecutar la operación sobre un dataset final. Debe cargar previamente un fichero con nodos XML desde la opción de API correspondiente.")
+      })
+    }
+  
+  })
+  
+
   
   #Guardamos una salida out para consulta cada vez que se llama a la función filedata()
   output$filedatacargado <- reactive({
@@ -156,11 +332,7 @@ shinyServer(function(input, output, session) {
   })
   
   
-  #Se visualiza el contenido delarchivo
-  output$filetable <- renderTable({
-    file<-filedata()
-    fileReduced<-file[1:100,]
-  })
+ 
   
   
   #Renderiza los combos en funcion de los datos del archivo
@@ -2121,7 +2293,68 @@ shinyServer(function(input, output, session) {
   
   #-------FILTRADO COLABORATIVO----------
   
-  #Evaluación de modelos
+  #------Consulta de datos------------
+  output$datosRecomendaciones_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("datosRecomendaciones_at1", "Usuarios:",items)
+    
+  })
+  
+  output$datosRecomendaciones_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("datosRecomendaciones_at2", "Usuarios:",items)
+    
+  })
+  
+  output$datosRecomendaciones_at3 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("datosRecomendaciones_at3", "Usuarios:",items)
+    
+  })
+  
+  observeEvent(input$datosRecomendaciones_Action,{
+    
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    
+    if (class(df[,input$datosRecomendaciones_at3])=="numeric" || class(df[,input$datosRecomendaciones_at3])=="integer"){
+      
+      #Se genera la matriz a partir del dataframe
+      matriz<-acast(df, df[,input$datosRecomendaciones_at1]~df[,input$datosRecomendaciones_at2], value.var=input$datosRecomendaciones_at3)
+      
+      #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
+      r <- as(matriz,"realRatingMatrix")
+      
+      output$datosRecomendaciones_msj<-renderPrint({
+        print("Se muestran algunos datos importantes.")
+      })
+      
+      output$datosRecomendaciones_plot1<-renderPlot({
+       image(r, main="Matriz de calificaciones")
+      })
+      
+      output$datosRecomendaciones_plot2<-renderPlot({
+        image(r[1:20,1:50], main="Dispersión de la matriz")
+      })
+      
+    }else{
+      output$datosRecomendaciones_msj<-renderPrint({
+        print("El atributo Valoraciones no es de tipo numérico.")
+      })
+      output$datosRecomendaciones_plot1<-renderPlot({})
+      output$datosRecomendaciones_plot2<-renderPlot({})
+    }
+    
+  })
+  
+  #-----Evaluación de modelos-------------
+
   output$modelEval_at1 <- renderUI({
     df<-filedata()
     if (is.null(df)) return(NULL)
@@ -2146,60 +2379,141 @@ shinyServer(function(input, output, session) {
     
   })
   
+  
+  
+  
+  #Generamos la función de evalaución de los modelos
   Funcion_evaluacionModelosFiltrado<-function(df){
+
+  if (class(df[,input$modelEval_at3])=="numeric" || class(df[,input$modelEval_at3])=="integer"){
     
+  
     #Se genera la matriz a partir del dataframe
     matriz<-acast(df, df[,input$modelEval_at1]~df[,input$modelEval_at2], value.var=input$modelEval_at3)
     
-    #Convertimos la matriz
+    #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
     r <- as(matriz,"realRatingMatrix")
     
   #Creamos una lista con los algoritmos a evaluar para la matriz real.
   models_to_evaluate <- list(  
     random = list(name = "RANDOM", param=NULL),
     PUPULAR = list(name = "POPULAR", param = NULL),
-    IBCF_jac = list(name = "IBCF", param = list(method = "jaccard", k=14)),
-    IBCF_cos = list(name = "IBCF", param = list(method = "cosine", k=14)),  
-    UBCF_jac = list(name = "UBCF", param = list(method= "jaccard", nn=14)),
-    UBCF_cos = list(name = "UBCF", param = list(method = "cosine", nn=14))
+    IBCF_jac = list(name = "IBCF", param = list(method = "jaccard", k=30)),
+    IBCF_cos = list(name = "IBCF", param = list(method = "cosine", k=30)),  
+    UBCF_jac = list(name = "UBCF", param = list(method= "jaccard", nn=25)),
+    UBCF_cos = list(name = "UBCF", param = list(method = "cosine", nn=25))
   )
   
-  eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = 5, goodRating=3)
+  #Número de Items que vamos a usar para evaluar el esquema, lo ideal es que sea menor que el mínimo dispuesto por un usuario
+  minItems<-min(rowCounts(r)) 
+  items_dados= minItems-1
   
-  n_recommendations <- c(1, 3, 5)
+  eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = items_dados, goodRating=3)
+  
+  n_recommendations <- c(1, 3, 5, 10)
   
   #Generamos los resultados de la evaluación sobre el modelo
   list_results <- evaluate(x = eval_sets, method = models_to_evaluate, 
                            n = n_recommendations)
   
-  #Inspeccionamos los resultados medios del algoritmo UBCF, distancia jaccard
-  #avg_matrices <- lapply(list_results, avg)
-  #avg_matrices$UBCF_jac
-
+  }else{
+    return(NULL)
+  }
   }
   
   observeEvent(input$modelEval_Action,{
+    
     df<-filedata()
     if (is.null(df)) return(NULL)
     
     list_results<-Funcion_evaluacionModelosFiltrado(df)
+    
+    if (!is.null(list_results)){
+      
     par(mfrow = c(1, 2))
+      
     #Dibujamos la curva ROC
     output$modelEval_plot1<-renderPlot({
       plot(list_results, annotate = 1, legend = "bottomright")
       title("Curva ROC")
     })
     
+    output$modelEval_msj<-renderPrint(
+      print("Se muestras las gráficas de evaluación de los modelos")
+    )
+    
     #Dibujamos la curva precision/recall
     output$modelEval_plot2<-renderPlot({
-      plot(list_results, "prec/rec", ylim = c(0,1), annotate = 6, legend = "topright")
+      plot(list_results, "prec/rec", ylim = c(0,1), annotate = 1, legend = "topright")
       title("Precision - Recall")
     })
     par(mfrow = c(1, 1))
+    }else{
+      output$modelEval_msj<-renderPrint({
+       print("El atributo Valoraciones no es de tipo numérico.")
+      })
+      output$modelEval_plot1<-renderPlot({})
+      output$modelEval_plot2<-renderPlot({})
+    }
+    
+    # #Cargamos la imagen de dispersión y calificaciones de los datos 
+    # output$modelEval_plotDispersion<-renderPlot({
+    #   
+    #   image(r, main="Mapa de calor de las calificaciones")
+    #   
+    # })
     
   })
-  
-  
+  # 
+  # Funcion_evaluacionDelError<-function(df){
+  #   df<-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   
+  #   if (class(df[,input$modelEval_at3])=="numeric" || class(df[,input$modelEval_at3])=="integer"){
+  #     
+  #     
+  #     #Se genera la matriz a partir del dataframe
+  #     matriz<-acast(df, df[,input$modelEval_at1]~df[,input$modelEval_at2], value.var=input$modelEval_at3)
+  #     
+  #     #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
+  #     r <- as(matriz,"realRatingMatrix")
+  #     
+  #     #Número de Items que vamos a usar para evaluar el esquema, lo ideal es que sea menor que el mínimo dispuesto por un usuario
+  #     minItems<-min(rowCounts(r)) 
+  #     items_dados= minItems-1
+  #     
+  #     #Creamos el esquema de evaluación con given=3
+  #     eval_sets <- evaluationScheme(r, method="split", train=0.8, given=items_dados, goodRating=3)
+  #     
+  #     #Comprobamos los datos que se usan para el entrenamiento
+  #     getData(eval_sets, "train")
+  #     
+  #     #Creamos el sistema recomendador a partir de los datos de entrenamiento
+  #     Rec.ubcf <- Recommender(getData(eval_sets, "train"), "UBCF", param = list(nn = 25))
+  #     Rec.ibcf <- Recommender(getData(eval_sets, "train"), "IBCF", param = list(k = 30))
+  #     
+  #     #Realizamos las predicciones de calificaciones en base a las conocidas
+  #     p.ubcf <- predict(Rec.ubcf, getData(eval_sets, "known"), n=4, type="ratings")
+  #     p.ibcf <- predict(Rec.ibcf, getData(eval_sets, "known"), n=4, type="ratings")
+  #     
+  #     #Calculamos el error de las predicciones sobre los datos de test desconocidos
+  #     error.ubcf<-calcPredictionAccuracy(p.ubcf, getData(eval_sets, "unknown"))
+  #     error.ibcf<-calcPredictionAccuracy(p.ibcf, getData(eval_sets, "unknown"))
+  #     
+  #     #Unimos las listas, nombramos las filas y mostramos la tabla de errores
+  #     error <- rbind(error.ubcf,error.ibcf)
+  #     rownames(error) <- c("UBCF","IBCF")
+  #     error
+  #     
+  #   }else{
+  #     return(NULL)
+  #   }
+  #   
+  # }
+  # 
+  # observeEvent(input$modelEval_Action,{
+  #   
+  # })
   
   #--------Recomendaciones
   output$colaborativo_at1 <- renderUI({
@@ -2239,10 +2553,12 @@ shinyServer(function(input, output, session) {
   
   Funcion_emiteRecomendaciones<-function(df){
     
+    if (class(df[,input$colaborativo_at3])=="numeric" || class(df[,input$colaborativo_at3])=="integer"){
+      
     #Se genera la matriz a partir del dataframe
     matriz<-acast(df, df[,input$colaborativo_at1]~df[,input$colaborativo_at2], value.var=input$colaborativo_at3)
     
-    #Convertimos la matriz
+    #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
     r <- as(matriz,"realRatingMatrix")
     
     #Obtenemos la posición en la matriz, del usuario de análisis
@@ -2261,6 +2577,9 @@ shinyServer(function(input, output, session) {
     valoraciones<- predict(modelo, r[pos], n=input$colaborativo_slider,type="ratings")
     
     resultado<-list(recomendaciones,valoraciones)
+    }else{
+      return(NULL)
+      }
   }
   
   
@@ -2268,9 +2587,14 @@ shinyServer(function(input, output, session) {
   
   #Observamos el evento de acción y mostramos los resultados
   observeEvent(input$colaborativo_Recomen, {
+    
     df<-filedata()
     if (is.null(df)) return(NULL)
+    
     datos<-Funcion_emiteRecomendaciones(df)
+    
+    if (!is.null(datos)){
+      
     
     #Devolvemos las recomendaciones en una tabla
     recomendaciones<-as.data.frame(as(datos[[1]],"list"))
@@ -2292,6 +2616,11 @@ shinyServer(function(input, output, session) {
     output$colaborativo_msj = renderPrint({print(paste("Se muestran los resultados para ",input$colaborativo_slider," recomendaciones",sep=""))})
     
     output$colaborativo_table = renderTable({salida})
+    
+    }else{
+      output$colaborativo_msj = renderPrint({print("El atributo Valoraciones no es de tipo numérico.")})
+      output$colaborativo_table = renderTable({})
+    }
     
   })
   

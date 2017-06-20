@@ -8,7 +8,7 @@ library(corrgram)
 library(dendextend)
 #library(TSA) 'Solo para ejemplo
 library(forecast)
-library(lubridate) #Agregacion de datos en series temporales
+library(lubridate) #Agregacion de datos en series temporales y fechas
 
 #Filtrado colaborativo
 library(reshape2)
@@ -21,6 +21,11 @@ library(magrittr)
 library(leaflet)
 library(TSP)
 library(shinycssloaders) #Animaciones CSS - withSpinner
+
+#APIs
+library(httr)
+library(jsonlite)
+
 
 source('global.R')
 
@@ -39,7 +44,8 @@ dashboardPage(
     #SideBar con las opciones de la aplicación
     sidebarMenu(
       id = "tabs",
-      menuItem("CARGA DE DATOS", tabName = "carga",icon = icon("upload")),
+      menuItem("CARGA DE DATOS", tabName = "importacionDatos",icon = icon("upload")
+               ),
       menuItem("OPERACIONES", tabName = "operaciones", icon = icon("sticky-note-o"),
               collapsible = TRUE,
               menuSubItem("Consultas", tabName = "consulta",icon = icon("book")),
@@ -73,6 +79,7 @@ dashboardPage(
       
       menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("snowflake-o"),
                collapsible = TRUE,
+               menuSubItem("Valoraciones", tabName = "datosRecomendaciones",icon = icon("braille")),
                menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("braille")),
                menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("braille"))),
       
@@ -96,18 +103,49 @@ dashboardPage(
   
   dashboardBody(style = 'overflow-y: scroll', #De esta manera añadimos un scroll vertical al Body
     tabItems(
-      tabItem(tabName = "carga",
-                      fluidRow(
-                                box(fileInput('datafile', 'Selecciona CSV',
-                                      accept=c('text/csv', 'text/comma-separated-values,text/plain')),
-                                    verbatimTextOutput("mensajes_carga"))),
+      tabItem(tabName = "importacionDatos",
+              fluidRow(box(width = 12,
+                fluidRow(
+                box( radioButtons("tipoImport", "Tipo de Importación",
+                                  c("CSV" = "csv",
+                                    "API" = "api")))
+                    ),
+                      fluidRow( conditionalPanel(condition="input.tipoImport=='csv'",
+                                box(width = 12,
+                                  fileInput('datafile', 'Selecciona archivo CSV',
+                                      accept=c('text/csv', 'text/comma-separated-values,text/plain'))
+                                   ))
+                      ),
+                      fluidRow( conditionalPanel(condition="input.tipoImport=='api'",
+                                box(title="Importar datos desde API-WEB",width = 9,
+                                    div(style="display: inline-block;vertical-align:top; width: 400px;",textInput("URL", "URL Compuesta:")),
+                                    br(),
+                                    tags$style(type='text/css', "#API_Action { width:20%; margin-top: 25px;}"),
+                                    actionButton("API_Action", "Obtener Datos",style=blueStyle)
+                                    ),
+                                    box(title="Nodos del documento",width = 3,
+                                        radioButtons("requiereNodo", "Extraer un nodo en particular?",
+                                                 c("NO" = "no",
+                                                   "SI" = "si")),
+                                    
+                                    conditionalPanel(condition="input.requiereNodo=='si'",div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("nodo")),
+                                                     br(),
+                                                     tags$style(type='text/css', "#API_nodeAction { width:100%; margin-top: 25px;}"),
+                                                     actionButton("API_nodeAction", "Extraer Nodo",style=blueStyle))
+                                    ))
+                        ))),
+                      fluidRow(conditionalPanel(condition ="output.filedatacargado",
+                                                box(title="Mensaje del Sistema", width = 12,
+                                                    verbatimTextOutput("API_msj")))
+                      ),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
                                     box(title = "Datos Cargados", width = 12, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
                                    )))
                       #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
               ),
-                    
+      
+      
       tabItem(tabName = "consulta",
               tags$style(type='text/css', '#controlDeCarga_Consulta {background-color: rgba(0,0,255,0.10);font-weight: bold; color: black;font-size: 14px}'),             
               verbatimTextOutput("controlDeCarga_Consulta"),
@@ -745,6 +783,29 @@ dashboardPage(
                      conditionalPanel(condition ="input.ruta_action",leafletOutput("ruta_plot"))))
     ),
     
+    #Filtrado Colaborativo - consulta de los datos
+    tabItem(tabName = "datosRecomendaciones",
+            fluidRow(box(tags$p("DISTRIBUCIÓN DE LAS VALORACIONES", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("datosRecomendaciones_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("datosRecomendaciones_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("datosRecomendaciones_at3")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         #div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
+                         #                                                                               min = 1, max = 10, value = 1, step= 1)),
+                         #br(),
+                         tags$style(type='text/css', "#datosRecomendaciones_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("datosRecomendaciones_Action", "Consulta",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("datosRecomendaciones_msj"),
+                         br(),
+                         splitLayout(cellWidths = c("50%", "50%"), conditionalPanel(condition ="input.datosRecomendaciones_Action",withSpinner(plotOutput("datosRecomendaciones_plot1"))),
+                                     conditionalPanel(condition ="input.datosRecomendaciones_Action",withSpinner(plotOutput("datosRecomendaciones_plot2"))))
+            ))
+    ),        
     #Filtrado Colaborativo - evaluación de modelo
     tabItem(tabName = "modelEval",
             fluidRow(box(tags$p("EVALUACIÓN DE MODELOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
@@ -755,13 +816,14 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at3")),
                          br(),
-                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
-                                                                                                         min = 1, max = 10, value = 1, step= 1)),
-                         br(),
+                         #div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
+                          #                                                                               min = 1, max = 10, value = 1, step= 1)),
+                         #br(),
                          div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderEval", "K - Validación Cruzada", 
                                                                                                          min = 1, max = 10, value = 1, step= 1)),
                          br(),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("modelEval_Action", "Evaluación",style=blueStyle)),
+                         br(),
                          br(),
                          verbatimTextOutput("modelEval_msj"),
                          splitLayout(cellWidths = c("50%", "50%"), conditionalPanel(condition ="input.modelEval_Action",withSpinner(plotOutput("modelEval_plot1"))),
