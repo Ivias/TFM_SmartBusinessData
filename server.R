@@ -2924,7 +2924,7 @@ api<-function(){
           output$geo_plot<-renderLeaflet({
           leaflet() %>%
                       addTiles() %>%
-                      addMarkers(data = df, ~df[,longitud], ~df[,latitud],
+                      addMarkers(data = df, ~as.numeric(df[,longitud]), ~as.numeric(df[,latitud]),
                                  popup = ~popup)
           })
         
@@ -2962,6 +2962,13 @@ api<-function(){
       
       if(esgeolocalizable==TRUE){
         
+        #Recogemos del dataset las columnas que necesitamos únicamente
+        df<-df[,c(latitud,longitud)]
+        
+        #Por si acaso son caracteres transformamos en tipo numeric
+        df[, 1:2] <- sapply(df[, 1:2], as.numeric)
+        
+        #Optenemos el TSP a través de la distancia
         tsp <- TSP(dist(df))
         tsp <- insert_dummy(tsp, label = "cut")
         tour <- solve_TSP(tsp, method="2-opt", control=list(rep=10))
@@ -2991,7 +2998,7 @@ api<-function(){
         })
         
         output$ruta_msj<-renderPrint({
-          print("Se muestra la localización de los datos")
+          print("Se muestra la ruta optima entre las coordenadas")
         })
         
       }else{
