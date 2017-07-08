@@ -109,7 +109,6 @@ api<-function(){
 
   #-En caso de que haya que seleccionar algún nodo del JSON de la API-WEB
   
-  
   output$nodo <- renderUI({
     
       df <-filedata()
@@ -409,7 +408,7 @@ api<-function(){
     fileinfo <- parseSavePath(volumes, input$guardarFiltro)
     data <- FuncionFiltroColumnas()
     if (nrow(fileinfo) > 0) {
-      write.csv(data, as.character(fileinfo$datapath))
+      write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
     }
   })
 
@@ -630,7 +629,7 @@ api<-function(){
       data<-filedata()
     }
     if (nrow(fileinfo) > 0) {
-      write.csv(data, as.character(fileinfo$datapath))
+      write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
     }
   })
   #------------------FIN DE TRASFORMACIONES--------------------------
@@ -704,7 +703,7 @@ api<-function(){
     fileinfo <- parseSavePath(volumes, input$guardar_edicion)
     data <- FuncionAddAtributo
     if (nrow(fileinfo) > 0) {
-      write.csv(data, as.character(fileinfo$datapath),row.names=F)
+      write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
     }
   })
 
@@ -1637,6 +1636,7 @@ api<-function(){
       at2<-input$reglinealsimple_at2
       Y<-df[,at2]
       
+      
       if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
           
         #Exportamos el modelo como variable global
@@ -1672,6 +1672,27 @@ api<-function(){
         output$reglienalsimple_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
         
       }
+      
+      #Código para mostrar valores predichos vs reales -Evaluación del modelo
+      index <- sample(1:nrow(df),round(0.75*nrow(df)))
+      train <- df[index,]
+      test <- df[-index,]
+      
+      at1<-input$reglinealsimple_at1
+      
+      at2<-input$reglinealsimple_at2
+      #CReamos la formula
+      f <- as.formula(paste(at2," ~ ", at1, collapse ="" ))
+      
+      lm.fit <- glm(f, data=train)
+      pr.lm <- predict(lm.fit,test,level= 95)
+      
+      #Plot de evaluación
+      output$reglienalsimple_plot4 <- renderPlot({
+        plot(test[,input$reglinealsimple_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=input$reglinealsimple_at2)
+        abline(0,1,lwd=2)
+        legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
+      })
   })
   
   #Predicción de valores de Y en función de X
@@ -1707,33 +1728,53 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     
-    
-    #Obtenemos la lista de columnas
-    valoresX<-input$reglinealmulti_at1 
-    arrayList<-strsplit(valoresX,";")[[1]]
-    X<-df[,arrayList]
-    
-    at2<-input$reglinealmulti_at2
-    Y<-df[,at2]
-    
     #Comprobamos si algún valor no es numérico
     valorCaracter<-"False"
-    xnom<-c("")
     
-    for (i in 1:length(arrayList)){
-      if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric"){
-        valorCaracter<-"True"
-      }
-      assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
-        
-    }
-        xnom <- paste("X",arrayList,sep="")
-        formu<-paste(xnom,collapse="+")
+    if(input$reglinealmulti_at1!=""){
+      #Obtenemos la lista de columnas
+      valoresX<-input$reglinealmulti_at1 
+      arrayList<-strsplit(valoresX,";")[[1]]
+      X<-df[,arrayList]
+      
+      at2<-input$reglinealmulti_at2
+      Y<-df[,at2]
+      
 
+      #Artefacto para construir la fórmula
+      xnom<-c("")
+      
+      for (i in 1:length(arrayList)){
+        if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric"){
+          valorCaracter<-"True"
+        }
+        assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
+          
+      }
+          xnom <- paste("X",arrayList,sep="")
+          formu<-paste(xnom,collapse="+")
+    }else{
+      #Comprobamos si hay columnas tipo caracter
+      columnasCaracter<-sapply(df,is.character)
+      if(TRUE %in% columnasCaracter){
+        valorCaracter<-"True"
+      }else{
+        #Obtenemos la lista de columnas
+        Y<-input$reglinealmulti_at2
+        formu<-"."
+      }
+   
+    }
+    
     if (valorCaracter=="False"){
       
       #Exportamos el modelo como variable global
-      modelo<<-lm( as.formula(paste("Y ~", formu)), data=df )
+      if(input$reglinealmulti_at1!=""){
+        modelo<<-lm( as.formula(paste("Y ~", formu)), data=df )
+      }else{
+        modelo<<-lm( as.formula(paste(Y,"~", formu)), data=df )
+      }
+      
       
       #xnam <- paste("x", 1:3, sep="")
       #fmla <- as.formula(paste("y ~ ", paste(formula, collapse= "+")))
@@ -1771,6 +1812,203 @@ api<-function(){
       output$reglienalmulti_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
       
     }
+          
+    
+  })
+  
+  #----REDES NEURONALES--------#
+  
+  # output$redneuronal_at1 <- renderUI({
+  #   df<-filedata()
+  #   if (is.null(df)) return(NULL)
+  #   items=names(df)
+  #   selectInput("redneuronal_at1", "IN",items)
+  #   
+  # })
+  
+  output$redneuronal_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("redneuronal_at2", "NN_OUT",items)
+    
+  })
+  
+  #URL a consultar https://rpubs.com/etsibert/NeuralNetShinyAppRPes
+  observeEvent(input$redneuronal_Action,{
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    hayCaracter<-FALSE
+    
+    #Sólo tenemos en cuenta los datos de IN y OUT
+    #df<-df[,c(input$redneuronal_at1,input$redneuronal_at2)]
+    
+   
+    #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
+    col_idx <- grep(input$redneuronal_at2, names(df)) 
+    df <- df[, c((1:ncol(df))[-col_idx],col_idx)]
+    
+    #Guardamos df en una variable global para posteriorres predicciones
+    df_paraEvalRed <<-df
+    
+    
+      columnasCaracter<-sapply(df,is.character)
+      
+      if(TRUE %in% columnasCaracter){
+        hayCaracter<-TRUE
+        
+      }else{
+        maxs <- apply(df, 2, max) 
+        mins <- apply(df, 2, min)
+
+        df_escalado <- as.data.frame(scale(df, center = mins, scale = maxs - mins))
+        
+        n <- names(df)
+        f <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
+        if(input$hidenLayers==2){
+           nn <<- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
+
+        }else{
+          nn <<-neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
+        }
+      } 
+      
+    # }else{ #if (input$redneuronal_at1=="")
+    #   valoresX<-input$redneuronal_at1 
+    #   arrayList<-strsplit(valoresX,";")[[1]]
+    #   #Introducimos el dato objetivo en el array
+    #   arrayListComp<-c(arrayList,input$redneuronal_at2)
+    #   data<-df[,arrayListComp]
+    #   
+    #   columnasCaracter2<-sapply(data,is.character)
+    #   #comprobamos si hay columnas caracter entre los atributos
+    #   if(TRUE %in% columnasCaracter2){ 
+    #     hayCaracter<-TRUE
+    #   #En caso de que no haya columnas caracter en los atributos escogidos
+    #   }else{ 
+    #     maxs <- apply(data, 2, max) 
+    #     mins <- apply(data, 2, min)
+    #     
+    #     df_escalado <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
+    #     
+    #     n <- names(data)
+    #     f <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
+    #     if(input$hidenLayers==2){
+    #       nn <- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
+    #     }else{
+    #       nn <- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
+    #     }
+    #   }
+    # }
+    
+    
+    if(hayCaracter==FALSE){
+      
+      #Evaluamos el modelo con el 80% de los datos
+      #if(redneuronal_at1==""){}
+      
+      #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
+      col_idx <- grep(input$redneuronal_at2, names(df)) 
+      df <- df[, c((1:ncol(df))[-col_idx],col_idx)]
+      
+      
+        #recogemos un índice para los datos de entrenamiento y eveluación
+        index <- sample(1:nrow(df),round(0.75*nrow(df)))
+        maxs <<- apply(df, 2, max) 
+        mins <<- apply(df, 2, min)
+        
+        #Valores sin escalar
+        train <- df[index,]
+        test <- df[-index,]
+        
+        #Se escalan los datos
+        scaled <- as.data.frame(scale(df, center = mins, scale = maxs - mins))
+        train_ <- scaled[index,]
+        test_ <- scaled[-index,]
+        n <- names(train_)
+        
+        #Formamos la fórmula para obtener el modelo
+        formul <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
+        #formul <- as.formula(paste(input$redneuronal_at2," ~",input$redneuronal_at1))
+        
+        #Creamos el modelo en función del número de capas
+        if(input$hidenLayers==2){
+          nn_eval <- neuralnet(formul,data=train_,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
+        }else{
+          nn_eval <- neuralnet(formul,data=train_,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
+        }
+        
+        
+        
+        #Computamos los datos de test de entrada, todas las columnas menos la última que es donde está la salida de la red
+        aComputar<-as.numeric(ncol(test_)-1)
+         pr.nn <- compute(nn_eval,test_[,1:aComputar])
+         pr.nn_ <- pr.nn$net.result*(max(df[,input$redneuronal_at2])-min(df[,input$redneuronal_at2]))+min(df[,input$redneuronal_at2])
+         test.r <- (test_[,input$redneuronal_at2])*(max(df[,input$redneuronal_at2])-min(df[,input$redneuronal_at2]))+min(df[,input$redneuronal_at2])
+         
+         #Obtenemos el error cuadrático medio
+         MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(test_)
+         
+        
+      #Se muestran las salidas correspondientes
+      output$redneuronal_msj<-renderPrint({
+        print("Se muestra el modelo de red neuronal generado a partir de los datos")
+      })
+      
+      output$redneural_plot1 <- renderPlot({
+        plot(nn)
+      })
+      
+      #Se muestran las salidas correspondientes
+      output$redneuronal_msj2<-renderPrint({
+        print(paste("MSE = ",MSE.nn,sep=""))
+      })
+      
+      #Mostramos la gráfica del error cuadrático MSE
+      output$redneural_plot2 <- renderPlot({
+        par(mfrow=c(1,2))
+        
+        plot(test[,input$redneuronal_at2],pr.nn_,col='red',main='Reales vs Predichos (NN)',pch=18,cex=0.7,xlab="Valores Reales",ylab="Valores Predichos")
+        abline(0,1,lwd=2)
+        legend('bottomright',legend='NN',pch=18,col='red', bty='n')
+        par(mfrow=c(1,1))
+      })
+      
+    }else{
+      output$redneuronal_msj<-renderPrint({
+        print("Alguno de los valores de entrada no es numérico")
+      })
+      
+    }
+  })
+  
+  
+  observeEvent(input$evalCSVNeuronal_Action,{
+  
+  #Recogemos el nombre del fiechero 
+  fileNeuralEval <- input$neuralFileEvaluation 
+  
+  if(is.null(fileNeuralEval)){ return(NULL)}
+  
+  #Leemos el archivo y tratamos los '?' como NA
+  fileNeuralPred<-read.csv(fileNeuralEval$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
+  
+  #Los valores mins y maxs han sido declarados como globales durante la generación del modelo.
+  #Tenemos que quitar la última columna de mins y maxs que sería la predicción
+  valoresEscalados <- as.data.frame(scale(fileNeuralPred, center = mins[1:length(mins)-1], scale = maxs[1:length(maxs)-1] - mins[1:length(mins)-1]))
+  
+  pr.nn <- compute(nn,valoresEscalados)
+  #Des-escalamos los valores
+  pr.nn_ <- pr.nn$net.result*(max(df_paraEvalRed[,input$redneuronal_at2])-min(df_paraEvalRed[,input$redneuronal_at2]))+min(df_paraEvalRed[,input$redneuronal_at2])
+  
+  #Construimos el csv final
+  fileNeuralPred$NN_OUT<-as.data.frame(pr.nn_)
+  
+  #mostramos los resultados obtenidos
+  output$tableEvalNeuronal <- renderTable({
+    fileNeuralPred
+  })
+  
   })
   
   #--ANÁLISIS DE CLUSTERS--#
@@ -2834,11 +3072,14 @@ api<-function(){
     
     df<-filedata()
     if (is.null(df)) return(NULL)
-    if (class(df[,input$visual_color])!="character" && input$visual_color!="NULL"){
-      esfactorvisual<<-"TRUE"
-      }else{
-        esfactorvisual<<-"FALSE"
-      }
+    #Se observa sólo en caso de que contenga datos el combo
+    if (typeof(input$visual_color)!="NULL" && input$visual_color!=""){
+      if (class(df[,input$visual_color])!="character" && input$visual_color!="NULL"){
+        esfactorvisual<<-"TRUE"
+        }else{
+          esfactorvisual<<-"FALSE"
+        }
+    }
   })
   outputOptions(output, 'variableColor', suspendWhenHidden = FALSE)
   

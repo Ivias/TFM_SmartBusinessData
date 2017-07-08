@@ -26,6 +26,9 @@ library(shinycssloaders) #Animaciones CSS - withSpinner
 library(httr)
 library(jsonlite)
 
+#Redes Neuronales
+library(neuralnet)
+
 
 source('global.R')
 
@@ -71,6 +74,8 @@ dashboardPage(
                menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
                menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("line-chart"))),
       
+      menuItem("REDES NEURONALES", tabName = "redneuronal", icon = icon("snowflake-o")),
+               
       menuItem("CLUSTERING", tabName = "clusters",icon = icon("snowflake-o"),
                collapsible = TRUE,
                menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
@@ -456,8 +461,10 @@ dashboardPage(
                                       withSpinner(plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1"))),
                                   box(width = 6,
                                       withSpinner(plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2"))),
-                                  box(width = 12,
-                                      withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3")))
+                                  box(width = 6,
+                                      withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))),
+                                  box(width = 6,
+                                      withSpinner(plotOutput("reglienalsimple_plot4",click = "reglienalsimple_plot_click4")))
                          ),
                           fluidRow(box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                                        br(),
@@ -471,10 +478,11 @@ dashboardPage(
                                        div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir Valores",style=blueStyle)),
                                        verbatimTextOutput("SLR_prediccion_print"))
                              )),
+     
     tabItem(tabName = "reglineal_multi",
             fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("reglinealmulti_at1","Columnas X (sep=;)")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("reglinealmulti_at1","X (sep=;)(vacio=ALL)")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealmulti_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -492,6 +500,50 @@ dashboardPage(
                      box(tags$p("GRÁFICAS DEL MODELO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click")))
             )),
+    #Redes Neuronales
+    tabItem(tabName = "redneuronal",
+            fluidRow(box(tags$p("RED NEURONAL DE RETROPROPAGACIÓN", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("redneuronal_at1")),
+                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("redneuronal_at2")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("hidenLayers", "Capas Ocultas",
+                                                                                                          c("1" = "1",
+                                                                                                            "2" = "2"))),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 300px;",conditionalPanel(condition ="input.hidenLayers==1 || input.hidenLayers==2",  sliderInput("neurLayer1", "Nº de neuronas de la capa 1", 
+                                                                                                                                                                                      min = 1, max = 20, value = 1, step= 1))),
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 300px;",conditionalPanel(condition ="input.hidenLayers==2",  sliderInput("neurLayer2", "Nº de neuronas de la capa 2", 
+                                                                                                                                                              min = 1, max = 10, value = 1, step= 1))),
+                         
+                         br(),
+                         tags$style(type='text/css', "#redneuronal_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("redneuronal_Action", "Ejecutar",style=blueStyle)),
+                         br(),
+                         br(),
+                         verbatimTextOutput("redneuronal_msj")),
+                      box(tags$p("MODELO DE RED", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         withSpinner(plotOutput("redneural_plot1",click = "redneural_plot1_click")),
+                         verbatimTextOutput("redneuronal_msj2")),
+                      box(tags$p("EVALUACIÓN DEL MODELO", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                        withSpinner(plotOutput("redneural_plot2",click = "redneural_plot2_click"))),
+                     conditionalPanel(condition ="input.redneuronal_msj2==TRUE", 
+                                      box(tags$p("PREDICCIONES DEL MODELO", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                                          fileInput('neuralFileEvaluation', 'Selecciona CSV para evaluación',
+                                          accept=c('text/csv', 'text/comma-separated-values,text/plain')),
+                                          tags$style(type='text/css', "#evalCSVNeuronal_Action { width:100%; margin-top: 25px;}"),
+                                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("evalCSVNeuronal_Action", "Predicción",style=blueStyle))
+                                          
+                     )),
+                     conditionalPanel(condition ="input.evalCSVNeuronal_Action==TRUE",
+                                               box(title = "Predicciones - Modelo  de la Red Neuronal (NN)", width = 12, status = "primary",
+                                                   div(style = 'overflow-x: scroll', tableOutput("tableEvalNeuronal"))
+                                               ))
+            )),                   
+                         
+                         
     #Clusters
     tabItem(tabName = "kmeans",
             fluidRow(box(tags$p("ALGORITMO K-MEANS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
