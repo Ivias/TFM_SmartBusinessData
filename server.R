@@ -1,4 +1,6 @@
 
+
+
 shinyServer(function(input, output, session) {
 
   filesalida<-NULL
@@ -28,12 +30,13 @@ api<-function(){
 }
 
 
+
 #Cargamos el archivo CSV
   observe({
     
     tipo<-input$tipoImport
     
-    
+
     if(input$tipoImport=="csv"){
       
       infile <- input$datafile 
@@ -41,7 +44,7 @@ api<-function(){
       if(is.null(infile)){ return(NULL)}
       
       #Leemos el archivo y tratamos los '?' como NA
-      file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
+      file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
 
      
       
@@ -119,15 +122,114 @@ api<-function(){
       }
   })
   
+ #Definimos las funciones que borraran los elementos gráficos desplegados, al detectar una nueva carga de datos
+  Funcion_BorraPlots<-function(){
+    
+    output$reglienalsimple_plot1 <- renderPlot({})
+    output$reglienalsimple_plot2 <- renderPlot({})
+    output$reglienalsimple_plot3 <- renderPlot({})
+    output$reglienalsimple_plot4 <- renderPlot({})
+    output$reglienalmulti_plot1 <- renderPlot({})
+    output$reglienalmulti_plot2 <- renderPlot({})
+    output$reglienalmulti_plot3 <- renderPlot({})
+    output$redneural_plot1 <- renderPlot({})
+    output$redneural_plot2 <- renderPlot({})
+    output$cluster_plot1 <- renderPlot({})
+    output$cluster_plot2 <- renderPlot({})
+    output$clusterj_plot1 <- renderPlot({})
+    output$clusterj_plotFinal <- renderPlot({})
+    output$clusterelbow_plot1 <- renderPlot({})
+    output$clustereva_plot1 <- renderPlot({})
+    output$clustereva_plot2 <- renderPlot({})
+    output$clustereva_plot3 <- renderPlot({})
+    output$clustereva_plot4 <- renderPlot({})
+    output$arima_plot1 <- renderPlot({})
+    output$arima_plot2 <- renderPlot({})
+    output$arima_plot3 <- renderPlot({})
+    output$arima_plot4 <- renderPlot({})
+    output$arima_plot5 <- renderPlot({})
+    output$tbats_plot1 <- renderPlot({})
+    output$datosRecomendaciones_plot1 <- renderPlot({})
+    output$datosRecomendaciones_plot2 <- renderPlot({})
+    output$modelEval_plot1 <- renderPlot({})
+    output$modelEval_plot2 <- renderPlot({})
+    
+  }
+  
+  Funcion_BorraPrints<-function(){
+    
+    output$consulta_msj <- renderPrint({})
+    output$mensajes_limpiezaNA <- renderPrint({})
+    output$mensajes_limpiezaAnomalos <- renderPrint({})
+    output$dosvariables_sumarioGeneral <- renderPrint({})
+    output$dosvariables_mensajes_factorizar <- renderPrint({})
+    output$dosvariables_mensajes_print <- renderPrint({})
+    output$mensajes_exploracion1 <- renderPrint({})
+    output$resultados_exploracion1 <- renderPrint({})
+    output$mensajes_exploracionGrafica <- renderPrint({})
+    output$mensajes_exploracionGrafica2 <- renderPrint({})
+    output$dosvar_Print_relaTab <- renderPrint({})
+    output$mensajes_dosvar_exploracionGrafica <- renderPrint({})
+    output$dosvar_msj_correlacion <- renderPrint({})
+    output$dosvar_Print_correlacion <- renderPrint({})
+    output$multivar_msj_graf <- renderPrint({})
+    output$multivar_msj_correlacion <- renderPrint({})
+    output$multivar_print_correlacion <- renderPrint({})
+    output$reglienalsimple_msj <- renderPrint({})
+    output$reglienalsimple_print <- renderPrint({})
+    output$SLR_prediccion_print <- renderPrint({})
+    output$reglienalmulti_msj <- renderPrint({})
+    output$reglienalmulti_print <- renderPrint({})
+    output$redneuronal_msj <- renderPrint({})
+    output$redneuronal_msj2 <- renderPrint({})
+    output$cluster_msj <- renderPrint({})
+    output$cluster_print1 <- renderPrint({})
+    output$cluster_print2 <- renderPrint({})
+    output$clusterj_msj <- renderPrint({})
+    output$clusterj_print <- renderPrint({})
+    output$clusterj_print1 <- renderPrint({})
+    output$clusterj_print2 <- renderPrint({})
+    output$clustereva_msj <- renderPrint({})
+    output$arima_msj <- renderPrint({})
+    output$arima_print1 <- renderPrint({})
+    output$arima_msj2 <- renderPrint({})
+    output$tbats_msj <- renderPrint({})
+    output$geo_msj <- renderPrint({})
+    output$ruta_msj <- renderPrint({})
+    output$datosRecomendaciones_msj <- renderPrint({})
+    output$modelEval_msj <- renderPrint({})
+    output$colaborativo_msj <- renderPrint({})
+    
+  }
+  
+  Funcion_BorraTablas<-function(){
+    output$filetablecolumnas <- renderTable({})
+    output$filetabledicion <- renderTable({})
+    output$resultados_limpiezaNA <- renderTable({})
+    output$resultados_limpiezaAnomalos <- renderTable({})
+    output$tableEvalNeuronal <- renderTable({})
+    output$colaborativo_table <- renderTable({})
+    
+  }
+    
   #Definimos la función que es llamada por todas las acciones del script y devuelve el dataset cargado
   filedata<-reactive({
+    #Variables trigger
     cargaAPI<-input$API_Action
     cargaCSV<-input$datafile
     obtenerNodoAPI<-input$API_nodeAction
     tipoImport<-input$tipoImport
+    
+    #Llamamos a la función que borra los plots, prints y tablas, al tratarse de una nueva carga
+    Funcion_BorraPlots()
+    Funcion_BorraPrints()
+    Funcion_BorraTablas()
+    
+    #Recogemos el fichero cargado
     file<-filesalida
     if(is.null(file)){return(NULL)}
     fileout<-file
+    
   })
   
   #Función de devuelve el nodo seleccionado
@@ -1751,8 +1853,10 @@ api<-function(){
         assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
           
       }
-          xnom <- paste("X",arrayList,sep="")
-          formu<-paste(xnom,collapse="+")
+          #xnom <- paste("X",arrayList,sep="")
+          #formu<-paste(xnom,collapse="+")
+          formu<-paste(arrayList,collapse="+")
+          
     }else{
       #Comprobamos si hay columnas tipo caracter
       columnasCaracter<-sapply(df,is.character)
@@ -1843,7 +1947,8 @@ api<-function(){
     #Sólo tenemos en cuenta los datos de IN y OUT
     #df<-df[,c(input$redneuronal_at1,input$redneuronal_at2)]
     
-   
+
+    
     #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
     col_idx <- grep(input$redneuronal_at2, names(df)) 
     df <- df[, c((1:ncol(df))[-col_idx],col_idx)]
@@ -1851,10 +1956,11 @@ api<-function(){
     #Guardamos df en una variable global para posteriorres predicciones
     df_paraEvalRed <<-df
     
-    
+    #Comprobamos que no haya ni caracteres ni factores en los atributos de entrada
       columnasCaracter<-sapply(df,is.character)
+      columnasFactor<-sapply(df,is.factor)
       
-      if(TRUE %in% columnasCaracter){
+      if(TRUE %in% columnasCaracter || TRUE %in% columnasFactor){
         hayCaracter<-TRUE
         
       }else{
@@ -1991,7 +2097,7 @@ api<-function(){
   if(is.null(fileNeuralEval)){ return(NULL)}
   
   #Leemos el archivo y tratamos los '?' como NA
-  fileNeuralPred<-read.csv(fileNeuralEval$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = FALSE)
+  fileNeuralPred<-read.csv(fileNeuralEval$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
   
   #Los valores mins y maxs han sido declarados como globales durante la generación del modelo.
   #Tenemos que quitar la última columna de mins y maxs que sería la predicción
@@ -3074,8 +3180,8 @@ api<-function(){
     if (is.null(df)) return(NULL)
     #Se observa sólo en caso de que contenga datos el combo
     if (typeof(input$visual_color)!="NULL" && input$visual_color!=""){
-      if (class(df[,input$visual_color])!="character" && input$visual_color!="NULL"){
-        esfactorvisual<<-"TRUE"
+      if (class(df[,input$visual_color])!="character" && class(df[,input$visual_color])!="factor" && input$visual_color!="NULL"){
+        esfactorvisual<<-"TRUE" #TRUE
         }else{
           esfactorvisual<<-"FALSE"
         }
@@ -3256,4 +3362,6 @@ api<-function(){
     })
   
 })
+
+
 

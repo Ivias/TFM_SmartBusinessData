@@ -1,5 +1,4 @@
-#-----Funciones filtrado Colaborativo-----
-
+#-----Funciones de reset cada vez que se carga un nuevo dataset
 
 
 

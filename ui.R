@@ -59,7 +59,7 @@ dashboardPage(
       menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
                collapsible = TRUE,
                menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
-               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("line-chart")),
+               menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("map-pin")),
                menuItem("Dos Variables", tabName = "dosVariables",icon = icon("map-signs"),collapsible = TRUE,
                            menuSubItem("Exp. Gráfica", tabName = "expGrafica",icon = icon("map-signs")),
                            menuSubItem("Correlaciones", tabName = "correlacionesdosvar",icon = icon("handshake-o"))
@@ -69,36 +69,36 @@ dashboardPage(
                           menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
                )),
       
-      menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("line-chart"),
+      menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("expand"),
                collapsible = TRUE,
                menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
-               menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("line-chart"))),
-      
-      menuItem("REDES NEURONALES", tabName = "redneuronal", icon = icon("snowflake-o")),
+               menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("bar-chart"))),
                
-      menuItem("CLUSTERING", tabName = "clusters",icon = icon("snowflake-o"),
+      menuItem("CLUSTERING", tabName = "clusters",icon = icon("cubes"),
                collapsible = TRUE,
                menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
-               menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("tree")),
-               menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("tree"))),
+               menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("sitemap")),
+               menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("spinner"))),
       
-      menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("snowflake-o"),
-               collapsible = TRUE,
-               menuSubItem("Valoraciones", tabName = "datosRecomendaciones",icon = icon("braille")),
-               menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("braille")),
-               menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("braille"))),
+      menuItem("REDES NEURONALES", tabName = "redneuronal", icon = icon("snowflake-o")),
       
-      menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("sticky-note-o"),
+      menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("handshake-o"),
                collapsible = TRUE,
-               menuSubItem("ARIMA", tabName = "arima",icon = icon("book")),
+               menuSubItem("Valoraciones", tabName = "datosRecomendaciones",icon = icon("shopping-basket")),
+               menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("shopping-cart")),
+               menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("thumbs-o-up"))),
+      
+      menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("area-chart"),
+               collapsible = TRUE,
+               menuSubItem("ARIMA", tabName = "arima",icon = icon("hourglass-o")),
                menuSubItem("TBATS", tabName = "tbats",icon = icon("book"))
       ),
       
-      menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("sticky-note-o"),
+      menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("eye"),
                collapsible = TRUE,
-               menuSubItem("Agrupaciones", tabName = "agrupaciones",icon = icon("book")),
-               menuSubItem("Geolocalización", tabName = "geolocalizacion",icon = icon("book")),
-               menuSubItem("RutaOptima", tabName = "rutaoptima",icon = icon("book"))
+               menuSubItem("Agrupaciones", tabName = "agrupaciones",icon = icon("object-group")),
+               menuSubItem("Geolocalización", tabName = "geolocalizacion",icon = icon("globe")),
+               menuSubItem("RutaOptima", tabName = "rutaoptima",icon = icon("motorcycle"))
                ),
       
       menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
@@ -111,25 +111,25 @@ dashboardPage(
       tabItem(tabName = "importacionDatos",
               fluidRow(box(width = 12,
                 fluidRow(
-                box( radioButtons("tipoImport", "Tipo de Importación",
+                box( radioButtons("tipoImport", tags$p("TIPO DE ARCHIVO A IMPORTAR", style = "font-size: 120%;color:blue;font-weight: bold"),
                                   c("CSV" = "csv",
                                     "API" = "api")))
                     ),
                       fluidRow( conditionalPanel(condition="input.tipoImport=='csv'",
                                 box(width = 12,
-                                  fileInput('datafile', 'Selecciona archivo CSV',
+                                  fileInput('datafile', tags$p("Seleccionar archivo CSV", style = "font-size: 120%;color:blue;font-weight: bold"),
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain'))
                                    ))
                       ),
                       fluidRow( conditionalPanel(condition="input.tipoImport=='api'",
-                                box(title="Importar datos desde API-WEB",width = 9,
+                                box(tags$p("Importar datos desde API-WEB", style = "font-size: 120%;color:blue;font-weight: bold"),width = 9,
                                     div(style="display: inline-block;vertical-align:top; width: 400px;",textInput("URL", "URL Compuesta:")),
                                     br(),
                                     tags$style(type='text/css', "#API_Action { width:20%; margin-top: 25px;}"),
-                                    actionButton("API_Action", "Obtener Datos",style=blueStyle)
+                                    actionButton("API_Action", "Importar",style=blueStyle)
                                     ),
-                                    box(title="Nodos del documento",width = 3,
-                                        radioButtons("requiereNodo", "Extraer un nodo en particular?",
+                                    box(tags$p("Nodos del documento", style = "font-size: 120%;color:blue;font-weight: bold"),width = 3,
+                                        radioButtons("requiereNodo", "¿Extraer un nodo en particular?",
                                                  c("NO" = "no",
                                                    "SI" = "si")),
                                     
@@ -156,10 +156,10 @@ dashboardPage(
               verbatimTextOutput("controlDeCarga_Consulta"),
               conditionalPanel(condition="output.filedatacargado",
               fluidRow(
-                        box(width = 12,
-                            title="Estructura del Dataset",verbatimTextOutput("TextoSTR",placeholder = TRUE)
+                        box(tags$p("ESTRUCTURA DEL DATASET", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                            verbatimTextOutput("TextoSTR",placeholder = TRUE)
                         ),
-                        box(width = 12,
+                        box(tags$p("FILTRO DE BÚSQUEDA", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                             div(style="padding: 0 5px 0 0; display: block;width: 100%; float: left",uiOutput("variables")),
                             br(),
                             br(),
@@ -183,7 +183,7 @@ dashboardPage(
                             verbatimTextOutput("consulta_msj")
                             )),
                       
-                    fluidRow(box(title = "Datos Filtrados", width = 12, status = "primary",
+                    fluidRow(box(tags$p("Datos Filtrados", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12, status = "primary",
                   div(style = 'overflow-x: scroll', tableOutput("filetablecolumnas"))))
             )),
       
@@ -193,7 +193,7 @@ dashboardPage(
               verbatimTextOutput("controlDeCarga_Edicion"),
               conditionalPanel(condition="output.filedatacargado",
                fluidRow(
-                  box(title="Añadir Atributos",width = 12,
+                  box(tags$p("AÑADIR ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                     div(style="display: inline-block;vertical-align:top; width: 130px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
                     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosEdicion")),
@@ -217,7 +217,7 @@ dashboardPage(
                   )),
                
       fluidRow(box(width=12, 
-                   title = "Dataset Resultante", status = "primary",
+                   tags$p("Dataset Resultante", style = "font-size: 120%;color:blue;font-weight: bold"), status = "primary",
                    div(style = 'overflow-x: scroll', tableOutput("filetabledicion")))
                ))),
         
@@ -226,7 +226,7 @@ dashboardPage(
               verbatimTextOutput("controlDeCarga_Limpieza"),
               conditionalPanel(condition ="output.filedatacargado",
                                fluidRow(
-                                 box(title="Buscar Valores NA",width = 12,
+                                 box(tags$p("BUSCAR VALORES NA", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                                      actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
                                      div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
                                      actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
@@ -239,7 +239,7 @@ dashboardPage(
                                ),
                                
                                fluidRow(
-                                 box(title="Buscar Valores Anómalos",width = 12,
+                                 box(tags$p("BUSCAR VALORES ANÓMALOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                                      div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosLimpieza")),
                                      div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
                                      div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoDato_Limpieza", "Tipo de Dato:",
@@ -266,7 +266,7 @@ dashboardPage(
                                )))
       ),
       tabItem(tabName="factorizar",
-              fluidRow(box(title="Sumario del Dataset",width = 12,
+              fluidRow(box(tags$p("SUMARIO DEL DATASET", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                            verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
               # fluidRow(
               #   box(title="Factorizar",width = 12,
@@ -275,7 +275,7 @@ dashboardPage(
               #       br(),
               #       div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
               #   )),
-              fluidRow(box(title="Factorizar una varibale",width = 12,
+              fluidRow(box(tags$p("FACTORIZACIÓN DE ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")), 
                            div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="output.intervalos=='TRUE'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos"))),
@@ -302,8 +302,7 @@ dashboardPage(
               verbatimTextOutput("controlDeCarga_Exploracion1"),
               conditionalPanel(condition ="output.filedatacargado",
               
-              fluidRow(
-                box(title="Exploración Tabular de una Variable",width = 12,
+              fluidRow(box(tags$p("EXPLORACIÓN TABULAR DE UN ATRIBUTO", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariable")),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracion1", "Tipo de Exploración:",
@@ -320,7 +319,7 @@ dashboardPage(
                  verbatimTextOutput("resultados_exploracion1")
                  )),
 
-              fluidRow(box(title="Exploración Gráfica de una Variable",width = 6,
+              fluidRow(box(tags$p("FILTRO GRÁFICA 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica1", "Gráfica 1:",
@@ -329,7 +328,7 @@ dashboardPage(
                                                                                                        "Plot" = "plot"))),
                            verbatimTextOutput("mensajes_exploracionGrafica")
                         ),
-                       box(title="Exploración Gráfica de una Variable",width = 6,
+                       box(tags$p("FILTRO GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica2")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica2", "Gráfica 2:",
@@ -340,12 +339,12 @@ dashboardPage(
                        )
                 ),
             
-                fluidRow(box(title="Gráfica 1",width = 6,
+                fluidRow(box(tags$p("Gráfica 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                              withSpinner(plotOutput("explor1_grafica1",click = "explor1_grafica1_click", dblclick = "explor1_grafica1_dblclick",brush = brushOpts(
                                id = "explor1_grafica1_brush",
                                resetOnNew = TRUE
                              )))),
-                       box(title="Grafica 2",width = 6,
+                       box(tags$p("Gráfica 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            withSpinner(plotOutput("explor1_grafica2",click = "explor1_grafica2_click")))
                        
               )
@@ -367,7 +366,7 @@ dashboardPage(
             #               verbatimTextOutput("dosvariables_mensajes_factorizar"),
             #               verbatimTextOutput("dosvariables_mensajes_print")
             #               )),
-            fluidRow(box(title="Relación tabular entre dos variables",width = 12,
+            fluidRow(box(tags$p("RELACIÓN TABULAR ENTRE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -377,7 +376,7 @@ dashboardPage(
                         )
                          
                      ),
-            fluidRow(box(title="Exploración Gráfica de dos Variables",width = 12,
+            fluidRow(box(tags$p("EXPLORACIÓN GRÄFICA DE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas2")),
