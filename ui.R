@@ -140,11 +140,11 @@ dashboardPage(
                                     ))
                         ))),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
-                                                box(title="Mensaje del Sistema", width = 12,
+                                                box(tags$p("Mensaje del Sistema", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12,
                                                     verbatimTextOutput("API_msj")))
                       ),
                       fluidRow(conditionalPanel(condition ="output.filedatacargado",
-                                    box(title = "Datos Cargados", width = 12, status = "primary",
+                                    box(tags$p("Datos Cargados", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
                                    )))
                       #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
@@ -152,7 +152,7 @@ dashboardPage(
       
       
       tabItem(tabName = "consulta",
-              tags$style(type='text/css', '#controlDeCarga_Consulta {background-color: rgba(0,0,255,0.10);font-weight: bold; color: black;font-size: 14px}'),             
+              tags$style(type='text/css', '#controlDeCarga_Consulta {text-align:center; background-color: rgba(95,171,215,0.10);font-weight: bold; color: black;font-size: 14px}'),             
               verbatimTextOutput("controlDeCarga_Consulta"),
               conditionalPanel(condition="output.filedatacargado",
               fluidRow(
@@ -160,8 +160,8 @@ dashboardPage(
                             verbatimTextOutput("TextoSTR",placeholder = TRUE)
                         ),
                         box(tags$p("FILTRO DE BÚSQUEDA", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
-                            div(style="padding: 0 5px 0 0; display: block;width: 100%; float: left",uiOutput("variables")),
                             br(),
+                            div(style="display: block; text-align:left; width: 100%",uiOutput("variables")),
                             br(),
                             div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("var1")),
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -175,7 +175,7 @@ dashboardPage(
                             br(),
                             
                             #The action button prevents an action firing before we're ready
-                            actionButton("SeleccionarVariables", "Seleccionar Variables",style=blueStyle),
+                            actionButton("SeleccionarVariables", "Filtrar",style=blueStyle),
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                             shinySaveButton("guardarFiltro", "Guardar Filtro", class="shinySave btn-primary", "Guardar archivo como ...", filetype=list(csv="csv")),
                             br(),
@@ -183,13 +183,13 @@ dashboardPage(
                             verbatimTextOutput("consulta_msj")
                             )),
                       
-                    fluidRow(box(tags$p("Datos Filtrados", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12, status = "primary",
-                  div(style = 'overflow-x: scroll', tableOutput("filetablecolumnas"))))
+                    fluidRow(conditionalPanel(condition="input.SeleccionarVariables",box(tags$p("Datos Filtrados", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12, status = "primary",
+                  div(style = 'overflow-x: scroll', tableOutput("filetablecolumnas")))))
             )),
       
               
       tabItem(tabName = "edicion",
-              tags$style(type='text/css', '#controlDeCarga_Edicion {background-color: rgba(0,0,255,0.10); color: blue;}'),
+              tags$style(type='text/css', '#controlDeCarga_Edicion {text-align:center; background-color: rgba(95,171,215,0.10);font-weight: bold; color: black;font-size: 14px}'),
               verbatimTextOutput("controlDeCarga_Edicion"),
               conditionalPanel(condition="output.filedatacargado",
                fluidRow(
@@ -216,14 +216,14 @@ dashboardPage(
                     shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-primary","Guardar archivo como ...", filetype=list(csv="csv"))
                   )),
                
-      fluidRow(box(width=12, 
+      fluidRow(conditionalPanel(condition="input.ejecutarAtributo",
+                   box(width=12, 
                    tags$p("Dataset Resultante", style = "font-size: 120%;color:blue;font-weight: bold"), status = "primary",
                    div(style = 'overflow-x: scroll', tableOutput("filetabledicion")))
-               ))),
+               )))),
         
       tabItem(tabName = "limpieza",
-              tags$style(type='text/css', '#controlDeCarga_Limpieza {background-color: rgba(0,0,255,0.10); color: blue;}'),
-              verbatimTextOutput("controlDeCarga_Limpieza"),
+              tags$style(type='text/css', '#controlDeCarga_Limpieza {text-align:center; background-color: rgba(95,171,215,0.10);font-weight: bold; color: black;font-size: 14px}'),              verbatimTextOutput("controlDeCarga_Limpieza"),
               conditionalPanel(condition ="output.filedatacargado",
                                fluidRow(
                                  box(tags$p("BUSCAR VALORES NA", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
@@ -319,7 +319,7 @@ dashboardPage(
                  verbatimTextOutput("resultados_exploracion1")
                  )),
 
-              fluidRow(box(tags$p("FILTRO GRÁFICA 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
+              fluidRow(box(tags$p("FILTRO DE GRÁFICA 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica1", "Gráfica 1:",
@@ -328,7 +328,7 @@ dashboardPage(
                                                                                                        "Plot" = "plot"))),
                            verbatimTextOutput("mensajes_exploracionGrafica")
                         ),
-                       box(tags$p("FILTRO GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
+                       box(tags$p("FILTRO DE GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica2")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica2", "Gráfica 2:",
@@ -368,15 +368,20 @@ dashboardPage(
             #               )),
             fluidRow(box(tags$p("RELACIÓN TABULAR ENTRE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_rela_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#dosvar_Action_relaTab { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvar_Action_relaTab", "Ejecutar",style=blueStyle)),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#dosvar_Action_resetTab { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvar_Action_resetTab", "Reset",style=blueStyle)),
+                         br(),
                          verbatimTextOutput("dosvar_Print_relaTab")
                         )
                          
                      ),
-            fluidRow(box(tags$p("EXPLORACIÓN GRÄFICA DE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+            fluidRow(box(tags$p("EXPLORACIÓN GRÁFICA DE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas2")),
@@ -407,7 +412,7 @@ dashboardPage(
                   br(), 
                   verbatimTextOutput("dosvar_msj_correlacion"),
                   verbatimTextOutput("dosvar_Print_correlacion"),
-                  withSpinner(plotOutput("graf_correla_dosVariables",click = "plot1_correladosvar_click")))
+                  conditionalPanel(condition="input.dosvar_Action_correlacion",withSpinner(plotOutput("graf_correla_dosVariables",click = "plot1_correladosvar_click"))))
           
             )),
               
@@ -422,7 +427,7 @@ dashboardPage(
                          br(), 
                          br(),
                          verbatimTextOutput("multivar_msj_graf"),
-                         withSpinner(plotOutput("multivar_graf_plot",click = "multivar_graf_plot_click")))
+                         conditionalPanel(condition="input.multivar_Action_gra",withSpinner(plotOutput("multivar_graf_plot",click = "multivar_graf_plot_click"))))
                      
             )),          
                      
@@ -438,7 +443,7 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("multivar_msj_correlacion"),
                          verbatimTextOutput("multivar_print_correlacion"),
-                         withSpinner(plotOutput("multivar_graf_correla",width = "100%", height = "800px",click = "plot1_correlamultivar_click")))
+                         conditionalPanel(condition="input.multivar_Action_correlacion",withSpinner(plotOutput("multivar_graf_correla",width = "100%", height = "800px",click = "plot1_correlamultivar_click"))))
 
             )),
     
@@ -446,6 +451,7 @@ dashboardPage(
             fluidRow(box(tags$p("REGRESIÓN LINEAL SIMPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealsimple_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("reglinealsimple_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#reglinealsimple_Action { width:100%; margin-top: 25px;}"),
@@ -456,16 +462,16 @@ dashboardPage(
                          verbatimTextOutput("reglienalsimple_print"))
                      ),
                          
-                         fluidRow(box(width = 6,
+                         fluidRow(conditionalPanel(condition="input.reglinealsimple_Action",box(width = 6,
                                       withSpinner(plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1"))),
                                   box(width = 6,
                                       withSpinner(plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2"))),
                                   box(width = 6,
                                       withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))),
                                   box(width = 6,
-                                      withSpinner(plotOutput("reglienalsimple_plot4",click = "reglienalsimple_plot_click4")))
+                                      withSpinner(plotOutput("reglienalsimple_plot4",click = "reglienalsimple_plot_click4"))))
                          ),
-                          fluidRow(box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                          fluidRow(conditionalPanel(condition="input.reglinealsimple_Action",box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                                        br(),
                                        div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("valorX", "Valores de X (sep=;)")),
                                        div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -473,9 +479,10 @@ dashboardPage(
                                                                                                                         c("99%" = ".99",
                                                                                                                           "95%" = ".95",
                                                                                                                           "90%" = ".90"))),
+                                       div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                                        tags$style(type='text/css', "#SLR_prediccion_Action { width:100%; margin-top: 25px;}"),
-                                       div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir Valores",style=blueStyle)),
-                                       verbatimTextOutput("SLR_prediccion_print"))
+                                       div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir",style=blueStyle)),
+                                       verbatimTextOutput("SLR_prediccion_print")))
                              )),
      
     tabItem(tabName = "reglineal_multi",
@@ -492,13 +499,13 @@ dashboardPage(
                          verbatimTextOutput("reglienalmulti_msj"),
                          verbatimTextOutput("reglienalmulti_print"))
             ),
-            fluidRow(box(width = 6,
+            fluidRow(conditionalPanel(condition="input.reglinealmulti_Action",box(width = 6,
                          withSpinner(plotOutput("reglienalmulti_plot1",click = "reglienalmulti_plot1_click"))),
                      box(width = 6,
                          withSpinner(plotOutput("reglienalmulti_plot2",click = "reglienalmulti_plot2_click"))),
-                     box(tags$p("GRÁFICAS DEL MODELO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                     box(width = 12,
                          withSpinner(plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click")))
-            )),
+            ))),
     #Redes Neuronales
     tabItem(tabName = "redneuronal",
             fluidRow(box(tags$p("RED NEURONAL DE RETROPROPAGACIÓN", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
@@ -560,9 +567,8 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("cluster_msj")
                          )),
-
-                  fluidRow(
-                           conditionalPanel(condition ="input.cluster_Action",
+            
+                  fluidRow(conditionalPanel(condition="input.cluster_Action",
                               box(width = 6, 
                               withSpinner(plotOutput("cluster_plot1",click = "cluster_plot1_click")),
                               div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo1", "Cluster 1",
@@ -578,10 +584,9 @@ dashboardPage(
                                                                                                                  "ifault"="Ifault"),
                                                                                                                   selected="Sumario"
                                                                                                                  )),
-                              verbatimTextOutput("cluster_print1"))),
-                           
-                          conditionalPanel(condition ="input.cluster_Action",
-                              box(width = 6, 
+                              verbatimTextOutput("cluster_print1")),
+                              
+                             box(width = 6, 
                               withSpinner(plotOutput("cluster_plot2",click = "cluster_plot2_click")),
                               div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo2", "Cluster 2",
                                                                                                                 c("sumario"="Sumario",
@@ -596,10 +601,10 @@ dashboardPage(
                                                                                                                 "ifault"="Ifault"),
                                                                                                                   selected="Sumario"
                                                                                                                )),
-                              verbatimTextOutput("cluster_print2")))
+                              verbatimTextOutput("cluster_print2"))
                           
                           
-                  )),
+                  ))),
     #Jerarquía
     tabItem(tabName = "jerarquia",
             fluidRow(box(tags$p("CLUSTERING JERARQUICO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
@@ -646,8 +651,7 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("clustereva_msj"))),
             fluidRow(conditionalPanel(condition ="input.clustereva_Action",
-             box(tags$p("EVALUACIONES DE LOS ALGORITMOS DE CLUSTERING", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                
+               box(width = 12,
                 fluidRow(conditionalPanel(condition ="input.clustereva_Action",
                      box(tags$p("GRÁFICAS DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click")),

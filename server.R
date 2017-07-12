@@ -124,7 +124,9 @@ api<-function(){
   
  #Definimos las funciones que borraran los elementos gráficos desplegados, al detectar una nueva carga de datos
   Funcion_BorraPlots<-function(){
-    
+    output$graf_correla_dosVariables<- renderPlot({})
+    output$multivar_graf_plot<- renderPlot({})
+    output$multivar_graf_correla<- renderPlot({})
     output$reglienalsimple_plot1 <- renderPlot({})
     output$reglienalsimple_plot2 <- renderPlot({})
     output$reglienalsimple_plot3 <- renderPlot({})
@@ -161,7 +163,6 @@ api<-function(){
     output$consulta_msj <- renderPrint({})
     output$mensajes_limpiezaNA <- renderPrint({})
     output$mensajes_limpiezaAnomalos <- renderPrint({})
-    output$dosvariables_sumarioGeneral <- renderPrint({})
     output$dosvariables_mensajes_factorizar <- renderPrint({})
     output$dosvariables_mensajes_print <- renderPrint({})
     output$mensajes_exploracion1 <- renderPrint({})
@@ -308,25 +309,25 @@ api<-function(){
   #Comprobamos si se ha cargado algún fichero en Edición
   output$controlDeCarga_Edicion <- renderText({ 
     df <-filedata()
-    if (is.null(df)) return("Para EDITAR es necesario haber cargado un archivo previamente.")
+    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
     })
   
   #Comprobamos si se ha cargado algún fichero en Limpieza
   output$controlDeCarga_Limpieza <- renderText({ 
     df <-filedata()
-    if (is.null(df)) return("Para LIMPIAR es necesario haber cargado un archivo previamente.")
+    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
   })
   
   #Comprobamos si se ha cargado algún fichero en Consulta
   output$controlDeCarga_Consulta <- renderText({ 
     df <-filedata()
-    if (is.null(df)) return("Para CONSULTAR es necesario haber cargado un archivo previamente.")
+    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
   })
   
   #Comprobamos si se ha cargado algún fichero en Consulta
   output$controlDeCarga_Exploracion1 <- renderText({ 
     df <-filedata()
-    if (is.null(df)) return("Para EXPLORAR es necesario haber cargado un archivo previamente.")
+    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
   })
   
   ###FIN de los mensajes en las secciones###
@@ -386,7 +387,7 @@ api<-function(){
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("Variable1", "Variable 1:",items)
+      selectInput("Variable1", "Atributo 1",items)
       
     })
     
@@ -397,7 +398,7 @@ api<-function(){
       fr=input$Variable1
       items=df[,fr]
       
-      selectInput("Valor1", "Valor:",choices=c("",items))
+      selectInput("Valor1", "Valor",choices=c("",items))
       
     })
     
@@ -407,7 +408,7 @@ api<-function(){
       
       items=names(df)
       #names(items)=items
-      selectInput("Variable2", "Variable 2:",items)
+      selectInput("Variable2", "Atributo 2",items)
       
     })
     
@@ -418,7 +419,7 @@ api<-function(){
       fr=input$Variable2
       items=df[,fr]
       
-      selectInput("Valor2", "Valor:",choices=c("",items))
+      selectInput("Valor2", "Valor",choices=c("",items))
       
     })
     
@@ -1336,7 +1337,11 @@ api<-function(){
        })
      })
     
-    
+  #Para limpiar el cuadro de texto generado por la ejecución de 'dosvar_Action_relaTab' 
+  observeEvent(input$dosvar_Action_resetTab, {
+    output$dosvar_Print_relaTab <- renderPrint({})
+  })
+  
   # Funcion_relacionTabDosVariables<-eventReactive(input$dosvariables_Action_relacionTab,{
   #   at1=input$dosvariables_Ui_rela_at1
   #   at2=input$dosvariables_Ui_rela_at2
@@ -2210,13 +2215,13 @@ api<-function(){
     #        col="black", attributes(dos$centers)$dimnames[[1]])
     # })
     
+    output$cluster_msj <- renderPrint({
+      print("Se muestran los clusters generados")
+    })
+    
   })
  
 
-      
-    
-    
-  
 
    #Actualizamos la salida en función de los valores de los combos
   observe({
@@ -2391,7 +2396,10 @@ api<-function(){
       #abline(v=37.5, lty="dashed", col="blue")
       })
     
-   
+      output$clusterj_msj <- renderPrint({
+        print("Se muestran los clusters generados mediante técnicas jerárquicas")
+      })
+      
     
   })
   
@@ -2540,7 +2548,10 @@ api<-function(){
                   xlab = 'Número de clusters', pch = 17, col = 'black') 
        })
     
-   
+    output$clustereva_msj <- renderPrint({
+      print("Método del codo para elegir el número de clusters")
+    })
+      
   })
   
   observeEvent(input$clustereva_CompaAction,{
