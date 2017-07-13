@@ -1116,7 +1116,9 @@ api<-function(){
       switch(input$tipoExploracionGrafica1, 
              histograma={
                if (class(df[,input$atributoUnaVariableGrafica])=="numeric" || class(df[,input$atributoUnaVariableGrafica])=="integer"){
-                      hist(df[,input$atributoUnaVariableGrafica],main = "Histograma", xlab=input$atributoUnaVariableGrafica)
+                 
+                 hist(df[,input$atributoUnaVariableGrafica],main = "Histograma", xlab=input$atributoUnaVariableGrafica)
+                 
                  #Mensaje positivo
                       output$mensajes_exploracionGrafica <- renderText(
                       print(paste("Gráfica 1: ",input$tipoExploracionGrafica1," del atributo ",input$atributoUnaVariableGrafica))
@@ -1152,6 +1154,14 @@ api<-function(){
       }
       
     })
+    
+     output$explor1_grafica1_info <- renderText({
+       paste0("x=", input$explor1_grafica1_click$x, "\ny=", input$explor1_grafica1_click$y)
+     })
+     
+     output$explor1_grafica2_info <- renderText({
+       paste0("x=", input$explor1_grafica2_click$x, "\ny=", input$explor1_grafica2_click$y)
+     })
     
   })
   
@@ -1748,31 +1758,47 @@ api<-function(){
           
         #Exportamos el modelo como variable global
          modelo<<-lm( Y ~ X, data=df )
+         
+         
+         #Código para mostrar valores predichos vs reales -Evaluación del modelo
+         index <- sample(1:nrow(df),round(0.75*nrow(df)))
+         train <- df[index,]
+         test <- df[-index,]
+         
+         #CReamos la formula
+         formulacion <- as.formula(paste(at2," ~ ", at1, collapse ="" ))
+         
+         lm.fit <- glm(formulacion, data=train)
+         pr.lm <- predict(lm.fit,test,level= 95)
+         #Se calcula el error cuadrático medio que se mostrará por pantalla
+         MSE.lm <- sum((pr.lm - test[,at2])^2)/nrow(test)
       
+         
+         
          #Mostramos los resultados
          output$reglienalsimple_print <- renderPrint({ summary(modelo) })
          
          #Histograma de los residuos
-         output$reglienalsimple_plot1 <- renderPlot({ 
+         output$reglienalsimple_plot2 <- renderPlot({ 
                 hist(modelo$residuals, xlab = "Residuos", col = "gray", 
                 main = "Distribución de los residuos") 
            })
          
          #Q-Q de los residuos
-         output$reglienalsimple_plot2 <- renderPlot({ 
+         output$reglienalsimple_plot3 <- renderPlot({ 
                qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos") 
                qqline(modelo$residuals) 
            })
          
          #Variación ecuanime plot
-         output$reglienalsimple_plot3 <- renderPlot({
+         output$reglienalsimple_plot4 <- renderPlot({
               plot(modelo$fitted.values, modelo$residuals, ylab = "Residuos", 
                 xlab = "Valores ajustados", main="Distribución de residuos") 
                abline(0, 0, lwd = 3)
          })
          
          #Mostramos el mensaje
-         output$reglienalsimple_msj <- renderPrint({ print("Se muestran los datos del modelo lineal generado.") })
+         output$reglienalsimple_msj <- renderPrint({ print(paste("Se muestran los datos del modelo de regresión lineal generado. MSE = ", MSE.lm, sep="")) })
       }else{
         
         #Mostramos el mensaje
@@ -1780,26 +1806,16 @@ api<-function(){
         
       }
       
-      #Código para mostrar valores predichos vs reales -Evaluación del modelo
-      index <- sample(1:nrow(df),round(0.75*nrow(df)))
-      train <- df[index,]
-      test <- df[-index,]
       
-      at1<-input$reglinealsimple_at1
       
-      at2<-input$reglinealsimple_at2
-      #CReamos la formula
-      f <- as.formula(paste(at2," ~ ", at1, collapse ="" ))
-      
-      lm.fit <- glm(f, data=train)
-      pr.lm <- predict(lm.fit,test,level= 95)
       
       #Plot de evaluación
-      output$reglienalsimple_plot4 <- renderPlot({
-        plot(test[,input$reglinealsimple_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=input$reglinealsimple_at2)
+      output$reglienalsimple_plot1 <- renderPlot({
+        plot(test[,input$reglinealsimple_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=input$reglinealsimple_at2,asp=1)
         abline(0,1,lwd=2)
         legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
       })
+      
   })
   
   #Predicción de valores de Y en función de X
@@ -1844,9 +1860,9 @@ api<-function(){
       arrayList<-strsplit(valoresX,";")[[1]]
       X<-df[,arrayList]
       
-      at2<-input$reglinealmulti_at2
-      Y<-df[,at2]
-      
+      #at2<-input$reglinealmulti_at2
+      #Y<-df[,at2]
+      Y<-input$reglinealmulti_at2
 
       #Artefacto para construir la fórmula
       xnom<-c("")
@@ -1879,7 +1895,8 @@ api<-function(){
       
       #Exportamos el modelo como variable global
       if(input$reglinealmulti_at1!=""){
-        modelo<<-lm( as.formula(paste("Y ~", formu)), data=df )
+        modelo<<-lm( as.formula(paste(Y,"~", formu)), data=df )
+        #modelo<<-lm( as.formula(paste("Y ~", formu)), data=df )
       }else{
         modelo<<-lm( as.formula(paste(Y,"~", formu)), data=df )
       }
@@ -1894,17 +1911,39 @@ api<-function(){
       #Mostramos los resultados
       output$reglienalmulti_print <- renderPrint({ summary(modelo) })
       
-      #Histograma de los residuos
+      #Código para mostrar valores predichos vs reales -Evaluación del modelo
+      index <- sample(1:nrow(df),round(0.75*nrow(df)))
+      train <- df[index,]
+      test <- df[-index,]
+      
+      
+      pr.lm <- predict(modelo,test,level= 95)
+      MSE.lm <- sum((pr.lm - test[,input$reglinealmulti_at2])^2)/nrow(test)
+      
+      
+      #Mostramos la gráfica de evaluación del modelo vs real
       output$reglienalmulti_plot1 <- renderPlot({
+        
+        
+        #Plot de evaluación
+        plot(test[,input$reglinealmulti_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=isolate(input$reglinealmulti_at1),asp=1)
+        abline(0,1,lwd=2)
+        legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
+        
+      })
+      
+      #Histograma de los residuos
+      output$reglienalmulti_plot2 <- renderPlot({
         hist(modelo$residuals, xlab = "Residuos", col = "gray",
              main = "Distribución de los residuos")
       })
-
-      #Q-Q de los residuos
-      output$reglienalmulti_plot2 <- renderPlot({
-        qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos")
-        qqline(modelo$residuals)
-      })
+      
+    
+      # #Q-Q de los residuos
+      # output$reglienalmulti_plot2 <- renderPlot({
+      #   qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos")
+      #   qqline(modelo$residuals)
+      # })
 
        #Variación ecuanime plot
        output$reglienalmulti_plot3 <- renderPlot({
@@ -1914,7 +1953,7 @@ api<-function(){
        })
       
       #Mostramos el mensaje
-      output$reglienalmulti_msj <- renderPrint({ print("Se muestran los datos del modelo lineal múltiple generado.") })
+      output$reglienalmulti_msj <- renderPrint({ print(paste("Se muestran los datos del modelo de regresión lineal múltiple generado. MSE = ",MSE.lm, sep="")) })
     }else{
       
       #Mostramos el mensaje
@@ -3079,11 +3118,14 @@ api<-function(){
       
       df<-filedata()
       if (is.null(df)) return(NULL)
+      
       #obtenemos el primer año del dataset
       annoComienzo<-year(df[1,1])
+      
+      #Recogemos los años que hay en el dataset
+      numAnnos<-unique(year(df[,1]))
+      
       #Agrupamos mensualmente
-      
-      
       usuarios_mensuales <- as.data.frame(df %>%
                                             group_by(anno = year(df[,1]),
                                                      mes = month(df[,1])) %>%
@@ -3111,28 +3153,72 @@ api<-function(){
               summary(predAvan$upper)
               summary(predAvan$lower)
               
-              mean_2011 <- round(as.numeric(
-                filter(usuarios_mensuales, anno == 2011) %>%
-                  summarise(mean = mean(usuarios))), 0)
-              mean_2012 <- round(as.numeric(
-                filter(usuarios_mensuales, anno == 2012) %>%
-                  summarise(mean = mean(usuarios))), 0)
-              mean_2013 <- round(mean(predAvan$mean), 0)
-              max_mean_2013 <- round(max(predAvan$mean), 0)
+              #Recorremos todos los años del dataset para pintar la gráfica
+              for (annoi in numAnnos){
+                assign(paste("media_",annoi,sep=""),round(as.numeric(
+                     filter(usuarios_mensuales, anno == annoi) %>%
+                       summarise(mean = mean(usuarios))), 0))
+                
+                mediaAnno<-eval(as.name(paste("media_",annoi,sep="")))
+                
+                segments(as.numeric(annoi), mediaAnno, x1 = as.numeric(annoi)+1, y1 = mediaAnno,
+                                  col = "darkgray", lty = 2, lwd = 2)
+                
+                text(as.numeric(annoi), mediaAnno + mediaAnno*0.05, mediaAnno)
+                
+              }
               
+              #Dibujamos la línea media del pronóstico
               abline(h = max(predAvan$mean), lty = 2, col = "blue")
-              segments(2011, mean_2011, x1 = 2012, y1 = mean_2011,
-                       col = "darkgray", lty = 2, lwd = 2)
-              segments(2012, mean_2012, x1 = 2013, y1 = mean_2012,
-                       col = "darkgray", lty = 2, lwd = 2)
-              segments(2013, mean_2013, x1 = 2014, y1 = mean_2013,
-                       col = "blue", lty = 2, lwd = 2)
               
-              text(2011.15, mean_2011 + 10000, mean_2011)
-              text(2012, mean_2012 + 10000, mean_2012)
-              text(2013, mean_2013 + 10000, mean_2013)
-              text(2013.85, max_mean_2013 + 10000, max_mean_2013)
+              #Obtenemos el último año de los datos del dataset
+              ultiAnno<-tail(numAnnos,n=1)
               
+              #Definimos el proximo año a pronosticar
+              annoPronos<-as.numeric(ultiAnno)+1
+              annoPronosString<-as.character(annoPronos)
+              
+              #Le asignamos la media del pronóstico TBATS
+              assign(paste("media",annoPronosString,sep=""),round(mean(predAvan$mean), 0))
+              assign(paste("max_media",annoPronosString,sep=""),round(max(predAvan$mean), 0))
+              
+              #Dibujamos el segmento del pronóstico
+              segments(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))), x1 = annoPronos+1, y1 = eval(as.name(paste("media",annoPronosString,sep=""))),
+                                 col = "blue", lty = 2, lwd = 2)
+              
+              #Pintamos el texto del año pronosticado
+              text(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))) + eval(as.name(paste("media",annoPronosString,sep="")))*0.05, eval(as.name(paste("media",annoPronosString,sep=""))))
+              text(annoPronos, eval(as.name(paste("max_media",annoPronosString,sep=""))) + eval(as.name(paste("max_media",annoPronosString,sep="")))*0.05, eval(as.name(paste("max_media",annoPronosString,sep=""))))
+              
+              # pastemean_2011 <- round(as.numeric(
+              #   filter(usuarios_mensuales, anno == 2011) %>%
+              #     summarise(mean = mean(usuarios))), 0)
+              # mean_2012 <- round(as.numeric(
+              #   filter(usuarios_mensuales, anno == 2012) %>%
+              #     summarise(mean = mean(usuarios))), 0)
+              # 
+              # mean_2013 <- round(mean(predAvan$mean), 0)
+              # max_mean_2013 <- round(max(predAvan$mean), 0)
+              # 
+              # abline(h = max(predAvan$mean), lty = 2, col = "blue")
+              # segments(2011, mean_2011, x1 = 2012, y1 = mean_2011,
+              #          col = "darkgray", lty = 2, lwd = 2)
+              # segments(2012, mean_2012, x1 = 2013, y1 = mean_2012,
+              #          col = "darkgray", lty = 2, lwd = 2)
+              # segments(2013, mean_2013, x1 = 2014, y1 = mean_2013,
+              #          col = "blue", lty = 2, lwd = 2)
+              # 
+              # text(2011.15, mean_2011 + mean_2011*0.05, mean_2011)
+              # text(2012, mean_2012 + mean_2012*0.05, mean_2012)
+              # text(2013, mean_2013 + mean_2013*0.05, mean_2013)
+              # text(2013.85, max_mean_2013 + max_mean_2013*0.1, max_mean_2013)
+              
+              
+            })
+            
+            #Escribimos el mensaje por pantalla
+            output$tbats_msj<-renderPrint({
+              print("Se muestra el pronóstico proyectado mediante el uso la función TBATS")
             })
       }
     })

@@ -1,3 +1,5 @@
+# Library experimentos
+
 library(stats)
 library(dplyr)
 library(shinydashboard)
@@ -343,9 +345,9 @@ dashboardPage(
                              withSpinner(plotOutput("explor1_grafica1",click = "explor1_grafica1_click", dblclick = "explor1_grafica1_dblclick",brush = brushOpts(
                                id = "explor1_grafica1_brush",
                                resetOnNew = TRUE
-                             )))),
+                             ))),verbatimTextOutput("explor1_grafica1_info")),
                        box(tags$p("Gráfica 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
-                           withSpinner(plotOutput("explor1_grafica2",click = "explor1_grafica2_click")))
+                           withSpinner(plotOutput("explor1_grafica2",click = "explor1_grafica2_click")),verbatimTextOutput("explor1_grafica2_info"))
                        
               )
               
@@ -459,7 +461,8 @@ dashboardPage(
                          br(),
                          br(),
                          verbatimTextOutput("reglienalsimple_msj"),
-                         verbatimTextOutput("reglienalsimple_print"))
+                         verbatimTextOutput("reglienalsimple_print")
+                         )
                      ),
                          
                          fluidRow(conditionalPanel(condition="input.reglinealsimple_Action",box(width = 6,
@@ -768,11 +771,13 @@ dashboardPage(
     
     #Time series con TBATS
     tabItem(tabName = "tbats",
-            fluidRow(box(tags$p("PROYECCIÓN TBATS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                         sliderInput("slider_predtbats", "Nº de puntos proyectados", 
-                                     min = 2, max = 100, value = 1, step= 1),
+            fluidRow(box(tags$p("PRONÓSTICO TBATS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         div(style="display: inline-block;vertical-align:top; width: 50%",sliderInput("slider_predtbats", "Nº de puntos proyectados", 
+                                     min = 2, max = 26, value = 1, step= 1)),
+                          br(), 
                          tags$style(type='text/css', "#tbats_predAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("tbats_predAction", "Predicción",style=blueStyle)),
+                         br(),
                          br(),
                          verbatimTextOutput("tbats_msj"),
                          withSpinner(plotOutput("tbats_plot1"))))
