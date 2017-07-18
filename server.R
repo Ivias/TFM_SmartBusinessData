@@ -1,30 +1,122 @@
-
-
-
 shinyServer(function(input, output, session) {
-
+  
+  #inicializamos variables de control
   filesalida<-NULL
   fileCSV<-FALSE
   fileAPI<-FALSE
   
+  #-----El menú lateral de la aplicación se genera dinámicamente en función de si hay o no datos cargados.----------
+  observe({
+    
+  ficherocargando<-input$datafile
+  ficherocargandoAPI<-input$API_Action
+
+  output$menu <- renderMenu({
+    if (is.null(filesalida) && fileAPI==FALSE) {
+      sidebarMenu(
+                  menuItem("CARGA DE DATOS", tabName = "importacionDatos",icon = icon("upload")
+                           
+                  ),
+                  menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
+                                          collapsible = TRUE,
+                                         menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
+      )
+    }
+    else{
+      sidebarMenu(
+                  menuItem("CARGA DE DATOS", tabName = "importacionDatos",icon = icon("upload")
+                           
+                  ),
+                  menuItem("OPERACIONES", tabName = "operaciones", icon = icon("sticky-note-o"),
+                           collapsible = TRUE,
+                           menuSubItem("Consultas", tabName = "consulta",icon = icon("book")),
+                           menuSubItem("Edición", tabName = "edicion",icon = icon("edit")),
+                           menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower"))
+                  ),
+                  
+                  menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
+                           collapsible = TRUE,
+                           menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
+                           menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("bolt")),
+                           menuItem("Dos Variables", tabName = "dosVariables",icon = icon("balance-scale"),collapsible = TRUE,
+                                    menuSubItem("Exp. Gráfica", tabName = "expGrafica",icon = icon("sun-o")),
+                                    menuSubItem("Correlaciones", tabName = "correlacionesdosvar",icon = icon("handshake-o"))
+                           ),
+                           menuItem("Multivariable", tabName = "multivariable",icon = icon("star-o"),collapsible = TRUE,
+                                    menuSubItem("Exp. Gráfica", tabName = "multi_expGrafica",icon = icon("sun-o")),
+                                    menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
+                           )),
+                  
+                  menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("expand"),
+                           collapsible = TRUE,
+                           menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
+                           menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("bar-chart"))
+                  ),
+                  
+                  menuItem("CLUSTERING", tabName = "clusters",icon = icon("cubes"),
+                           collapsible = TRUE,
+                           menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
+                           menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("sitemap")),
+                           menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("spinner"))
+                  ),
+                  
+                  menuItem("REDES NEURONALES", tabName = "redneuronal", icon = icon("snowflake-o")
+                  ),
+                  
+                  menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("handshake-o"),
+                           collapsible = TRUE,
+                           menuSubItem("Valoraciones", tabName = "datosRecomendaciones",icon = icon("shopping-basket")),
+                           menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("shopping-cart")),
+                           menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("thumbs-o-up"))
+                  ),
+                  
+                  menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("area-chart"),
+                           collapsible = TRUE,
+                           menuSubItem("ARIMA", tabName = "arima",icon = icon("hourglass-2")),
+                           menuSubItem("TBATS", tabName = "tbats",icon = icon("hourglass"))
+                  ),
+                  
+                  menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("eye"),
+                           collapsible = TRUE,
+                           menuSubItem("Agrupaciones", tabName = "agrupaciones",icon = icon("object-group")),
+                           menuSubItem("Geolocalización", tabName = "geolocalizacion",icon = icon("globe")),
+                           menuSubItem("RutaOptima", tabName = "rutaoptima",icon = icon("motorcycle"))
+                  ),
+                  menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
+                                         collapsible = TRUE,
+                                          menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
+       )
+    
+     }
+   })
+  })
+  #--------------------------------Fin de la generación del menú dinámico---------------------
+  
   
 api<-function(){
   if (input$URL!=""){
-    raw.result <<- GET(url = input$URL)
     
-    if (is.null(raw.result)) {
-      #Aún no se ha introducido ningún archivo en el editable
-      return(NULL)
-    }
     
-    this.raw.content <- rawToChar(raw.result$content)
+      raw.result <<- GET(url = input$URL)
+      
+      if (is.null(raw.result)) {
+        #Aún no se ha introducido ningún archivo en el editable
+        return(NULL)
+      }
+      
+      this.raw.content <- rawToChar(raw.result$content)
+      
+      this.content <- fromJSON(this.raw.content)
+      
+      this.content.df <- do.call(what = "rbind",
+                                 args = lapply(this.content, as.data.frame))
+      fileout<-this.content.df
+      
+      
     
-    this.content <- fromJSON(this.raw.content)
     
-    this.content.df <- do.call(what = "rbind",
-                               args = lapply(this.content, as.data.frame))
-    fileout<-this.content.df
   }else{
+    
     return(NULL)
   }
 }
@@ -41,12 +133,13 @@ api<-function(){
       
       infile <- input$datafile 
       
+      #Reiniciamos el mensaje del sistema
+      output$API_msj <- renderText({invisible()})
+      
       if(is.null(infile)){ return(NULL)}
       
       #Leemos el archivo y tratamos los '?' como NA
       file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
-
-     
       
       output$API_msj <- renderText({
         "Se muestran los 100 primeros registros del archivo CSV."
@@ -67,10 +160,20 @@ api<-function(){
   
   observeEvent(input$API_Action,{
     
-
+    out<-tryCatch(
+      
+    {
+      
     fileAPIcargado<-api()
     
-    if (is.null(fileAPIcargado)){return(NULL)}
+    if (is.null(fileAPIcargado)){
+      
+      output$API_msj<-renderText({
+        print("Error: No se ha especificado ninguna ruta.")
+        
+      })
+      return(NULL)
+    }
     
     if (raw.result$status_code!=404){
       
@@ -79,21 +182,21 @@ api<-function(){
       if(nmax>100 || nmax==100){
         
         #Se visualiza el contenido del archivo
-        output$API_msj <- renderPrint({print("Se muestran los primeros 100 registros obtenidos con la API")})
+        output$API_msj <- renderText({print("Se muestran los primeros 100 registros obtenidos con la API")})
         
         #Se visualiza el contenido del archivo
         output$filetable <- renderTable({fileReduced<-fileAPIcargado[1:100,]})
         
       }else{
         #Se visualiza el contenido del archivo
-        output$API_msj <- renderPrint({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API", sep=""))})
+        output$API_msj <- renderText({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API", sep=""))})
         
         #Se visualiza el contenido del archivo
         output$filetable <- renderTable({fileReduced<-fileAPIcargado[1:nmax,]})
       }
     }else{
       #Se visualiza el contenido del archivo
-      output$API_msj <- renderPrint({
+      output$API_msj <- renderText({
         print("Error: Status Code 404")
       })
       
@@ -104,6 +207,25 @@ api<-function(){
     fileCSV<<-FALSE
     fileAPI<<-TRUE
     filesalida<<-fileAPIcargado
+    
+    },
+    warning = function(w) {
+      
+      output$API_msj<-renderText({
+        print(paste("Warning: ", log(input)))
+      })
+    },
+    error = function(e) {
+      
+      output$API_msj<-renderText({ 
+        print("Error: No existe conexión mediante la URL especificada.")
+      })
+    }
+    
+    )
+    
+    return(out)
+    
     
     
   })  
@@ -160,56 +282,60 @@ api<-function(){
   
   Funcion_BorraPrints<-function(){
     
-    output$consulta_msj <- renderPrint({})
-    output$mensajes_limpiezaNA <- renderPrint({})
-    output$mensajes_limpiezaAnomalos <- renderPrint({})
-    output$dosvariables_mensajes_factorizar <- renderPrint({})
-    output$dosvariables_mensajes_print <- renderPrint({})
-    output$mensajes_exploracion1 <- renderPrint({})
-    output$resultados_exploracion1 <- renderPrint({})
-    output$mensajes_exploracionGrafica <- renderPrint({})
-    output$mensajes_exploracionGrafica2 <- renderPrint({})
-    output$dosvar_Print_relaTab <- renderPrint({})
-    output$mensajes_dosvar_exploracionGrafica <- renderPrint({})
-    output$dosvar_msj_correlacion <- renderPrint({})
-    output$dosvar_Print_correlacion <- renderPrint({})
-    output$multivar_msj_graf <- renderPrint({})
-    output$multivar_msj_correlacion <- renderPrint({})
-    output$multivar_print_correlacion <- renderPrint({})
-    output$reglienalsimple_msj <- renderPrint({})
-    output$reglienalsimple_print <- renderPrint({})
-    output$SLR_prediccion_print <- renderPrint({})
-    output$reglienalmulti_msj <- renderPrint({})
-    output$reglienalmulti_print <- renderPrint({})
-    output$redneuronal_msj <- renderPrint({})
-    output$redneuronal_msj2 <- renderPrint({})
-    output$cluster_msj <- renderPrint({})
-    output$cluster_print1 <- renderPrint({})
-    output$cluster_print2 <- renderPrint({})
-    output$clusterj_msj <- renderPrint({})
-    output$clusterj_print <- renderPrint({})
-    output$clusterj_print1 <- renderPrint({})
-    output$clusterj_print2 <- renderPrint({})
-    output$clustereva_msj <- renderPrint({})
-    output$arima_msj <- renderPrint({})
-    output$arima_print1 <- renderPrint({})
-    output$arima_msj2 <- renderPrint({})
-    output$tbats_msj <- renderPrint({})
-    output$geo_msj <- renderPrint({})
-    output$ruta_msj <- renderPrint({})
-    output$datosRecomendaciones_msj <- renderPrint({})
-    output$modelEval_msj <- renderPrint({})
-    output$colaborativo_msj <- renderPrint({})
+    output$consulta_msj <- renderPrint({invisible()})
+    output$mensajes_limpiezaNA <- renderPrint({invisible()})
+    output$mensajes_limpiezaAnomalos <- renderPrint({invisible()})
+    output$dosvariables_mensajes_factorizar <- renderPrint({invisible()})
+    output$dosvariables_mensajes_print <- renderPrint({invisible()})
+    output$mensajes_exploracion1 <- renderPrint({invisible()})
+    output$resultados_exploracion1 <- renderPrint({invisible()})
+    output$mensajes_exploracionGrafica <- renderPrint({invisible()})
+    output$mensajes_exploracionGrafica2 <- renderPrint({invisible()})
+    output$dosvar_Print_relaTab <- renderPrint({invisible()})
+    output$mensajes_dosvar_exploracionGrafica <- renderPrint({invisible()})
+    output$dosvar_msj_correlacion <- renderPrint({invisible()})
+    output$dosvar_Print_correlacion <- renderPrint({invisible()})
+    output$multivar_msj_graf <- renderPrint({invisible()})
+    output$multivar_msj_correlacion <- renderPrint({invisible()})
+    output$multivar_print_correlacion <- renderPrint({invisible()})
+    output$reglienalsimple_msj <- renderPrint({invisible()})
+    output$reglienalsimple_print <- renderPrint({invisible()})
+    output$SLR_prediccion_print <- renderPrint({invisible()})
+    output$reglienalmulti_msj <- renderPrint({invisible()})
+    output$reglienalmulti_print <- renderPrint({invisible()})
+    output$redneuronal_msj <- renderPrint({invisible()})
+    output$redneuronal_msj2 <- renderPrint({invisible()})
+    output$cluster_msj <- renderPrint({invisible()})
+    output$cluster_print1 <- renderPrint({invisible()})
+    output$cluster_print2 <- renderPrint({invisible()})
+    output$clusterj_msj <- renderPrint({invisible()})
+    output$clusterj_print <- renderPrint({invisible()})
+    output$clusterj_print1 <- renderPrint({invisible()})
+    output$clusterj_print2 <- renderPrint({invisible()})
+    output$clustereva_msj <- renderPrint({invisible()})
+    output$arima_msj <- renderPrint({invisible()})
+    output$arima_print1 <- renderPrint({invisible()})
+    output$arima_msj2 <- renderPrint({invisible()})
+    output$tbats_msj <- renderPrint({invisible()})
+    output$geo_msj <- renderPrint({invisible()})
+    output$ruta_msj <- renderPrint({invisible()})
+    output$datosRecomendaciones_msj <- renderPrint({invisible()})
+    output$modelEval_msj <- renderPrint({invisible()})
+    output$colaborativo_msj <- renderPrint({invisible()})
+    output$mongo_msj_action <- renderPrint({invisible()})
+    output$mongo_msj_table <- renderPrint({invisible()})
     
   }
   
   Funcion_BorraTablas<-function(){
+    input$SeleccionarVariables==FALSE
     output$filetablecolumnas <- renderTable({})
     output$filetabledicion <- renderTable({})
     output$resultados_limpiezaNA <- renderTable({})
     output$resultados_limpiezaAnomalos <- renderTable({})
     output$tableEvalNeuronal <- renderTable({})
     output$colaborativo_table <- renderTable({})
+    output$mongo_table <- renderTable({})
     
   }
     
@@ -232,6 +358,14 @@ api<-function(){
     fileout<-file
     
   })
+  
+  #Guardamos una salida out para consulta cada vez que se llama a la función filedata()
+  output$filedatacargado <- reactive({
+    filedata()
+  })
+  
+  #Devolvemos la condición de que el fichero se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
+  outputOptions(output, "filedatacargado", suspendWhenHidden = FALSE) 
   
   #Función de devuelve el nodo seleccionado
   funcion_seleccionarNodoAPI<-function(){
@@ -293,42 +427,48 @@ api<-function(){
     }
   
   })
-  
 
-  
-  #Guardamos una salida out para consulta cada vez que se llama a la función filedata()
-  output$filedatacargado <- reactive({
-    filedata()
-  })
-  
-  #Devolvemos la condición de que el fichero se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
-  outputOptions(output, "filedatacargado", suspendWhenHidden = FALSE) 
+
   
   ####Mensajes de necesario cargar fichero en todas las secciones#####
   
-  #Comprobamos si se ha cargado algún fichero en Edición
-  output$controlDeCarga_Edicion <- renderText({ 
-    df <-filedata()
-    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-    })
+  #  #Comprobamos si se ha cargado algún fichero en Consulta
+  #  output$controlDeCarga_Consulta <- renderText({ 
+  #    df <-filedata()
+  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  #  })
+  # 
+  # #Comprobamos si se ha cargado algún fichero en Edición
+  #  output$controlDeCarga_Edicion <- renderText({ 
+  #    df <-filedata()
+  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  #    })
+  # 
+  # #Comprobamos si se ha cargado algún fichero en Limpieza
+  #  output$controlDeCarga_Limpiezas <- renderText({ 
+  #    df <-filedata()
+  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  #  })
+  # 
+  # #Comprobamos si se ha cargado algún fichero en Consulta
+  # output$controlDeCarga_Factorizar <- renderText({ 
+  #   df <-filedata()
+  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  # })
+  # 
+  # #Comprobamos si se ha cargado algún fichero en Consulta
+  # output$controlDeCarga_UnaVariable <- renderText({ 
+  #   df <-filedata()
+  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  # })
+  # 
+  # #Comprobamos si se ha cargado algún fichero en Consulta
+  # output$controlDeCarga_ExpGrafica <- renderText({ 
+  #   df <-filedata()
+  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
+  # })
   
-  #Comprobamos si se ha cargado algún fichero en Limpieza
-  output$controlDeCarga_Limpieza <- renderText({ 
-    df <-filedata()
-    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  })
   
-  #Comprobamos si se ha cargado algún fichero en Consulta
-  output$controlDeCarga_Consulta <- renderText({ 
-    df <-filedata()
-    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  })
-  
-  #Comprobamos si se ha cargado algún fichero en Consulta
-  output$controlDeCarga_Exploracion1 <- renderText({ 
-    df <-filedata()
-    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  })
   
   ###FIN de los mensajes en las secciones###
   
@@ -760,7 +900,7 @@ api<-function(){
   
   FuncionAddAtributo <-eventReactive(input$ejecutarAtributo,{
     df=filedata()
-    if (is.null(file)) return(NULL)
+    if (is.null(df)) return(NULL)
     #Definimos el tipo de operación
     switch(input$operacion, 
            sum={
@@ -804,7 +944,7 @@ api<-function(){
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardar_edicion", roots=volumes, session=session)
     fileinfo <- parseSavePath(volumes, input$guardar_edicion)
-    data <- FuncionAddAtributo
+    data <- FuncionAddAtributo()
     if (nrow(fileinfo) > 0) {
       write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
     }
@@ -843,7 +983,10 @@ api<-function(){
       atributo<-input$dosvariables_Ui_atributos
       if(class(df[,atributo])=="numeric"){interv<-"TRUE"}else{inter<-"FALSE"}
     })
+  
     outputOptions(output, 'intervalos', suspendWhenHidden = FALSE)
+    
+    
 
   #---------------Fin para dibujar en UI.R el cuadro de intervalos---------
   
@@ -1449,7 +1592,7 @@ api<-function(){
           print("Gráfica Factor/ Factor")
         })
         
-        mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"))
+        mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"),xlab=at1,ylab=at2)
         
       }else if((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")) {
         
@@ -1457,7 +1600,7 @@ api<-function(){
           print("Gráfica Numeral / Numeral")
         })
         
-        plot(df[,at1],df[,at2])
+        plot(df[,at1],df[,at2],xlab=at1,ylab=at2)
         
       }else if (class(df[,at1])!="character" && (class(df[,at2][[1]])=="factor" || class(df[,at2][[1]])=="ordered")){
         
@@ -1465,7 +1608,7 @@ api<-function(){
           print("Se muestra el gráfico de Numeral / Factor")
         })
         
-        boxplot(df[,at1] ~  df[,at2], main="Factor/Numeral")
+        boxplot(df[,at1] ~  df[,at2], main="Factor/Numeral",xlab=at1,ylab=at2)
         
       }else if ((class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
          
@@ -1478,6 +1621,10 @@ api<-function(){
           print("Alguno de los atributos es de tipo caracter y no puede ser relacionado gráficamente")
             })
         }
+      
+      output$explor1_dosvar_info <- renderText({
+         paste0("x=", input$plot1_dosvar_click$x, "\ny=", input$plot1_dosvar_click$y)
+       })
 
     })
 
@@ -1964,6 +2111,122 @@ api<-function(){
     
   })
   
+  #------------PRUEBA-----------------####################333
+  
+  #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
+  output$fileMLRdatacargado <- eventReactive(input$regreMultiEvaluation,{
+    output$regreMultiEvaluation_msj<-renderPrint({
+      print("Se ha cargado un archivo para realizar pronósticos según el modelo MLR.")
+    })
+  })
+  
+  #Devolvemos la condición de que el fichero (NN) se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
+  outputOptions(output, "fileMLRdatacargado", suspendWhenHidden = FALSE)
+  
+  
+  #Mostramos el fichero cargado para pronosticar en base a la red neuronal generada
+  observe({
+    
+    fileMRLCarga<-input$regreMultiEvaluation
+    
+    if(is.null(fileMRLCarga)){ return(NULL)}
+    
+    #Leemos el archivo y tratamos los '?' como NA
+    fileEvalCargado<-read.csv(fileMRLCarga$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
+    
+    #mostramos los resultados obtenidos
+    output$regreMultiEvaluation <- renderTable({
+      fileEvalCargado
+    })
+    
+  })
+  
+  
+  #Comprobamos si el fichero para ejecutar los pronosticos está bien construido
+  Function_ficheroMLRConstruido<-function(df){
+    
+    AComparar<-filedata()
+    if(is.null(AComparar)){ return(NULL)}
+    
+    if(input$reglinealmulti_at1==""){
+      indice<-grep(input$reglinealmulti_at2,colnames(AComparar))
+      ficheroResultante<-AComparar[,-indice]
+      arrayNamesList<-names(ficheroResultante)
+    }else{
+      valoresX<-input$reglinealmulti_at1 
+      arrayNamesList<-strsplit(valoresX,";")[[1]]
+    }
+
+    
+    
+    #Eliminamos del dataset la variable a pronosticar
+    #indice<-grep(input$redneuronal_at2,colnames(df_paraEvalRed))
+    #nombresOrigen<-df_paraEvalRed[,-indice]
+    
+    condicion<-(arrayNamesList==names(df))
+    if (is.element(FALSE,condicion)){
+      return(FALSE)
+    }else{
+      return(TRUE)
+    }
+    
+  }
+  
+  
+  observeEvent(input$evalCSVmultiRegre_Action,{
+    
+    #Recogemos el nombre del fichero 
+    fileMLREval <- input$regreMultiEvaluation 
+    
+    if(is.null(fileMLREval)){ return(NULL)}
+    
+    #Leemos el archivo y tratamos los '?' como NA
+    fileMLRPred<-read.csv(fileMLREval$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
+    
+    #Guardamos el fichero inicial sin cambios para generar la tabla en caso de erro de formato del archivo de entrada para pronóstico
+    fileMLRPredInicial<-fileMLRPred
+    
+    #Debemos comprobar sin el fichero está bien construido de acuerdo al modelo de red
+    estBien<-Function_ficheroMLRConstruido(fileMLRPred)
+    
+    if (estBien==TRUE){
+      
+      prediccion<-predict.lm(modelo, fileMLRPred, level= 0.95, interval = "prediction",na.action = na.pass) 
+      
+      #añadimos al dataframe de salida los campos predichos
+      fileMLRPred[,paste("fit_",input$reglinealmulti_at2,sep="")]<-as.data.frame(prediccion)$fit
+      fileMLRPred[,paste("lwr_",input$reglinealmulti_at2,sep="")]<-as.data.frame(prediccion)$lwr
+      fileMLRPred[,paste("upr_",input$reglinealmulti_at2,sep="")]<-as.data.frame(prediccion)$upr
+      
+      #mostramos los resultados obtenidos
+      output$regreMultiEvaluation <- renderTable({
+        fileMLRPred
+      })
+      
+      output$regreMultiEvaluation_msj<-renderPrint({
+        print("Se ha verificado la validez del dataset importado / Se muestran los resultados del modelo.")
+      })
+      
+    }else{
+      
+      output$regreMultiEvaluation_msj<-renderPrint({
+        print("Alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo de NN.")
+      })
+      
+      #mostramos los resultados obtenidos
+      output$regreMultiEvaluation <- renderTable({
+        fileMLRPredInicial
+      })
+      
+    }
+  
+  })
+  
+  
+  #--------FIN PRUEBA--------#################################################
+  
+  
+  
   #----REDES NEURONALES--------#
   
   # output$redneuronal_at1 <- renderUI({
@@ -2014,12 +2277,13 @@ api<-function(){
         df_escalado <- as.data.frame(scale(df, center = mins, scale = maxs - mins))
         
         n <- names(df)
-        f <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
+        #Exportamos a global para poder ser usada luego en comprobación de datos de pronósticos
+        formulacion <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
         if(input$hidenLayers==2){
-           nn <<- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
+           nn <<- neuralnet(formulacion,data=df_escalado,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
 
         }else{
-          nn <<-neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
+          nn <<-neuralnet(formulacion,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
         }
       } 
       
@@ -2133,15 +2397,66 @@ api<-function(){
   })
   
   
+  #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
+  output$fileNeuraldatacargado <- eventReactive(input$neuralFileEvaluation,{
+    output$redneuronal_msj3<-renderPrint({
+      print("Se ha cargado un archivo para realizar pronósticos según el modelo de red generado.")
+    })
+  })
+  
+  #Devolvemos la condición de que el fichero (NN) se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
+  outputOptions(output, "fileNeuraldatacargado", suspendWhenHidden = FALSE)
+  
+  
+  #Mostramos el fichero cargado para pronosticar en base a la red neuronal generada
+  observe({
+    
+    fileNeuCarga<-input$neuralFileEvaluation
+    
+    if(is.null(fileNeuCarga)){ return(NULL)}
+    
+    #Leemos el archivo y tratamos los '?' como NA
+    fileEvalCargado<-read.csv(fileNeuCarga$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
+    
+    #mostramos los resultados obtenidos
+    output$tableEvalNeuronal <- renderTable({
+      fileEvalCargado
+    })
+  
+  })
+  
+  
+  #Comprobamos si el fichero para ejecutar los pronosticos está bien construido
+  Function_ficheroNNConstruido<-function(df){
+    #Eliminamos del dataset la variable a pronosticar
+    indice<-grep(input$redneuronal_at2,colnames(df_paraEvalRed))
+    nombresOrigen<-df_paraEvalRed[,-indice]
+    condicion<-names(nombresOrigen)==names(df)
+    if (is.element(FALSE,condicion)){
+      return(FALSE)
+    }else{
+      return(TRUE)
+    }
+    
+  }
+  
+  
   observeEvent(input$evalCSVNeuronal_Action,{
   
-  #Recogemos el nombre del fiechero 
+  #Recogemos el nombre del fichero 
   fileNeuralEval <- input$neuralFileEvaluation 
   
   if(is.null(fileNeuralEval)){ return(NULL)}
   
   #Leemos el archivo y tratamos los '?' como NA
   fileNeuralPred<-read.csv(fileNeuralEval$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
+  #Guardamos el fichero inicial sin cambios para generar la tabla en caso de erro de formato del archivo de entrada para pronóstico
+  fileNeuralPredInicial<-fileNeuralPred
+  
+  #Debemos comprobar sin el fichero está bien construido de acuerdo al modelo de red
+  estBien<-Function_ficheroNNConstruido(fileNeuralPred)
+  
+  if (estBien==TRUE){
   
   #Los valores mins y maxs han sido declarados como globales durante la generación del modelo.
   #Tenemos que quitar la última columna de mins y maxs que sería la predicción
@@ -2158,6 +2473,25 @@ api<-function(){
   output$tableEvalNeuronal <- renderTable({
     fileNeuralPred
   })
+  
+  output$redneuronal_msj3<-renderPrint({
+    print("Se ha verificado la validez del dataset importado / Se muestran los resultados del modelo.")
+  })
+  
+  }else{
+    
+    output$redneuronal_msj3<-renderPrint({
+      print("Alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo de NN.")
+    })
+   
+    #mostramos los resultados obtenidos
+    output$tableEvalNeuronal <- renderTable({
+      fileNeuralPredInicial
+    })
+    
+  }
+  
+  
   
   })
   
@@ -2223,7 +2557,7 @@ api<-function(){
     output$cluster_plot1 <- renderPlot({
       plot(at1, at2, col=dos$cluster, #asp=1
            pch=dos$cluster, main="Dos Clusters",
-           xlab="Atributo X", ylab="Atributo Y",
+           xlab=input$cluster_at1, ylab=input$cluster_at2,
            xlim=c(min(at1),max(at1)), ylim=c(min(at2),max(at2)))
       points(dos$centers[,2], dos$centers[,1], pch=23,
              col="maroon", bg="lightblue", cex=3)
@@ -2235,7 +2569,7 @@ api<-function(){
     output$cluster_plot2 <- renderPlot({
       plot(at1, at2, col=tres$cluster, #asp=1, 
            pch=tres$cluster, main="Tres Clusters",
-           xlab="Atributo X", ylab="Atributo Y")
+           xlab=input$cluster_at1, ylab=input$cluster_at2)
       points(tres$centers[,2], tres$centers[,1], pch=23,
              col="maroon", bg="lightblue", cex=3)
       text(tres$centers[,2], tres$centers[,1], cex=1.1,
@@ -2700,7 +3034,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("datosRecomendaciones_at2", "Usuarios:",items)
+    selectInput("datosRecomendaciones_at2", "Items:",items)
     
   })
   
@@ -2708,7 +3042,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("datosRecomendaciones_at3", "Usuarios:",items)
+    selectInput("datosRecomendaciones_at3", "Valoraciones:",items)
     
   })
   
@@ -2761,7 +3095,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("modelEval_at2", "Items",items)
+    selectInput("modelEval_at2", "Items:",items)
     
   })
   
@@ -2769,7 +3103,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("modelEval_at3", "Valoraciones",items)
+    selectInput("modelEval_at3", "Valoraciones:",items)
     
   })
   
@@ -2922,7 +3256,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("colaborativo_at2", "Items",items)
+    selectInput("colaborativo_at2", "Items:",items)
     
   })
   
@@ -2930,7 +3264,7 @@ api<-function(){
     df<-filedata()
     if (is.null(df)) return(NULL)
     items=names(df)
-    selectInput("colaborativo_at3", "Valoraciones",items)
+    selectInput("colaborativo_at3", "Valoraciones:",items)
     
   })
   
@@ -2939,7 +3273,7 @@ api<-function(){
       df<-filedata()
       if (is.null(df)) return(NULL)
       items=df[,input$colaborativo_at1]
-      selectInput("colaborativo_at4", "Usuario a recomendar",items)
+      selectInput("colaborativo_at4", "Usuario a recomendar:",items)
       
     })
   
@@ -3441,14 +3775,14 @@ api<-function(){
           
         })
         
-        output$ruta_msj<-renderPrint({
+        output$ruta_msj<-renderText({
           print("Se muestra la ruta optima entre las coordenadas")
         })
         
       }else{
         
-        output$ruta_msj<-renderPrint({
-          print("No hay datos de geolocalización en el dataset.")
+        output$ruta_msj<-renderText({
+          print("Error: No hay datos de geolocalización en el dataset.")
         })
         
         #Reiniciamos el mapa de cooordenadas
@@ -3458,6 +3792,155 @@ api<-function(){
       
     })
   
+    
+    #--------BBDD MONGODB----------
+    
+    #variable de control pàra importar un fichero desde BBDD
+    df_imported<-NULL
+    
+    #Informamos sobre la situación de carga actual en la herramienta
+    observe({
+
+      ficherocargando<-input$datafile
+
+      if (is.null(filesalida)){
+
+      #Informamos del archivo que se ha cargado
+      output$mongo_msj_archivo<-renderText({
+        print("Error: Actualmente no hay cargado ningún archivo.")
+      })
+
+    }else{
+
+      #Informamos del archivo que se ha cargado
+      output$mongo_msj_archivo<-renderText({
+        print(paste("Actualmente se encuentra cargado el archivo: " ,input$datafile[[1]], sep=""))
+      })
+
+    }
+
+    })
+    
+    #En caso de importación del documento
+    observeEvent(input$Importar_DocFromBBDD,{
+      
+      out<-tryCatch(  
+        {
+        #Iniciamos la conexión con MongoDB
+        m <- mongo(collection = input$coleccion, db=input$baseDeDatos,url=input$url_mongo)
+        
+        #Obtenemos el dataframe de datos
+        df_imported <<- m$find()
+        
+        if (nrow(df_imported)>0){
+          
+          #Renderizamos la tabla
+          output$mongo_table<-renderTable({
+            df_imported[1:100,]
+          })
+          
+          output$mongo_msj_action<-renderText({
+            print(paste("Se ha importado la colección ",isolate(input$coleccion)," desde la base de datos ",isolate(input$baseDeDatos),".",sep=""))
+            
+          })
+          
+          output$mongo_msj_table<-renderText({
+            print("Se muestran los 100 primeros registros de la tabla.")
+            
+          })
+        }else{
+          
+          output$mongo_msj_action<-renderText({
+            print("Error: No existe la colección en la base de datos especificada.")
+            
+          })
+        }
+        },
+        
+          warning = function(w) {
+            output$mongo_msj_action<-renderText({
+            print(paste("Warning: ", "La cadena de conexión especificada no devuelve resultados."))
+          })
+        
+          },
+        error = function(e) {
+            output$mongo_msj_action<-renderText({
+              print(paste("Error: ", "La cadena de conexión especificada no devuelve resultados."))
+            })
+          }
+        )
+      return(out)
+
+    
+  })
+    
+    output$importadaColeccionDeMongo<-eventReactive(input$Importar_DocFromBBDD,{
+      df_impor <-df_imported
+      if (is.null(df_impor)) return(NULL)
+      if(nrow(df_impor)==0){retorna<-"FALSE"}else{retorna<-"TRUE"}
+    })
+
+    outputOptions(output, 'importadaColeccionDeMongo', suspendWhenHidden = FALSE)
+
+
+    #En caso de exportación del documento
+    observeEvent(input$Exportar_DocToBBDD,{
+      
+      if (is.null(filesalida)){
+        
+        output$mongo_msj_action<-renderText({
+          print("Error: No se puede realizar esta operación sin haber cargado previamente un archivo.")
+        })
+        
+      }else{ #En el caso de que haya cargado un archivo podemos ejecutar la operación.
+
+        out<-tryCatch(
+          {
+          
+          df<-filedata()
+          if (is.null(df)) return(NULL)
+          #Iniciamos la conexión con MongoDB
+          m <- mongo(collection = input$coleccion, db=input$baseDeDatos,url=input$url_mongo)
+          
+          #Exportamos el dataframe de datos
+          m$insert(df)
+          
+            output$mongo_msj_action<-renderText({
+              print(paste("Se ha exportado la colección ",isolate(input$coleccion)," a la base de datos ",isolate(input$baseDeDatos),".",sep=""))
+            })
+          
+          },
+          
+          warning = function(w) {
+            output$mongo_msj_action<-renderText({
+              print(paste("Warning: ", "La cadena de conexión especificada no devuelve resultados."))
+            })
+          },
+          
+          error = function(e) {
+            output$mongo_msj_action<-renderText({
+              print(paste("Error: ", "La cadena de conexión especificada no devuelve resultados."))
+            })
+           }
+        )
+          }#else
+    })
+    
+    #Para guardar el archivo Importado desde MongoDB en un CSV
+    observe({
+      
+      volumes <- c("UserFolder"=getwd())
+      shinyFileSave(input, "guardarImportFromMongo", roots=volumes, session=session)
+      fileinfo <- parseSavePath(volumes, input$guardarImportFromMongo)
+      data <- df_imported
+      if (is.null(data)) return(NULL)
+      
+      if (nrow(df_imported) > 0) {
+        write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
+      }
+    })
+
+    
 })
 
 
