@@ -49,8 +49,8 @@ shinyServer(function(input, output, session) {
                   
                   menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("expand"),
                            collapsible = TRUE,
-                           menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
-                           menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("bar-chart"))
+                           menuSubItem("RL. Simple", tabName = "reglineal_simple",icon = icon("line-chart")),
+                           menuSubItem("RL. Múltiple", tabName = "reglineal_multi",icon = icon("bar-chart"))
                   ),
                   
                   menuItem("CLUSTERING", tabName = "clusters",icon = icon("cubes"),
@@ -147,7 +147,11 @@ api<-function(){
       
       #Se visualiza el contenido del archivo
       output$filetable <- renderTable({
-        fileReduced<-file[1:100,]
+        if(nrow(file)>100){
+          fileReduced<-file[1:100,]
+        }else{
+          file
+        }
       })
       
       #Sobreescribimos globalmente el dataset cargado
@@ -283,6 +287,7 @@ api<-function(){
   Funcion_BorraPrints<-function(){
     
     output$consulta_msj <- renderPrint({invisible()})
+    output$edicion_msj <- renderPrint({invisible()})
     output$mensajes_limpiezaNA <- renderPrint({invisible()})
     output$mensajes_limpiezaAnomalos <- renderPrint({invisible()})
     output$dosvariables_mensajes_factorizar <- renderPrint({invisible()})
@@ -392,7 +397,7 @@ api<-function(){
       if(nmax>100 || nmax==100){
         
         #Se visualiza el contenido del archivo
-        output$API_msj <- renderPrint({print(paste("Se muestran los primeros 100 registros obtenidos con la API. Nodo ",input$Nodo,sep=""))})
+        output$API_msj <- renderText({print(paste("Se muestran los primeros 100 registros obtenidos con la API. Nodo ",input$Nodo,sep=""))})
         
         #Se visualiza el contenido del archivo
         output$filetable <- renderTable({fileReduced<-fileAPIcarganode[1:100,]})
@@ -403,7 +408,7 @@ api<-function(){
         
       }else{
         #Se visualiza el contenido del archivo
-        output$API_msj <- renderPrint({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API. Nodo ",input$Nodo, sep=""))})
+        output$API_msj <- renderText({print(paste("Se muestran los primeros ",nmax, " registros obtenidos con la API. Nodo ",input$Nodo, sep=""))})
         
         #Se visualiza el contenido del archivo
         output$filetable <- renderTable({fileReduced<-fileAPIcarganode[1:nmax,]})
@@ -413,15 +418,15 @@ api<-function(){
       }
     }else{
       #Se visualiza el contenido del archivo
-      output$API_msj <- renderPrint({
-        print("Error: Status Code 404")
+      output$API_msj <- renderText({
+        print("Error: Status Code 404.")
       })
       
       output$filetable <- renderTable({})
     }
     }else{
       #Se estáintentando ejecutar sobre un CSV, y debe ser sobre la API
-      output$API_msj <- renderPrint({
+      output$API_msj <- renderText({
         print("Error: No se puede ejecutar la operación sobre un dataset final. Debe cargar previamente un fichero con nodos XML desde la opción de API correspondiente.")
       })
     }
@@ -430,93 +435,12 @@ api<-function(){
 
 
   
-  ####Mensajes de necesario cargar fichero en todas las secciones#####
-  
-  #  #Comprobamos si se ha cargado algún fichero en Consulta
-  #  output$controlDeCarga_Consulta <- renderText({ 
-  #    df <-filedata()
-  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  #  })
-  # 
-  # #Comprobamos si se ha cargado algún fichero en Edición
-  #  output$controlDeCarga_Edicion <- renderText({ 
-  #    df <-filedata()
-  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  #    })
-  # 
-  # #Comprobamos si se ha cargado algún fichero en Limpieza
-  #  output$controlDeCarga_Limpiezas <- renderText({ 
-  #    df <-filedata()
-  #    if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  #  })
-  # 
-  # #Comprobamos si se ha cargado algún fichero en Consulta
-  # output$controlDeCarga_Factorizar <- renderText({ 
-  #   df <-filedata()
-  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  # })
-  # 
-  # #Comprobamos si se ha cargado algún fichero en Consulta
-  # output$controlDeCarga_UnaVariable <- renderText({ 
-  #   df <-filedata()
-  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  # })
-  # 
-  # #Comprobamos si se ha cargado algún fichero en Consulta
-  # output$controlDeCarga_ExpGrafica <- renderText({ 
-  #   df <-filedata()
-  #   if (is.null(df)) return("NO SE HA IMPORTADO NINGÚN FICHERO.")
-  # })
-  
-  
-  
-  ###FIN de los mensajes en las secciones###
+
   
   #------------------MENÚ DE CONSULTA DE DATOS--------------------------
   
-  # #Renderizamos los combos en funcion de los datos del archivo
-  # output$var1 <- renderUI({
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  # 
-  #   items=names(df)
-  #   selectInput("Variable1", "Variable 1:",items)
-  # 
-  # })
-  # 
-  # 
-  # output$val1 <- renderUI({
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   fr=input$Variable1
-  #   items=df[,fr]
-  # 
-  #   selectInput("Valor1", "Valor:",choices=c("",items))
-  # 
-  # })
-  # 
-  # 
-  # output$var2 <- renderUI({
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  # 
-  #   items=names(df)
-  #   #names(items)=items
-  #   selectInput("Variable2", "Variable 2:",items)
-  # 
-  # })
-  # 
-  # 
-  # output$val2 <- renderUI({
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   fr=input$Variable2
-  #   items=df[,fr]
-  # 
-  #   selectInput("Valor2", "Valor:",choices=c("",items))
-  # 
-  # })
-  # 
+  
+  
   #Los combos los atributos deben actualizarse de acuerdo a los checkbox seleccionados
   observeEvent(input$variablesLista,{
     file<- filedata()
@@ -527,7 +451,7 @@ api<-function(){
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      selectInput("Variable1", "Atributo 1",items)
+      selectInput("Variable1", "Atributo 1:",items)
       
     })
     
@@ -538,7 +462,13 @@ api<-function(){
       fr=input$Variable1
       items=df[,fr]
       
-      selectInput("Valor1", "Valor",choices=c("",items))
+      #Si es de tipo factor hay que mostrar los levels
+      if (class(items)!="factor"){
+        selectInput("Valor1", "Valor:",choices=c("",items))
+      }else{
+        selectInput("Valor1", "Valor:",choices=c("",levels(df[,fr])))
+      }
+      
       
     })
     
@@ -548,7 +478,7 @@ api<-function(){
       
       items=names(df)
       #names(items)=items
-      selectInput("Variable2", "Atributo 2",items)
+      selectInput("Variable2", "Atributo 2:",items)
       
     })
     
@@ -559,7 +489,12 @@ api<-function(){
       fr=input$Variable2
       items=df[,fr]
       
-      selectInput("Valor2", "Valor",choices=c("",items))
+      #Si es de tipo factor hay que mostrar los levels
+      if (class(items)!="factor"){
+        selectInput("Valor2", "Valor:",choices=c("",items))
+      }else{
+        selectInput("Valor2", "Valor:",choices=c("",levels(df[,fr])))
+      }
       
     })
     
@@ -575,8 +510,6 @@ api<-function(){
   
   
  
-  
-  
   #Renderiza los combos en funcion de los datos del archivo
   output$variables <- renderUI({
     df <-filedata()
@@ -631,16 +564,31 @@ api<-function(){
       output$consulta_msj <- renderText({
         print("Se debe seleccionar más de un atributo para consultar.")
       })
+      
       #Reiniciamos la tabla
       output$filetablecolumnas <- renderTable({})
       
     }else{
-      output$filetablecolumnas <- renderTable({
-        filtroCol
-      })
-      output$consulta_msj <- renderText({
-        print("Se muestran los resultados de la consulta.")
-      })
+      
+      if (nrow(filtroCol)>100){
+        output$filetablecolumnas <- renderTable({
+          filtroCol[1:100,]
+        })
+        
+        output$consulta_msj <- renderText({
+          print("Se muestran los 100 primeros resultados de la consulta.")
+        })
+      
+      }else{
+        output$filetablecolumnas <- renderTable({
+          filtroCol
+        })
+        
+        output$consulta_msj <- renderText({
+          print("Se muestran los resultados de la consulta.")
+        })
+        
+      }
     }
     
   })
@@ -667,7 +615,7 @@ api<-function(){
     if (is.null(df)) return(NULL)
     
     output$mensajes_limpiezaNA <- renderText({
-      print("Se ejecuta la operación")
+      print("Se muestran el número de registros NA en el dataset.")
     })
     
     if (eliminadosNA=="False") {
@@ -698,26 +646,16 @@ api<-function(){
     output$mensajes_limpiezaNA <- renderText({
       if (segundaeliminacion=="False"){
         segundaeliminacion<<-"True"
-        print("Registros con valores NA eliminados")
+        print("Registros con valores NA eliminados.")
       }else{
-        print("Registros con valores NA habian sido previamente eliminados")
+        print("Los registros con valores NA habian sido previamente eliminados.")
       }
     })
     #Evento que reinicia los resultados de la tabla
     output$resultados_limpiezaNA <- renderTable({})
   })
   
-  #Para guardar el nuevo archivo con la limpieza de vlores NA generado
-  # observe({
-  #   volumes <- c("UserFolder"=getwd())
-  #   shinyFileSave(input, "guardar_limpieza", roots=volumes, session=session)
-  #   fileinfo <- parseSavePath(volumes, input$guardar_limpieza)
-  #   #Revisamos esta parte, ya que ejecuta si o si...
-  #   data <- Funcion_eliminarValoresNA()
-  #   if (nrow(fileinfo) > 0) {
-  #     write.csv(data, as.character(fileinfo$datapath))
-  #   }
-  # })
+  
   
   #Función que restaura los valores NA eliminados previamente
   Funcion_restauraValoresNA<-eventReactive(input$restaurar_Limpiar,{
@@ -733,11 +671,11 @@ api<-function(){
     Funcion_restauraValoresNA()
     output$mensajes_limpiezaNA <- renderText({
       if (eliminadosNA=="False"){
-        print("Aún no se ha realizado ninguna operación sobre el dataset")
+        print("Aún no se ha realizado ninguna operación sobre el dataset.")
       }else{
         #Restauramos para que se pueda volver a eliminar
         eliminadosNA<<-"False"
-        print("Se ha restaurado el dataset original")
+        print("Se ha restaurado el dataset original.")
       }
     })
     #Evento que reinicia los resultados de la tabla
@@ -785,7 +723,7 @@ api<-function(){
     output$resultados_limpiezaAnomalos <- renderTable({Funcion_buscaValoresErroneos()})
     output$mensajes_limpiezaAnomalos <- renderText({
 
-        print("Ejecutada búsqueda de valores anómalos")
+        print("Ejecutada la búsqueda de valores anómalos.")
 
     })
 
@@ -827,36 +765,6 @@ api<-function(){
     output$resultados_limpiezaAnomalos <- renderTable({})
   })
   
-  # 
-  # #Borramos los valores anómalos ya buscados
-  # Funcion_eliminaValoresErroneos<-eventReactive(input$eliminarvaloresAnomalos_Buscar,{
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   atributo<-input$atributosLimpieza
-  #   if(input$tipoDato_Limpieza=="string"){
-  #     subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]") 
-  #   }else{
-  #     subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
-  #   }
-  #   location <- str_detect(as.vector(df[,atributo]), subset)
-  #   buscadosvaloreserror<<-"True"
-  #   file1<<-df[-location, ]
-  #   file2<-df[location, ] 
-  #   fileout<-list(file1,file2)
-  # 
-  # })
-  # 
-  # #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
-  # observeEvent(input$eliminarvaloresAnomalos_Buscar, {
-  #   lista<-Funcion_eliminaValoresErroneos()
-  #   #Evento que dibuja el resultado
-  #   output$resultados_limpieza <- renderTable({lista[2]})
-  #   output$mensajes_limpieza <- renderText({
-  #     borradosvaloreserror<<-"True"
-  #     print("Se han borrado los valores mostrados.")
-  #   })
-  #   
-  # })
   
   
   #Botón de guardado
@@ -875,7 +783,7 @@ api<-function(){
       write.csv(data, as.character(fileinfo$datapath),row.names=FALSE)
     }
   })
-  #------------------FIN DE TRASFORMACIONES--------------------------
+
   
   #------------------MENU DE EDICION DE DATOS--------------------------
   
@@ -917,24 +825,89 @@ api<-function(){
            }
 
           )
-    if (class(df[[input$atributosEdicion]]) == "numeric" && input$factorNumerico!=""){
-      #Añadimos la nueva columna con el cálculo
-      fileout<-mutate_(df, .dots=setNames(paste0(input$atributosEdicion,oper,input$factorNumerico), input$nuevoAtributo))
-
-    }else if (class(df[[input$atributosEdicion]]) == "numeric" && input$factorNumerico=="" && input$otroAtributo!="") {
-      if (class(df[[input$otroAtributo]])=="numeric") {
-        fileout<-mutate_(df, .dots=setNames(paste0(input$atributosEdicion,oper,input$otroAtributo), input$nuevoAtributo))
-      }else{
-      fileout<-paste0("El atributo <",input$otroAtributo,">, no es numérico")
-         }
-    } else{
-      fileout<-paste0("El atributo <",input$atributosEdicion,">, no es numérico")
+    
+    #En el caso de ñla operación sea mediante un factor numérico
+    if (input$edicion_tipoDato=="Factor") {
+      
+      if (class(df[,input$atributosEdicion]) == "numeric" && input$factorNumerico!="" &&  !is.na(as.numeric(input$factorNumerico))){
+        
+        
+        #Añadimos la nueva columna con el cálculo
+        fileout<-mutate_(df, .dots=setNames(paste0(input$atributosEdicion,oper,input$factorNumerico), input$nuevoAtributo))
+        
+        if(nrow(fileout)<100){
+          
+          output$edicion_msj<-renderText({
+            print("Se muestra el resultado del fichero editado.")
+          })
+          
+          fileout
+          
+        }else{
+          
+          output$edicion_msj<-renderText({
+            print("Se muestran los 100 primeros registros del resultado del fichero editado.")
+          })
+          
+          fileout[1:100,]
         }
+      
+      }else{
+        
+        output$edicion_msj<-renderText({
+          print("Error: El atributo origen no es numérico, o bien no se introducido un factor aritmético correcto.")
+        })
+        return(NULL)
+    }
+    
+      #Si la operación es entre atributos del dataset
+    }else if (class(df[,input$atributosEdicion]) == "numeric"  && input$otroAtributo!="") {
+      if (class(df[,input$otroAtributo])=="numeric") {
+        fileout<-mutate_(df, .dots=setNames(paste0(input$atributosEdicion,oper,input$otroAtributo), input$nuevoAtributo))
+     
+              if(nrow(fileout)<100){
+                
+                output$edicion_msj<-renderText({
+                  print("Se muestra el resultado del fichero editado.")
+                })
+                
+                fileout
+                
+              }else{
+                
+                output$edicion_msj<-renderText({
+                  print("Se muestran los 100 primeros registros del resultado del fichero editado.")
+                })
+                
+                fileout[1:100,]
+              }
+        
+         }else{
+           
+             output$edicion_msj<-renderText({
+               print("Error: El segundo atributo no es numérico.")
+             })
+             return(NULL)
+      #fileout<-paste0("El atributo <",input$otroAtributo,">, no es numérico")
+         }
+    }else{
+      
+      output$edicion_msj<-renderText({
+        print("Error: El atributo origen no es numérico.")
+      })
+      return(NULL)
+    }
+
       })
   
   observeEvent(input$ejecutarAtributo, {
+
+    #Generamos la nueva tabla de datos
+    tabla<-FuncionAddAtributo()
+    
+    #Pintamos la tabla
     output$filetabledicion <- renderTable({
-      FuncionAddAtributo()
+      tabla
     })
 
   })
@@ -981,7 +954,7 @@ api<-function(){
       df <-filedata()
       if (is.null(df)) return(NULL)
       atributo<-input$dosvariables_Ui_atributos
-      if(class(df[,atributo])=="numeric"){interv<-"TRUE"}else{inter<-"FALSE"}
+      if(class(df[,atributo])=="numeric" || class(df[,atributo])=="integer"){interv<-"TRUE"}else{inter<-"FALSE"}
     })
   
     outputOptions(output, 'intervalos', suspendWhenHidden = FALSE)
@@ -1005,9 +978,9 @@ api<-function(){
       df[,paste(atributo,"_factor_",input$dosvariables_TextInput_intervalos,sep="")]<-cut(df[,atributo],as.numeric(input$dosvariables_TextInput_intervalos))
       
       #Mostramos el mensaje
-        output$dosvariables_mensajes_factorizar <- renderPrint({
+        output$dosvariables_mensajes_factorizar <- renderText({
         #Mensaje de ejecución
-        print(paste("Se ha factorizado el atributo",isolate(input$dosvariables_Ui_atributos)," en ",input$dosvariables_TextInput_intervalos," intervalos"))
+        print(paste("Se ha factorizado el atributo",isolate(input$dosvariables_Ui_atributos)," en ",input$dosvariables_TextInput_intervalos," intervalos."))
         
       })
       
@@ -1018,19 +991,38 @@ api<-function(){
       })
       
     }else{
-      #En este caso es que alguna variable es de tipo caracter con lo que hay que usar la estrategia names de columna
-      factoresArray<-unique(df[,atributo])
-      #arrayList<-strsplit(factoresArray,";")[[1]]
-      #df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
-      df[,atributo]<-factor(df[,atributo], levels=sort(factoresArray))
-      output$dosvariables_mensajes_factorizar <- renderPrint({
-        #Mensaje de ejecución
-        print(paste("Se ha factorizado el atributo caracter(mejorar descripcion) intervalos"))
+      #En caso de que el atributo sea de tipo caracter y ya esté factorizado o no previamente.
+      if (class(df[,atributo])!="factor"){
+        #En este caso es que alguna variable es de tipo caracter con lo que hay que usar la estrategia names de columna
+        factoresArray<-unique(df[,atributo])
+        #arrayList<-strsplit(factoresArray,";")[[1]]
+        #df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
+        df[,atributo]<-factor(df[,atributo], levels=sort(factoresArray))
         
-      })
+        #Escribimos el msj por pantalla
+        output$dosvariables_mensajes_factorizar <- renderText({
+          #Mensaje de ejecución
+          print(paste("Se ha factorizado el atributo:",atributo,",en",intervalos,"intervalos."))
+          
+        })
+        
+        #Reiniciamos la salida 
+        output$dosvariables_mensajes_print <- renderText({ })
+        
+      }else{
+        
+        #Escribimos el msj por pantalla
+        output$dosvariables_mensajes_factorizar <- renderText({
+          #Mensaje de ejecución
+          print(paste("El atributo <",atributo,"> ya es de tipo factor."))
+          
+        })
+          
+        #Reiniciamos la salida 
+        output$dosvariables_mensajes_print <- renderText({ })
+        
+        }
       
-      #Reiniciamos la salida 
-      output$dosvariables_mensajes_print <- renderText({ })
       
     }
     
@@ -1053,9 +1045,9 @@ api<-function(){
       
     }else{
       #Mostramos el mensaje de que el atributo no es numérico
-      output$dosvariables_mensajes_factorizar <- renderPrint({
+      output$dosvariables_mensajes_factorizar <- renderText({
         #Mensaje de ejecución
-        print(paste("El atributo ",isolate(input$dosvariables_Ui_atributos)," no es numérico",sep=""))
+        print(paste("Erro: el atributo ",isolate(input$dosvariables_Ui_atributos)," no es numérico.",sep=""))
         
       })
       #Reiniciamos la salida 
@@ -1081,48 +1073,6 @@ api<-function(){
     
   })
   
-  # #Variables y datos iniciales
-  # factorizadoSiNo<-"False"
-  # 
-  # #Factorización
-  # output$atributosCambioDeTipos <- renderUI({
-  #   df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   
-  #   items=names(df)
-  #   selectInput("atributosCambioDeTipos", "Atributo:",items)
-  #   
-  # })
-  # 
-  # #Realizar la factorización
-  # Funcion_Factorizar<-eventReactive(input$ejecutarFactorizacion,{
-  #   #Comprobamos si es la primera factorización o no.
-  #   if (factorizadoSiNo=="False"){
-  #   df <-filedata()
-  #   }else{
-  #     df<-fileout_factorizado
-  #   }
-  #   if (is.null(df)) return(NULL)
-  #   factoresArray<-input$factores 
-  #   arrayList<-strsplit(factoresArray,";")[[1]]
-  #   df[,input$atributosCambioDeTipos]<-factor(df[,input$atributosCambioDeTipos], ordered=TRUE, levels=arrayList)
-  #   #df$pop_density<-factor(df$pop_density, ordered=TRUE, levels=c("Low","Medium","High"))
-  #   
-  #   factorizadoSiNo<<-"True"
-  #   fileout_factorizado<<-df
-  # })
-  # 
-  # #Ejecutamos la función anterior por evento
-  # observeEvent(input$ejecutarFactorizacion, {
-  #   output$edicion_print <- renderPrint({
-  #     str(Funcion_Factorizar())
-  #   })
-  #   
-  #   output$mensajes_factorizar <- renderPrint({
-  #     print(paste("Se ha factorizado el atributo",isolate(input$atributosCambioDeTipos)))
-  #   })
-  #     
-  # })
   
   #------EXPLORACIÓN DE UNA VARIABLE---------
   
@@ -1172,16 +1122,16 @@ api<-function(){
     if (is.null(df)) return(NULL)
     #Definimos el tipo de operación
     switch(input$tipoExploracion1, 
-           sumario={
+           Sumario={
               fileout<-summary(df[,input$atributoUnaVariable])
            },
-           media={
+           Media={
              fileout<-mean(df[,input$atributoUnaVariable])
            },
-           desviacion={
+           Desviacion={
              fileout<-sd(df[,input$atributoUnaVariable])   
            },
-           varianza={
+           Varianza={
              fileout<-var(df[,input$atributoUnaVariable])  
            }
     )
@@ -1195,7 +1145,7 @@ api<-function(){
       Valores
     })
     output$mensajes_exploracion1 <- renderText({
-      print(paste("Se muestra: ",isolate(input$tipoExploracion1)," del atributo ",isolate(input$atributoUnaVariable)))
+      print(paste(isolate(input$tipoExploracion1)," del atributo ",isolate(input$atributoUnaVariable),".",sep=""))
     })
 
   })
@@ -1270,7 +1220,7 @@ api<-function(){
                  }else{
                    #Mensaje de error
                    output$mensajes_exploracionGrafica <- renderText(
-                     print(paste("El atributo: ",input$atributoUnaVariableGrafica," no es numérico o necesita ser factorizado."))
+                     print(paste("Error: el atributo < ",input$atributoUnaVariableGrafica," > no es numérico o necesita ser factorizado.",sep=""))
                    )
                   }
              },
@@ -1292,7 +1242,7 @@ api<-function(){
       }else{
         #Mensaje de error
         output$mensajes_exploracionGrafica <- renderText(
-          print(paste("El atributo: ",input$atributoUnaVariableGrafica," no es numérico o necesita ser factorizado."))
+          print(paste("Error: el atributo: ",input$atributoUnaVariableGrafica," no es numérico o necesita ser factorizado."))
         )
       }
       
@@ -1372,7 +1322,7 @@ api<-function(){
                  }else{
                    #Mensaje de error
                    output$mensajes_exploracionGrafica2 <- renderText(
-                     print(paste("El atributo: ",input$atributoUnaVariableGrafica2," no es numérico o necesita ser factorizado."))
+                     print(paste("Error: el atributo < ",input$atributoUnaVariableGrafica2," > no es numérico o necesita ser factorizado.",sep=""))
                    )
                  }
                },
@@ -1394,7 +1344,7 @@ api<-function(){
       }else{
         #Mensaje de error
         output$mensajes_exploracionGrafica2 <- renderText(
-          print(paste("El atributo: ",input$atributoUnaVariableGrafica2," no es numérico o necesita ser factorizado."))
+          print(paste("Error: el atributo: ",input$atributoUnaVariableGrafica2," no es numérico o necesita ser factorizado."))
         )
       }
       
@@ -1495,27 +1445,7 @@ api<-function(){
     output$dosvar_Print_relaTab <- renderPrint({})
   })
   
-  # Funcion_relacionTabDosVariables<-eventReactive(input$dosvariables_Action_relacionTab,{
-  #   at1=input$dosvariables_Ui_rela_at1
-  #   at2=input$dosvariables_Ui_rela_at2
-  #   
-  #   if (ficheroFactorizado=="False"){
-  #     df <-filedata()
-  #   }else{
-  #     #El fichero que deja la función de factorización en intervalos
-  #     df<-Funcion_FactorizarConDosVariables()
-  #   }
-  #   if (is.null(df)) return(NULL)
-  #   table(df[,at1],df[,at2])
-  #   
-  #     
-  # })
-  # 
-  # observeEvent(input$dosvariables_Action_relacionTab, {
-  #   output$dosvariables_Print_relacionTab <- renderPrint({
-  #     fileout<-Funcion_relacionTabDosVariables()
-  #   })
-  # })
+ 
   
   #---Realizamos la relación gráfica de dos variables conjuntamente
   
@@ -1588,37 +1518,37 @@ api<-function(){
       
       if( (class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered")   && (class(df[,at2][[1]])=="factor" || class(df[,at2][[1]])=="ordered")){
         
-        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-          print("Gráfica Factor/ Factor")
+        output$mensajes_dosvar_exploracionGrafica <- renderText({
+          print("Gráfica Factor/ Factor.")
         })
         
-        mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"),xlab=at1,ylab=at2)
+        mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"), main="Factor / Factor", xlab=at1,ylab=at2)
         
       }else if((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")) {
         
-        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-          print("Gráfica Numeral / Numeral")
+        output$mensajes_dosvar_exploracionGrafica <- renderText({
+          print("Gráfica Numeral / Numeral.")
         })
         
-        plot(df[,at1],df[,at2],xlab=at1,ylab=at2)
+        plot(df[,at1],df[,at2],main="Numeral / Numeral", xlab=at1,ylab=at2)
         
       }else if (class(df[,at1])!="character" && (class(df[,at2][[1]])=="factor" || class(df[,at2][[1]])=="ordered")){
         
-        output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-          print("Se muestra el gráfico de Numeral / Factor")
+        output$mensajes_dosvar_exploracionGrafica <- renderText({
+          print("Gráfica Numeral / Factor.")
         })
         
-        boxplot(df[,at1] ~  df[,at2], main="Factor/Numeral",xlab=at1,ylab=at2)
+        boxplot(df[,at1] ~  df[,at2], main="Numeral / Factor",xlab=at1,ylab=at2)
         
       }else if ((class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
          
-         output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-            print("El atributo tipo factor debe asignarse a la variable Atributo 2, para poder mostrar el diagrama de caja")
+         output$mensajes_dosvar_exploracionGrafica <- renderText({
+            print("Error: El atributo tipo factor debe asignarse a la variable Atributo 2, para poder mostrar el diagrama de caja.")
           })
           
         }else{
-          output$mensajes_dosvar_exploracionGrafica <- renderPrint({
-          print("Alguno de los atributos es de tipo caracter y no puede ser relacionado gráficamente")
+          output$mensajes_dosvar_exploracionGrafica <- renderText({
+          print("Error: Alguno de los atributos es de tipo caracter y no puede ser relacionado gráficamente.")
             })
         }
       
@@ -1717,13 +1647,13 @@ api<-function(){
           
         })
         
-        output$dosvar_msj_correlacion <- renderPrint({
-          print("Se muestran los resultados del test de correlación")
+        output$dosvar_msj_correlacion <- renderText({
+          print("Se muestran los resultados del test de correlación.")
         })
         
       }else{
-        output$dosvar_msj_correlacion <- renderPrint({
-          print("Alguno de los atributos no es numérico, no se puede ejecutar el test de correlación")
+        output$dosvar_msj_correlacion <- renderText({
+          print("Error: Alguno de los atributos no es numérico, no se puede ejecutar el test de correlación.")
         })
         
       }
@@ -1731,45 +1661,8 @@ api<-function(){
   
 #---ANÁLISIS MULTIVARIABLE--------
   
-  #--Análisis gráfico-----
-  
-  # #Inicializamos los combos
-  # output$multivariable_Ui_gra_at1 <- renderUI({
-  #   df<-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   items=names(df)
-  #   selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
-  #   
-  # })
-  # 
-  # 
-  # #En caso de evento de factorización
-  # observeEvent(input$dosvariables_Action_factorizar,{
-  #   
-  #   output$multivariable_Ui_gra_at1 <- renderUI({
-  #     df<-fileout_fact_dosVar
-  #     if (is.null(df)) return(NULL)
-  #     items=names(df)
-  #     selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
-  #     
-  #   })
-  #   
-  # })
-  # 
-  # #RESET de la factorización
-  # observeEvent(input$dosvariables_Action_factoReset,{
-  #   
-  #   output$multivariable_Ui_gra_at1 <- renderUI({
-  #     df<-filedata()
-  #     if (is.null(df)) return(NULL)
-  #     items=names(df)
-  #     selectInput("multivariable_Ui_gra_at1", "Atributo 1:",items)
-  #     
-  #   })
-  #   
-  # })
-  # 
-  #--Código que muestra las relaciones gráficas si se pulsa el botónn action
+ 
+  #--Código que muestra las relaciones gráficas si se pulsa el botón action
   observeEvent(input$multivar_Action_gra,{
     if (ficheroFactorizado=="False"){
       df<-filedata()
@@ -1795,11 +1688,11 @@ api<-function(){
       
     })
     
-    output$multivar_msj_graf <- renderPrint({
+    output$multivar_msj_graf <- renderText({
       if (colcharacter=="False"){
-        print("Gráficas de exploración multivariable de todos los atributos")
+        print("Gráficas de relación de todos los atributos del dataset.")
       }else{
-        print("Se muestran únicamente las variables de caracter numérico o factor")
+        print("Se muestran únicamente las gráficas de relación entre atributos numéricos o factores.")
       }
     })
     
@@ -1807,7 +1700,7 @@ api<-function(){
     
   #------Correlación multivariable
   
-  #--Código que muestra las relaciones gráficas si se pulsa el botónn action
+  #--Código que muestra las relaciones gráficas si se pulsa el botón action
   observeEvent(input$multivar_Action_correlacion,{
     if (ficheroFactorizado=="False"){
       df<-filedata()
@@ -1824,7 +1717,7 @@ api<-function(){
       #Mostramos la relación de todas la variables numéricas
       #Buscamos las variables no-numéricas
       for (i in ncol(df)){
-        if (class(df[,i])=="character"){
+        if (class(df[,i])=="character" || class(df[,i])=="factor"){
           colcharactermulti<<-"True"
           df[,i]<-NULL
         }
@@ -1833,11 +1726,11 @@ api<-function(){
       
     })
     
-    output$multivar_msj_correlacion <- renderPrint({
+    output$multivar_msj_correlacion <- renderText({
       if (colcharactermulti=="False"){
-        print("Se muestran los valores de correlación y p-values de todos los atributos")
+        print("Se muestran los valores de correlación y p-values de todos los atributos.")
       }else{
-        print("Se muestran únicamente los valores de correlación y p-values de las variables de caracter numérico o factor")
+        print("Se muestran únicamente los valores de correlación y p-values de las variables de caracter numérico.")
       }
     })
     
@@ -1874,7 +1767,7 @@ api<-function(){
   
   #-----REGRESIONES LINEALES-----####
   
-  #---RLS----
+  #---SLR----
   output$reglinealsimple_at1 <- renderUI({
     df<-filedata()
     if (is.null(df)) return(NULL)
@@ -1891,7 +1784,7 @@ api<-function(){
     
   })
   
-  #Ejecutamos la correlación
+  #Ejecutamos el modelo SLR
   observeEvent(input$reglinealsimple_Action,{
       df<-filedata()
       if (is.null(df)) return(NULL)
@@ -1903,7 +1796,7 @@ api<-function(){
       
       if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
           
-        #Exportamos el modelo como variable global
+        #Exportamos el modelo SLR como variable global
          modelo<<-lm( Y ~ X, data=df )
          
          
@@ -1912,11 +1805,15 @@ api<-function(){
          train <- df[index,]
          test <- df[-index,]
          
-         #CReamos la formula
+         #Creamos la formula
          formulacion <- as.formula(paste(at2," ~ ", at1, collapse ="" ))
          
+         #Se genera el modelo de SLR en base a los datos de entrenamiento
          lm.fit <- glm(formulacion, data=train)
+         
+         #valores predichos sobre los datos de test xon in CI del 95%
          pr.lm <- predict(lm.fit,test,level= 95)
+         
          #Se calcula el error cuadrático medio que se mostrará por pantalla
          MSE.lm <- sum((pr.lm - test[,at2])^2)/nrow(test)
       
@@ -1924,6 +1821,25 @@ api<-function(){
          
          #Mostramos los resultados
          output$reglienalsimple_print <- renderPrint({ summary(modelo) })
+         
+         #Mostramos el MSE (Error cuadrático)
+         output$reglienalsimple_MSE <- renderText({ print(paste("MSE = ",MSE.lm,sep="")) })
+         
+         
+         #Mostramos el modelo generado
+         output$reglienalsimple_plotSLR<-renderPlot({
+                    plot(X, Y,  ylab = at2, xlab = at1, main = "Modelo SLR generado") 
+          abline(modelo) 
+          
+          #Leyenda con la formula del modelo
+          legend("topleft",paste(at2," = ",round(modelo$coefficients[1],3)," + ",at1,"*",round(modelo$coefficients[2],3),sep=""),bty="n")
+    
+         })
+         
+         #Permitimos el uso de coordenadas en la gráfica anterior
+         output$reglienalsimple_plotSLR_info <- renderText({
+           paste0("x=", input$reglienalsimple_plotSLR_click$x, "\ny=", input$reglienalsimple_plotSLR_click$y)
+         })
          
          #Histograma de los residuos
          output$reglienalsimple_plot2 <- renderPlot({ 
@@ -1945,25 +1861,46 @@ api<-function(){
          })
          
          #Mostramos el mensaje
-         output$reglienalsimple_msj <- renderPrint({ print(paste("Se muestran los datos del modelo de regresión lineal generado. MSE = ", MSE.lm, sep="")) })
+         output$reglienalsimple_msj <- renderText({ print(paste("Se muestran los datos del modelo de regresión lineal (SLR) generado.", sep="")) })
+     
+         
+         #Plot de evaluación SLR
+         output$reglienalsimple_plot1 <- renderPlot({
+           
+           #Aislamos de los movimientos del combo de la variable Y (at2)
+           isolate({
+             plot(test[,input$reglinealsimple_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=isolate(paste(input$reglinealsimple_at2,"_real",sep="")), ylab=isolate(paste(input$reglinealsimple_at2,"_predicho",sep="")),asp=1)
+             abline(0,1,lwd=2)
+             legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
+           })
+         })
+         
+         #Guardamos una salida out 
+         output$salidaOkMostrarVentanasSLR <- reactive({valorDevuelto<-"TRUE"})
+         
+         
+         #Devolvemos la condición a ui.R
+         outputOptions(output, "salidaOkMostrarVentanasSLR", suspendWhenHidden = FALSE)
+         
+         
       }else{
         
         #Mostramos el mensaje
-        output$reglienalsimple_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
+        output$reglienalsimple_msj <- renderText({ print("Error: alguno de los atributos (X o Y) no es numérico.") })
+        
+        #Guardamos una salida out 
+        output$salidaOkMostrarVentanasSLR <- reactive({valorDevuelto<-"FALSE"})
+
+        #Devolvemos la condición a ui.R para ocultar paneles
+        outputOptions(output, "salidaOkMostrarVentanasSLR", suspendWhenHidden = FALSE)
+        
         
       }
-      
-      
-      
-      
-      #Plot de evaluación
-      output$reglienalsimple_plot1 <- renderPlot({
-        plot(test[,input$reglinealsimple_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=input$reglinealsimple_at2,asp=1)
-        abline(0,1,lwd=2)
-        legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
-      })
+        
+  
       
   })
+  
   
   #Predicción de valores de Y en función de X
   observeEvent(input$SLR_prediccion_Action,{
@@ -1981,7 +1918,7 @@ api<-function(){
     
   })
   
-  #-------REgresión lineal Múltiple--------
+  #-------Regresión lineal Múltiple  MLR--------
   
   
   
@@ -2005,30 +1942,53 @@ api<-function(){
       #Obtenemos la lista de columnas
       valoresX<-input$reglinealmulti_at1 
       arrayList<-strsplit(valoresX,";")[[1]]
-      X<-df[,arrayList]
       
-      #at2<-input$reglinealmulti_at2
-      #Y<-df[,at2]
-      Y<-input$reglinealmulti_at2
-
-      #Artefacto para construir la fórmula
-      xnom<-c("")
-      
-      for (i in 1:length(arrayList)){
-        if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric"){
-          valorCaracter<-"True"
+      #Verificamos si los campos insertados se encuentran en el dataset
+      outTry1<-tryCatch(
+        {
+          X<-df[,arrayList]
+        },
+        warning = function(w) {
+          malaSalida<-"True"
+        },
+        error = function(e) {
+          malaSalida<-"True"
         }
-        assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
+        
+      )
+      
+      #Creamos la fórmula sólo en el caso de que los valores de entrada sean correctos
+      if(outTry1!="True"){
+        #at2<-input$reglinealmulti_at2
+        #Y<-df[,at2]
+        Y<-input$reglinealmulti_at2
+        
+        #Artefacto para construir la fórmula
+        xnom<-c("")
+        
+        for (i in 1:length(arrayList)){
+          if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric"){
+            valorCaracter<-"True"
+          }
+          assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
           
+        }
+        #xnom <- paste("X",arrayList,sep="")
+        #formu<-paste(xnom,collapse="+")
+        formu<-paste(arrayList,collapse="+")
+        
       }
-          #xnom <- paste("X",arrayList,sep="")
-          #formu<-paste(xnom,collapse="+")
-          formu<-paste(arrayList,collapse="+")
+      
+     
           
     }else{
-      #Comprobamos si hay columnas tipo caracter
-      columnasCaracter<-sapply(df,is.character)
-      if(TRUE %in% columnasCaracter){
+      
+      #Liberamos outTry1, en caso de que se haya producido un error anterior
+      outTry1<-"False"
+      
+      #Comprobamos si hay columnas tipo caracter o factor para generar error
+      columnasCaracter<-sapply(df,is.numeric)
+      if(FALSE %in% columnasCaracter){
         valorCaracter<-"True"
       }else{
         #Obtenemos la lista de columnas
@@ -2038,7 +1998,7 @@ api<-function(){
    
     }
     
-    if (valorCaracter=="False"){
+    if (valorCaracter=="False" && outTry1!="True"){
       
       #Exportamos el modelo como variable global
       if(input$reglinealmulti_at1!=""){
@@ -2048,13 +2008,6 @@ api<-function(){
         modelo<<-lm( as.formula(paste(Y,"~", formu)), data=df )
       }
       
-      
-      #xnam <- paste("x", 1:3, sep="")
-      #fmla <- as.formula(paste("y ~ ", paste(formula, collapse= "+")))
-      #lm(fmla, data = myData).
-      
-      #formula=paste(df[,as.numeric(arrayList[1])],df[,as.numeric(arrayList[2])],df[,as.numeric(arrayList[3])],sep="+")
-     
       #Mostramos los resultados
       output$reglienalmulti_print <- renderPrint({ summary(modelo) })
       
@@ -2068,15 +2021,19 @@ api<-function(){
       MSE.lm <- sum((pr.lm - test[,input$reglinealmulti_at2])^2)/nrow(test)
       
       
+      #Mostramos el MSE (Error cuadrático)
+      output$reglienalmulti_MSE <- renderText({ print(paste("MSE = ",MSE.lm,sep="")) })
+      
+      
       #Mostramos la gráfica de evaluación del modelo vs real
       output$reglienalmulti_plot1 <- renderPlot({
-        
-        
-        #Plot de evaluación
-        plot(test[,input$reglinealmulti_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=isolate(input$reglinealmulti_at1),asp=1)
-        abline(0,1,lwd=2)
-        legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
-        
+        #Aislamos de los movimientos del comb de la variable Y (at2)
+        isolate({
+          #Plot de evaluación
+          plot(test[,input$reglinealmulti_at2],pr.lm,col='blue',main='Real vs Predicho (95%)',pch=18, cex=0.7,xlab=isolate(paste(input$reglinealmulti_at2,"_real",sep="")),ylab=isolate(paste(input$reglinealmulti_at2,"_predicho",sep="")),asp=1)
+          abline(0,1,lwd=2)
+          legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
+        })
       })
       
       #Histograma de los residuos
@@ -2086,12 +2043,6 @@ api<-function(){
       })
       
     
-      # #Q-Q de los residuos
-      # output$reglienalmulti_plot2 <- renderPlot({
-      #   qqnorm(modelo$residuals, main = "Q-Q Plot de los residuos")
-      #   qqline(modelo$residuals)
-      # })
-
        #Variación ecuanime plot
        output$reglienalmulti_plot3 <- renderPlot({
          #Dividimos la pantalla para mostrar las gráficas del modelo
@@ -2099,23 +2050,43 @@ api<-function(){
          plot(modelo)
        })
       
-      #Mostramos el mensaje
-      output$reglienalmulti_msj <- renderPrint({ print(paste("Se muestran los datos del modelo de regresión lineal múltiple generado. MSE = ",MSE.lm, sep="")) })
-    }else{
+       
+       #Mostramos el mensaje
+       output$reglienalmulti_msj <- renderText({ print(paste("Se muestran los datos del modelo de regresión lineal múltiple (MLR) generado.",sep="")) })
+   
+       #Guardamos una salida out 
+       output$salidaOkMostrarVentanasMLR <- reactive({valorDevueltoMLR<-"TRUE"})
+         
+       
+       #Devolvemos la condición a ui.R
+       outputOptions(output, "salidaOkMostrarVentanasMLR", suspendWhenHidden = FALSE)
+       
+       
+       
+        }else{
       
       #Mostramos el mensaje
-      output$reglienalmulti_msj <- renderPrint({ print("Alguno de los atributos (X o Y) no es numérico.") })
+      output$reglienalmulti_msj <- renderText({ print("Error: alguno de los atributos (X o Y) no es numérico, o no existe en el dataset.") })
       
+      #Guardamos una salida out 
+      output$salidaOkMostrarVentanasMLR <- reactive({valorDevueltoMLR<-"FALSE"})
+
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOkMostrarVentanasMLR", suspendWhenHidden = FALSE)
+      
+      #Reset de mensajes
+      output$reglienalmulti_print <- renderPrint({invisible()})
+      output$reglienalmulti_MSE <- renderPrint({invisible()})
     }
           
     
   })
   
-  #------------PRUEBA-----------------####################333
+
   
   #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
   output$fileMLRdatacargado <- eventReactive(input$regreMultiEvaluation,{
-    output$regreMultiEvaluation_msj<-renderPrint({
+    output$regreMultiEvaluation_msj<-renderText({
       print("Se ha cargado un archivo para realizar pronósticos según el modelo MLR.")
     })
   })
@@ -2159,10 +2130,6 @@ api<-function(){
 
     
     
-    #Eliminamos del dataset la variable a pronosticar
-    #indice<-grep(input$redneuronal_at2,colnames(df_paraEvalRed))
-    #nombresOrigen<-df_paraEvalRed[,-indice]
-    
     condicion<-(arrayNamesList==names(df))
     if (is.element(FALSE,condicion)){
       return(FALSE)
@@ -2203,14 +2170,14 @@ api<-function(){
         fileMLRPred
       })
       
-      output$regreMultiEvaluation_msj<-renderPrint({
+      output$regreMultiEvaluation_msj<-renderText({
         print("Se ha verificado la validez del dataset importado / Se muestran los resultados del modelo.")
       })
       
     }else{
       
-      output$regreMultiEvaluation_msj<-renderPrint({
-        print("Alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo de NN.")
+      output$regreMultiEvaluation_msj<-renderText({
+        print("Error: alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo MLR.")
       })
       
       #mostramos los resultados obtenidos
@@ -2223,19 +2190,12 @@ api<-function(){
   })
   
   
-  #--------FIN PRUEBA--------#################################################
-  
+
   
   
   #----REDES NEURONALES--------#
   
-  # output$redneuronal_at1 <- renderUI({
-  #   df<-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   items=names(df)
-  #   selectInput("redneuronal_at1", "IN",items)
-  #   
-  # })
+
   
   output$redneuronal_at2 <- renderUI({
     df<-filedata()
@@ -2245,15 +2205,11 @@ api<-function(){
     
   })
   
-  #URL a consultar https://rpubs.com/etsibert/NeuralNetShinyAppRPes
+  
   observeEvent(input$redneuronal_Action,{
     df<-filedata()
     if (is.null(df)) return(NULL)
     hayCaracter<-FALSE
-    
-    #Sólo tenemos en cuenta los datos de IN y OUT
-    #df<-df[,c(input$redneuronal_at1,input$redneuronal_at2)]
-    
 
     
     #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
@@ -2287,39 +2243,10 @@ api<-function(){
         }
       } 
       
-    # }else{ #if (input$redneuronal_at1=="")
-    #   valoresX<-input$redneuronal_at1 
-    #   arrayList<-strsplit(valoresX,";")[[1]]
-    #   #Introducimos el dato objetivo en el array
-    #   arrayListComp<-c(arrayList,input$redneuronal_at2)
-    #   data<-df[,arrayListComp]
-    #   
-    #   columnasCaracter2<-sapply(data,is.character)
-    #   #comprobamos si hay columnas caracter entre los atributos
-    #   if(TRUE %in% columnasCaracter2){ 
-    #     hayCaracter<-TRUE
-    #   #En caso de que no haya columnas caracter en los atributos escogidos
-    #   }else{ 
-    #     maxs <- apply(data, 2, max) 
-    #     mins <- apply(data, 2, min)
-    #     
-    #     df_escalado <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
-    #     
-    #     n <- names(data)
-    #     f <- as.formula(paste(input$redneuronal_at2,"~", paste(n[!n %in% input$redneuronal_at2], collapse = " + ")))
-    #     if(input$hidenLayers==2){
-    #       nn <- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1),as.numeric(input$neurLayer2)),linear.output=T)
-    #     }else{
-    #       nn <- neuralnet(f,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
-    #     }
-    #   }
-    # }
     
     
     if(hayCaracter==FALSE){
-      
-      #Evaluamos el modelo con el 80% de los datos
-      #if(redneuronal_at1==""){}
+
       
       #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
       col_idx <- grep(input$redneuronal_at2, names(df)) 
@@ -2365,16 +2292,16 @@ api<-function(){
          
         
       #Se muestran las salidas correspondientes
-      output$redneuronal_msj<-renderPrint({
-        print("Se muestra el modelo de red neuronal generado a partir de los datos")
+      output$redneuronal_msj<-renderText({
+        print("Se muestra el modelo de red neuronal generado a partir de los datos.")
       })
       
       output$redneural_plot1 <- renderPlot({
-        plot(nn)
+       plot(nn,rep="best")
       })
       
       #Se muestran las salidas correspondientes
-      output$redneuronal_msj2<-renderPrint({
+      output$redneuronal_msj2<-renderText({
         print(paste("MSE = ",MSE.nn,sep=""))
       })
       
@@ -2389,8 +2316,8 @@ api<-function(){
       })
       
     }else{
-      output$redneuronal_msj<-renderPrint({
-        print("Alguno de los valores de entrada no es numérico")
+      output$redneuronal_msj<-renderText({
+        print("Error: alguno de los valores de entrada no es numérico")
       })
       
     }
@@ -2399,7 +2326,7 @@ api<-function(){
   
   #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
   output$fileNeuraldatacargado <- eventReactive(input$neuralFileEvaluation,{
-    output$redneuronal_msj3<-renderPrint({
+    output$redneuronal_msj3<-renderText({
       print("Se ha cargado un archivo para realizar pronósticos según el modelo de red generado.")
     })
   })
@@ -2474,14 +2401,14 @@ api<-function(){
     fileNeuralPred
   })
   
-  output$redneuronal_msj3<-renderPrint({
+  output$redneuronal_msj3<-renderText({
     print("Se ha verificado la validez del dataset importado / Se muestran los resultados del modelo.")
   })
   
   }else{
     
-    output$redneuronal_msj3<-renderPrint({
-      print("Alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo de NN.")
+    output$redneuronal_msj3<-renderText({
+      print("Error: alguno de los valores de entrada del dataset no se corresponde con los utilizados por el modelo de NN.")
     })
    
     #mostramos los resultados obtenidos
@@ -2533,19 +2460,7 @@ api<-function(){
     output$cluster_print1 <- renderPrint({ dos })
     output$cluster_print2 <- renderPrint({ tres })
     
-    # #Generramos el modelo hibrido
-    # ncolsDF<-ncol(df)
-    # clusTotal<-cbind (df, clus1<-dos$cluster, clus2<-tres$cluster)
-    # hibrido<-cbind(clusTotal, forma_hibrida=rep(0, dim(clusTotal)[1]))
-    # for (e in 1:dim(hibrido[1])[1]){
-    #   if (hibrido[e,ncolsDF+1] == hibrido[e,ncolsDF+2]){
-    #     hibrido[e,ncolsDF+3]<-hibrido[e,ncolsDF+3]
-    #   }
-    #   if (hibrido[e,ncolsDF+1] != hibrido[e,ncolsDF+2]){
-    #     hibrido[e,ncolsDF+3]<-hibrido[e,ncolsDF+3]+15
-    #   }
-    # }
-    # hibridoCluster<<-hibrido
+    
     
     #Creamos un fichero con dos nuevas columnas con el cluster al que pertenece el registro
     clus<-cbind(df,clus2=dos$cluster,clus3=tres$cluster)
@@ -2576,19 +2491,9 @@ api<-function(){
            col="black", attributes(tres$centers)$dimnames[[1]])
     })
     
-    # #Dibujamos el modelo hibrido
-    # output$cluster_plot3 <- renderPlot({
-    #   plot(at1, at2, col=dos$cluster,
-    #        main="Modelo Hibrido",
-    #        pch=hibrido$forma_hibrida, cex=1.1,
-    #        xlab="Atributo X", ylab="Atributo Y", asp=1)
-    #   points(tres$centers[1:2,2], tres$centers[1:2,1], pch=23,
-    #          col="maroon", bg="lightblue", cex=3)
-    #   text(tres$centers[1:2,2], tres$centers[1:2,1], cex=1.1,
-    #        col="black", attributes(dos$centers)$dimnames[[1]])
-    # })
+  
     
-    output$cluster_msj <- renderPrint({
+    output$cluster_msj <- renderText({
       print("Se muestran los clusters generados")
     })
     
@@ -2676,45 +2581,7 @@ api<-function(){
     })
   })
   
-  # #Actualizamos la salida del modelo hibrido
-  # observe({
-  #   clus3<-input$cluster_explo3
-  #   output$cluster_print3 <- renderPrint({
-  #     
-  #     switch(clus3, 
-  #            Sumario={
-  #              hibridoCluster
-  #            },
-  #            Clusters={
-  #              hibridoCluster$cluster
-  #            },
-  #            Centers={
-  #              hibridoCluster$centers
-  #            },
-  #            Totss={
-  #              hibridoCluster$totss   
-  #            },
-  #            Withinss={
-  #              hibridoCluster$withinss
-  #            },
-  #            Tot.Withinss={
-  #              hibridoCluster$tot.withinss
-  #            },
-  #            Betweens={
-  #              hibridoCluster$betweens
-  #            },
-  #            Size={
-  #              hibridoCluster$size
-  #            },
-  #            Iter={
-  #              hibridoCluster$iter
-  #            },
-  #            Ifault={
-  #              hibridoCluster$ifault
-  #            }
-  #     )
-  #   })
-  # })
+  
   
   #-------Clustering Jerarquico----
   
@@ -2769,7 +2636,7 @@ api<-function(){
       #abline(v=37.5, lty="dashed", col="blue")
       })
     
-      output$clusterj_msj <- renderPrint({
+      output$clusterj_msj <- renderText({
         print("Se muestran los clusters generados mediante técnicas jerárquicas")
       })
       
@@ -2791,7 +2658,7 @@ api<-function(){
   
     output$clusterj_plotFinal <- renderPlot({
       #Incluimos la gráfica de análisis para jerarquía
-      #Preparing the Results 
+      #Preparando los resultados
       df<-fileClusterNorm
       
       #Guardamos las variables
@@ -2834,7 +2701,7 @@ api<-function(){
       #Dibujamos la gráfica teniendo en cuenta que hemocs cambiado el nombre de las 2 primeras columnas
       plot(df$var1, df$var2, col = df$dendModelo, 
            pch = df$dendModelo - 1, xlab = at1, ylab = at2,
-           main = "Marketing Clusters from Hierarchical Clustering \n (Labels show medians of age and income for cluster)") 
+           main = paste("Clusters generados jerárquicamente para K = ",input$clusterj_nclusters,sep="")) 
       #Añadimos los centros
       points(labels[ ,2], labels[ ,3], pch = 21, col = 'maroon', bg = 'white', cex = 3) 
       #Texto de los centros
@@ -2917,12 +2784,12 @@ api<-function(){
       
       plot(optimizado$wss ~ optimizado$clusters, type = "b",  
                   ylim = c(0, 12000), ylab = 'Suma del Error Cuadrático', 
-                  main = 'Número óptimo del cluster basado en el error', 
+                  main = 'Número óptimo de clusters basado en el MSE', 
                   xlab = 'Número de clusters', pch = 17, col = 'black') 
        })
     
-    output$clustereva_msj <- renderPrint({
-      print("Método del codo para elegir el número de clusters")
+    output$clustereva_msj <- renderText({
+      print("Método del codo para elegir el número de clusters.")
     })
       
   })
@@ -2964,60 +2831,33 @@ api<-function(){
     # Choosing a Model 
     output$clustereva_plot1 <- renderPlot({
       #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
-      plot(df$age, df$income, col = cinco$cluster, 
-        pch = cinco$cluster, xlab = '', main = '5-means Clustering') 
+      plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = cinco$cluster, 
+        pch = cinco$cluster, xlab = isolate(input$clustereva_at1), ylab=isolate(input$clustereva_at2), main = '5-means Clustering') 
     })
     
     output$clustereva_plot3 <- renderPlot({
       #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
-      plot(df$age, df$income, col = seis$cluster, xlab = '', 
-        ylab = '', pch = seis$cluster, main = '6-means Clustering') 
+      plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = seis$cluster, xlab = isolate(input$clustereva_at1), 
+        ylab = isolate(input$clustereva_at2), pch = seis$cluster, main = '6-means Clustering') 
     
     })
     
     output$clustereva_plot2 <- renderPlot({
       #par(mar = c(5, 4, 2, 2) + 0.1) 
-      plot(df$age, df$income, col = df$dend5, 
-             pch = df$dend5, main = 'k = 5 Hierarchical') 
+      plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = df$dend5, 
+             pch = df$dend5, xlab=isolate(input$clustereva_at1), ylab=isolate(input$clustereva_at2), main = 'k = 5 Jerárquico') 
     })
     
     output$clustereva_plot4 <- renderPlot({
       #par(mar = c(5, 4, 2, 2) + 0.1) 
-      plot(df$age, df$income, col = df$dend6, ylab = '',  
-            pch = df$dend6, main = 'k = 6 Hierarchical') 
+      plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = df$dend6, xlab=isolate(input$clustereva_at1), ylab = isolate(input$clustereva_at2),  
+            pch = df$dend6, main = 'k = 6 Jerárquico') 
     })
-   # par(mfrow = c(1, 1), mar = c(5, 4, 4, 2) + 0.1) 
-   
-    # output$cluster_EvalFinal <- renderUI({
-    #   # var1=input$cluster_eval1
-    #   # var2=paste(input$cluster_eval1
-    #   # var3=paste(input$cluster_eval2,"_K-means")
-    #   # var4=paste(input$cluster_eval2,"_K-means")
-    #   
-    #   items=names(df)
-    #   # selectInput("cluster_EvalFinal", "Selec. Modelo",
-    #   #             c(paste0(input$cluster_eval1,"-means")="modelo1",
-    #   #               # paste(input$cluster_eval1,"K-means")="modelo2",
-    #   #               # paste(input$cluster_eval2,"K-means")="modelo3",
-    #   #               var2="modelo4"),
-    #   #             selected="modelo1")
-    #   selectInput("cluster_EvalFinal", "Selec. Modelo",
-    #               list(`K-means` = c(paste0(input$cluster_eval1,"-means"), paste0(input$cluster_eval2,"-means")),
-    #                    `Jerarquía` = c(paste0(input$cluster_eval1,"-Jerarquico"), paste0(input$cluster_eval2,"-Jerarquico"))
-    #                    )
-    #   )
-    #})
-    
-    #Esta parte finalmente se incluye en el apartado de clustering jerarquico.
+  
     
   })
   
-  # observeEvent(input$clustereva_SelectAction,{
-  # 
-  #   print("Hola")
-  #   print("q")
-  # })
-  #   
+ 
   
   #-------FILTRADO COLABORATIVO----------
   
@@ -3059,8 +2899,8 @@ api<-function(){
       #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
       r <- as(matriz,"realRatingMatrix")
       
-      output$datosRecomendaciones_msj<-renderPrint({
-        print("Se muestran algunos datos importantes.")
+      output$datosRecomendaciones_msj<-renderText({
+        print("Dispersión de la matriz de datos para realizar recomendaciones.")
       })
       
       output$datosRecomendaciones_plot1<-renderPlot({
@@ -3072,8 +2912,8 @@ api<-function(){
       })
       
     }else{
-      output$datosRecomendaciones_msj<-renderPrint({
-        print("El atributo Valoraciones no es de tipo numérico.")
+      output$datosRecomendaciones_msj<-renderText({
+        print("Error: el atributo Valoraciones no es de tipo numérico.")
       })
       output$datosRecomendaciones_plot1<-renderPlot({})
       output$datosRecomendaciones_plot2<-renderPlot({})
@@ -3166,8 +3006,8 @@ api<-function(){
       title("Curva ROC")
     })
     
-    output$modelEval_msj<-renderPrint(
-      print("Se muestras las gráficas de evaluación de los modelos")
+    output$modelEval_msj<-renderText(
+      print("Se muestras las gráficas de evaluación de los modelos.")
     )
     
     #Dibujamos la curva precision/recall
@@ -3177,71 +3017,17 @@ api<-function(){
     })
     par(mfrow = c(1, 1))
     }else{
-      output$modelEval_msj<-renderPrint({
-       print("El atributo Valoraciones no es de tipo numérico.")
+      output$modelEval_msj<-renderText({
+       print("Error: el atributo Valoraciones no es de tipo numérico.")
       })
       output$modelEval_plot1<-renderPlot({})
       output$modelEval_plot2<-renderPlot({})
     }
     
-    # #Cargamos la imagen de dispersión y calificaciones de los datos 
-    # output$modelEval_plotDispersion<-renderPlot({
-    #   
-    #   image(r, main="Mapa de calor de las calificaciones")
-    #   
-    # })
+    
     
   })
-  # 
-  # Funcion_evaluacionDelError<-function(df){
-  #   df<-filedata()
-  #   if (is.null(df)) return(NULL)
-  #   
-  #   if (class(df[,input$modelEval_at3])=="numeric" || class(df[,input$modelEval_at3])=="integer"){
-  #     
-  #     
-  #     #Se genera la matriz a partir del dataframe
-  #     matriz<-acast(df, df[,input$modelEval_at1]~df[,input$modelEval_at2], value.var=input$modelEval_at3)
-  #     
-  #     #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
-  #     r <- as(matriz,"realRatingMatrix")
-  #     
-  #     #Número de Items que vamos a usar para evaluar el esquema, lo ideal es que sea menor que el mínimo dispuesto por un usuario
-  #     minItems<-min(rowCounts(r)) 
-  #     items_dados= minItems-1
-  #     
-  #     #Creamos el esquema de evaluación con given=3
-  #     eval_sets <- evaluationScheme(r, method="split", train=0.8, given=items_dados, goodRating=3)
-  #     
-  #     #Comprobamos los datos que se usan para el entrenamiento
-  #     getData(eval_sets, "train")
-  #     
-  #     #Creamos el sistema recomendador a partir de los datos de entrenamiento
-  #     Rec.ubcf <- Recommender(getData(eval_sets, "train"), "UBCF", param = list(nn = 25))
-  #     Rec.ibcf <- Recommender(getData(eval_sets, "train"), "IBCF", param = list(k = 30))
-  #     
-  #     #Realizamos las predicciones de calificaciones en base a las conocidas
-  #     p.ubcf <- predict(Rec.ubcf, getData(eval_sets, "known"), n=4, type="ratings")
-  #     p.ibcf <- predict(Rec.ibcf, getData(eval_sets, "known"), n=4, type="ratings")
-  #     
-  #     #Calculamos el error de las predicciones sobre los datos de test desconocidos
-  #     error.ubcf<-calcPredictionAccuracy(p.ubcf, getData(eval_sets, "unknown"))
-  #     error.ibcf<-calcPredictionAccuracy(p.ibcf, getData(eval_sets, "unknown"))
-  #     
-  #     #Unimos las listas, nombramos las filas y mostramos la tabla de errores
-  #     error <- rbind(error.ubcf,error.ibcf)
-  #     rownames(error) <- c("UBCF","IBCF")
-  #     error
-  #     
-  #   }else{
-  #     return(NULL)
-  #   }
-  #   
-  # }
-  # 
-  # observeEvent(input$modelEval_Action,{
-  #   
-  # })
+  
   
   #--------Recomendaciones
   output$colaborativo_at1 <- renderUI({
@@ -3341,12 +3127,12 @@ api<-function(){
     #Renombramos las columnas de la tabla
     colnames(salida)<-c("Items Recomendados","Valoraciones Predichas")
     
-    output$colaborativo_msj = renderPrint({print(paste("Se muestran los resultados para ",input$colaborativo_slider," recomendaciones",sep=""))})
+    output$colaborativo_msj = renderText({print(paste("Se muestran los resultados para ",input$colaborativo_slider," recomendaciones",sep=""))})
     
     output$colaborativo_table = renderTable({salida})
     
     }else{
-      output$colaborativo_msj = renderPrint({print("El atributo Valoraciones no es de tipo numérico.")})
+      output$colaborativo_msj = renderText({print("Error: el atributo Valoraciones no es de tipo numérico.")})
       output$colaborativo_table = renderTable({})
     }
     
@@ -3356,12 +3142,88 @@ api<-function(){
   #-------SERIES TEMPORALES---------
   #------------ARIMA----------------
   
+  #Renderizar combos
+  output$arima_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("arima_at1", "Atributo contable:",items)
+    
+  })
+  
+  #Renderizar combos
+  output$tbats_at1 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("tbats_at1", "Atributo contable:",items)
+    
+  })
 
+  #Función que se ejecuta al pulsar el botón de acción
+  Funcion_arimaModelCondicion<-function(df) {
+    
+    if (is.null(df)) return(NULL)
+    
+    #Comprobamos si cumplen la condición para ser as.Date
+    listado<-lapply(df[,1], function(x) !all(is.na(as.Date(as.character(x),format="%Y-%m-%d"))))
+    nFalsos<-length(grep("FALSE",listado))
+    if(nFalsos==0){
+      condicion<-TRUE
+    }else{
+      listado2<-lapply(df[,1], function(x) !all(is.na(as.Date(as.character(x),format="%d-%m-%Y"))))
+      nFalsos2<-length(grep("FALSE",listado2))
+      if(nFalsos2==0){
+        condicion<-TRUE
+      }else{
+        condicion<-FALSE
+      }
+    }
+  }
+  
+  
+  Funcion_arimaTabla<-function(condicion,df){
+    #Si los valores de la primera columna del dataset son aptos (condicion<-TRUE), continuamos. Si no mostramos msj de error
+    if (condicion==TRUE){
+      #obtenemos el primer año del dataset
+      annoComienzo<-year(df[1,1])
+      
+      #Renombramos el atributo de cuenta para agrupar
+      indice<-grep(input$arima_at1,colnames(df))
+      colnames(df)[indice]<-"Cuenta_Mensual"
+      
+      #Agrupamos mensualmente
+      usuarios_mensuales <- as.data.frame(df %>%
+                                            group_by(anno = year(df[,1]),
+                                                     mes = month(df[,1])) %>%
+                                            summarise(usuarios = sum(Cuenta_Mensual)))
+      
+      #Generamos la serie temporal con la librería ts
+      usuarios <- usuarios_mensuales[, 3]
+      mensual <- ts(usuarios, frequency = 12, start = c(annoComienzo, 1))
+      
+    }
+  }
+  
+  
   #Evento que ejecuta la función anterior
   observeEvent(input$arima_predAction, {
     df<-filedata()
     if (is.null(df)) return(NULL)
+    
+    #Comprobamos si el atributo de agrupamiento es numérico
+    if (class(df[,input$arima_at1])!="numeric" && class(df[,input$arima_at1])!="integer"){
+      
+      output$arima_msj <- renderText({
+        print("Error: El atributo contable escogido no es numérico.")
+      })
+      
+      return(NULL)
+    }
+    
+    #Verificamos si el campo fecha cumple la condición para generar una serie temporal
     condicion<-Funcion_arimaModelCondicion(df)
+    
     if (condicion=="TRUE"){
       
       mensual<<-Funcion_arimaTabla(condicion,df)
@@ -3371,8 +3233,8 @@ api<-function(){
       })
       
       #Mensaje de ejecución
-      output$arima_msj <- renderPrint({
-        print("Se muestran los resultados de la conversión de la serie temporal")
+      output$arima_msj <- renderText({
+        print("Se muestran los resultados de la conversión de la serie temporal.")
       })
       
       #Plot de las gráficas de descomposición en componentes
@@ -3399,8 +3261,8 @@ api<-function(){
       
     }else{
       
-      output$arima_msj <- renderPrint({
-        print("El dataset no cumple las condiciones para ser transformado en una serie temporal.")
+      output$arima_msj <- renderText({
+        print("Error: el dataset no cumple las condiciones para ser transformado en una serie temporal.")
       })
     }
     
@@ -3410,13 +3272,7 @@ api<-function(){
   observeEvent(input$arima_generModelArima, {
     df<-filedata()
     if (is.null(df)) return(NULL)
-    # modeloNoEsta<-gsub("\\(","",input$modeloNoEsta)
-    # modeloNoEsta2<-gsub("\\)","",modeloNoEsta)
-    # modeloNoEsta3<-as.numeric(unlist(strsplit(modeloNoEsta2, split=",")))
-    # 
-    # modeloEsta<-gsub("\\(","",input$modeloEsta)
-    # modeloEsta2<-gsub("\\)","",modeloEsta)
-    # modeloEsta3<-as.numeric(unlist(strsplit(modeloEsta2, split=",")))
+
     modeloNoEsta=as.numeric(c(input$modeloNoEsta_p,input$modeloNoEsta_d,input$modeloNoEsta_q))
     modeloEsta=as.numeric(c(input$modeloEsta_P,input$modeloEsta_D,input$modeloEsta_Q))
     
@@ -3424,8 +3280,8 @@ api<-function(){
                   seasonal = list(order = modeloEsta))
     
     #Mensaje de salida
-    output$arima_msj2 <- renderPrint({
-      print("Se muestran las gráficas de modelo ARIMA generado")
+    output$arima_msj2 <- renderText({
+      print("Se muestran las gráficas de modelo ARIMA generado.")
     })
     
     #Plot del modelo ARIMA generado
@@ -3453,107 +3309,97 @@ api<-function(){
       df<-filedata()
       if (is.null(df)) return(NULL)
       
+      
+      #Comprobamos si el atributo de agrupamiento es numérico
+      if (class(df[,input$tbats_at1])!="numeric" && class(df[,input$tbats_at1])!="integer"){
+        
+        output$tbats_msj <- renderText({
+          print("Error: El atributo contable escogido no es numérico.")
+        })
+        
+        return(NULL)
+      }
+      
+      #Verificamos si el campo fecha cumple la condición para generar una serie temporal
+      condicion<-Funcion_arimaModelCondicion(df)
+      
+      if (condicion=="TRUE"){
+      
       #obtenemos el primer año del dataset
       annoComienzo<-year(df[1,1])
       
       #Recogemos los años que hay en el dataset
       numAnnos<-unique(year(df[,1]))
       
+      #Renombramos el atributo de cuenta para agrupar
+      indice<-grep(input$tbats_at1,colnames(df))
+      colnames(df)[indice]<-"Cuenta_Mensual"
+      
       #Agrupamos mensualmente
       usuarios_mensuales <- as.data.frame(df %>%
                                             group_by(anno = year(df[,1]),
                                                      mes = month(df[,1])) %>%
-                                            summarise(usuarios = sum(count)))
+                                            summarise(usuarios = sum(Cuenta_Mensual)))
       
       usuarios <- usuarios_mensuales[, 3]
       
-      condicion<-Funcion_arimaModelCondicion(df)
-      
-     
-      
-      if (condicion=="TRUE"){
+        mensual<<-Funcion_arimaTabla(condicion,df)
         
-            mensual<<-Funcion_arimaTabla(condicion,df)
+        output$tbats_plot1<-renderPlot({
+          
+          
+          #Modelo avanzado
+          modeloAvd <- tbats(mensual)
+          predAvan<-forecast(modeloAvd,h=input$slider_predtbats)
+          plot(predAvan)
+          
+          summary(predAvan$mean)
+          summary(predAvan$upper)
+          summary(predAvan$lower)
+          
+          #Recorremos todos los años del dataset para pintar la gráfica
+          for (annoi in numAnnos){
+            assign(paste("media_",annoi,sep=""),round(as.numeric(
+                 filter(usuarios_mensuales, anno == annoi) %>%
+                   summarise(mean = mean(usuarios))), 0))
             
-            output$tbats_plot1<-renderPlot({
-              
-              
-              #Modelo avanzado
-              modeloAvd <- tbats(mensual)
-              predAvan<-forecast(modeloAvd,h=input$slider_predtbats)
-              plot(predAvan)
-              
-              summary(predAvan$mean)
-              summary(predAvan$upper)
-              summary(predAvan$lower)
-              
-              #Recorremos todos los años del dataset para pintar la gráfica
-              for (annoi in numAnnos){
-                assign(paste("media_",annoi,sep=""),round(as.numeric(
-                     filter(usuarios_mensuales, anno == annoi) %>%
-                       summarise(mean = mean(usuarios))), 0))
-                
-                mediaAnno<-eval(as.name(paste("media_",annoi,sep="")))
-                
-                segments(as.numeric(annoi), mediaAnno, x1 = as.numeric(annoi)+1, y1 = mediaAnno,
-                                  col = "darkgray", lty = 2, lwd = 2)
-                
-                text(as.numeric(annoi), mediaAnno + mediaAnno*0.05, mediaAnno)
-                
-              }
-              
-              #Dibujamos la línea media del pronóstico
-              abline(h = max(predAvan$mean), lty = 2, col = "blue")
-              
-              #Obtenemos el último año de los datos del dataset
-              ultiAnno<-tail(numAnnos,n=1)
-              
-              #Definimos el proximo año a pronosticar
-              annoPronos<-as.numeric(ultiAnno)+1
-              annoPronosString<-as.character(annoPronos)
-              
-              #Le asignamos la media del pronóstico TBATS
-              assign(paste("media",annoPronosString,sep=""),round(mean(predAvan$mean), 0))
-              assign(paste("max_media",annoPronosString,sep=""),round(max(predAvan$mean), 0))
-              
-              #Dibujamos el segmento del pronóstico
-              segments(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))), x1 = annoPronos+1, y1 = eval(as.name(paste("media",annoPronosString,sep=""))),
-                                 col = "blue", lty = 2, lwd = 2)
-              
-              #Pintamos el texto del año pronosticado
-              text(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))) + eval(as.name(paste("media",annoPronosString,sep="")))*0.05, eval(as.name(paste("media",annoPronosString,sep=""))))
-              text(annoPronos, eval(as.name(paste("max_media",annoPronosString,sep=""))) + eval(as.name(paste("max_media",annoPronosString,sep="")))*0.05, eval(as.name(paste("max_media",annoPronosString,sep=""))))
-              
-              # pastemean_2011 <- round(as.numeric(
-              #   filter(usuarios_mensuales, anno == 2011) %>%
-              #     summarise(mean = mean(usuarios))), 0)
-              # mean_2012 <- round(as.numeric(
-              #   filter(usuarios_mensuales, anno == 2012) %>%
-              #     summarise(mean = mean(usuarios))), 0)
-              # 
-              # mean_2013 <- round(mean(predAvan$mean), 0)
-              # max_mean_2013 <- round(max(predAvan$mean), 0)
-              # 
-              # abline(h = max(predAvan$mean), lty = 2, col = "blue")
-              # segments(2011, mean_2011, x1 = 2012, y1 = mean_2011,
-              #          col = "darkgray", lty = 2, lwd = 2)
-              # segments(2012, mean_2012, x1 = 2013, y1 = mean_2012,
-              #          col = "darkgray", lty = 2, lwd = 2)
-              # segments(2013, mean_2013, x1 = 2014, y1 = mean_2013,
-              #          col = "blue", lty = 2, lwd = 2)
-              # 
-              # text(2011.15, mean_2011 + mean_2011*0.05, mean_2011)
-              # text(2012, mean_2012 + mean_2012*0.05, mean_2012)
-              # text(2013, mean_2013 + mean_2013*0.05, mean_2013)
-              # text(2013.85, max_mean_2013 + max_mean_2013*0.1, max_mean_2013)
-              
-              
-            })
+            mediaAnno<-eval(as.name(paste("media_",annoi,sep="")))
             
-            #Escribimos el mensaje por pantalla
-            output$tbats_msj<-renderPrint({
-              print("Se muestra el pronóstico proyectado mediante el uso la función TBATS")
-            })
+            segments(as.numeric(annoi), mediaAnno, x1 = as.numeric(annoi)+1, y1 = mediaAnno,
+                              col = "darkgray", lty = 2, lwd = 2)
+            
+            text(as.numeric(annoi), mediaAnno + mediaAnno*0.05, mediaAnno)
+            
+          }
+          
+          #Dibujamos la línea media del pronóstico
+          abline(h = max(predAvan$mean), lty = 2, col = "blue")
+          
+          #Obtenemos el último año de los datos del dataset
+          ultiAnno<-tail(numAnnos,n=1)
+          
+          #Definimos el proximo año a pronosticar
+          annoPronos<-as.numeric(ultiAnno)+1
+          annoPronosString<-as.character(annoPronos)
+          
+          #Le asignamos la media del pronóstico TBATS
+          assign(paste("media",annoPronosString,sep=""),round(mean(predAvan$mean), 0))
+          assign(paste("max_media",annoPronosString,sep=""),round(max(predAvan$mean), 0))
+          
+          #Dibujamos el segmento del pronóstico
+          segments(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))), x1 = annoPronos+1, y1 = eval(as.name(paste("media",annoPronosString,sep=""))),
+                             col = "blue", lty = 2, lwd = 2)
+          
+          #Pintamos el texto del año pronosticado
+          text(annoPronos, eval(as.name(paste("media",annoPronosString,sep=""))) + eval(as.name(paste("media",annoPronosString,sep="")))*0.05, eval(as.name(paste("media",annoPronosString,sep=""))))
+          text(annoPronos, eval(as.name(paste("max_media",annoPronosString,sep=""))) + eval(as.name(paste("max_media",annoPronosString,sep="")))*0.05, eval(as.name(paste("max_media",annoPronosString,sep=""))))
+
+        })
+        
+        #Escribimos el mensaje por pantalla
+        output$tbats_msj<-renderText({
+          print("Se muestra el pronóstico proyectado mediante el uso la función TBATS.")
+        })
       }
     })
     
@@ -3631,15 +3477,13 @@ api<-function(){
     if (input$visual_at1!="" && input$visual_at2!="" && input$visual_grupos>1 && input$visual_colorIntervalos>1){
     #if(tipovisualizacion=="puntoscolores"){
       
-   
-    df$emp_size <- cut(df[,input$visual_factor], breaks = ngrupos)
-                             #labels = c("Employees: 3 - 6", "7 - 9", "10+"))
+    indiceAt1<-grep(input$visual_at1,colnames(df))
+    indiceAt2<-grep(input$visual_at2,colnames(df))
     
-    #if(!require("ggplot2")) install.packages("ggplot2")
-    #suppressMessages(suppressWarnings(library(ggplot2)))
-    #if(!require("scales")) install.packages("scales")
-    #suppressMessages(suppressWarnings(library(scales)))
-    
+    #Generamos una nueva columna con los grupos a mostrar, de acuerdo a la variable a agrupar (nº degraficas)
+    df$emp_size <- cut(df[,input$visual_factor],breaks = ngrupos)
+                            
+
     #En caso de que sea necesario factorizar la variable continua en grupos
     if(esfactorvisual=="TRUE"){
       df[,paste(input$visual_color,"_factor_",input$visual_colorIntervalos,sep="")]<-cut(df[,input$visual_color],as.numeric(input$visual_colorIntervalos))
@@ -3655,18 +3499,18 @@ api<-function(){
             scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
             xlab(input$visual_at1) + ylab(input$visual_at2) 
     }else{
-      plot <- ggplot(data = df, aes(x = df[,input$visual_at1],
-                                          y = df[,input$visual_at2]))
+      plot <- ggplot(data = df, aes_string(colnames(df)[indiceAt1], colnames(df)[indiceAt2]))
       
       plot <- plot + facet_grid(. ~ emp_size) + 
-        geom_point(aes(color = df[,input$visual_color]), shape = 18, size = 4)
+      geom_point(aes(color = df[,input$visual_color]), shape = 18, size = 4)
       
-      plot + 
-        scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
-        xlab(input$visual_at1) + ylab(input$visual_at2) 
+       plot + 
+         scale_color_discrete(guide = guide_legend(title = paste0(input$visual_color,"\nDensity"))) +
+         xlab(input$visual_at1) + ylab(input$visual_at2) 
+        
 
         }
-     #}#else if(df!=NULL)
+     
     }
   })  
     
@@ -3706,14 +3550,14 @@ api<-function(){
                                  popup = ~popup)
           })
         
-        output$geo_msj<-renderPrint({
-          print("Se muestra la localización de los datos")
+        output$geo_msj<-renderText({
+          print("Se muestra la localización de los datos.")
         })
  
       }else{
         
-        output$geo_msj<-renderPrint({
-          print("No hay datos de geolocalización en el dataset.")
+        output$geo_msj<-renderText({
+          print("Error: no hay datos de geolocalización en el dataset.")
         })
         
         #Reiniciamos el mapa de cooordenadas
@@ -3776,7 +3620,7 @@ api<-function(){
         })
         
         output$ruta_msj<-renderText({
-          print("Se muestra la ruta optima entre las coordenadas")
+          print("Se muestra la ruta optima entre las coordenadas.")
         })
         
       }else{

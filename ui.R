@@ -1,5 +1,6 @@
-# Library experimentos
-
+# Library 
+library(shinyjs)
+library(shiny)
 library(stats)
 library(dplyr)
 library(shinydashboard)
@@ -8,7 +9,8 @@ library(stringr)
 library(psych)
 library(corrgram)
 library(dendextend)
-#library(TSA) 'Solo para ejemplo
+
+#Series temporales
 library(forecast)
 library(lubridate) #Agregacion de datos en series temporales y fechas
 
@@ -35,112 +37,28 @@ library(neuralnet)
 library(mongolite)
 
 
-source('global.R')
-
 #---------CSS----------------------------------------
 #Definimos los estilos generales que vamos a usar en el diseño de la aplicación
 blueStyle="color: #fff; background-color: #337ab7; border-color: #2e6da4"
-
-
-
-#tags$style(type='text/css', "#dosvariables_Action_relacionTab { width:100%; margin-top: 25px;}"),
-#tags$dashboardBody(tags$style(HTML(.sidebar {height: 90vh; overflow-y: auto;})))
 
 dashboardPage(
   dashboardHeader(title = "SMART BUSINESS ANALYTICS"),
   dashboardSidebar(
     sidebarMenu(id="tabs",
                 sidebarMenuOutput("menu"))
-    
-
-    
-    # sidebarMenu(id = "tabs",
-    #   menuItem("CARGA DE DATOS", tabName = "cargaDeDatos",icon = icon("upload"),
-    #            collapsible = TRUE,
-    #            menuSubItem("Importar Datos", tabName = "importacionDatos",icon = icon("upload"))
-    #            )
-    #   ),
-    # 
-    # conditionalPanel(condition="output.filedatacargado",
-    #   sidebarMenu(id = "tabs_second",
-    #   menuItem("OPERACIONES", tabName = "operaciones", icon = icon("sticky-note-o"),
-    #           collapsible = TRUE,
-    #           menuSubItem("Consultas", tabName = "consulta",icon = icon("book")),
-    #           menuSubItem("Edición", tabName = "edicion",icon = icon("edit")),
-    #           menuSubItem("Limpieza", tabName = "limpieza",icon = icon("shower"))
-    #            ),
-    # 
-    #   menuItem("EXPLORACIONES", tabName = "exploracionDatos", icon = icon("binoculars"),
-    #            collapsible = TRUE,
-    #            menuSubItem("Factorizar", tabName = "factorizar",icon = icon("tag")),
-    #            menuSubItem("Una Variable", tabName = "unaVariable",icon = icon("bolt")),
-    #            menuItem("Dos Variables", tabName = "dosVariables",icon = icon("balance-scale"),collapsible = TRUE,
-    #                        menuSubItem("Exp. Gráfica", tabName = "expGrafica",icon = icon("sun-o")),
-    #                        menuSubItem("Correlaciones", tabName = "correlacionesdosvar",icon = icon("handshake-o"))
-    #                     ),
-    #            menuItem("Multivariable", tabName = "multivariable",icon = icon("star-o"),collapsible = TRUE,
-    #                       menuSubItem("Exp. Gráfica", tabName = "multi_expGrafica",icon = icon("sun-o")),
-    #                       menuSubItem("Correlaciones", tabName = "multi_cor",icon = icon("handshake-o"))
-    #            )),
-    # 
-    #   menuItem("REGRESIONES LINEALES", tabName = "regresionlineal", icon = icon("expand"),
-    #            collapsible = TRUE,
-    #            menuSubItem("SLR", tabName = "reglineal_simple",icon = icon("line-chart")),
-    #            menuSubItem("MLR", tabName = "reglineal_multi",icon = icon("bar-chart"))
-    #            ),
-    # 
-    #   menuItem("CLUSTERING", tabName = "clusters",icon = icon("cubes"),
-    #            collapsible = TRUE,
-    #            menuSubItem("K-means", tabName = "kmeans",icon = icon("braille")),
-    #            menuSubItem("Jerarquía", tabName = "jerarquia",icon = icon("sitemap")),
-    #            menuSubItem("Evaluaciónes", tabName = "evaluaciones",icon = icon("spinner"))
-    #            ),
-    # 
-    #   menuItem("REDES NEURONALES", tabName = "redneuronal", icon = icon("snowflake-o")
-    #            ),
-    # 
-    #   menuItem("FILTRADO COLABORATIVO", tabName = "colaborativo",icon = icon("handshake-o"),
-    #            collapsible = TRUE,
-    #            menuSubItem("Valoraciones", tabName = "datosRecomendaciones",icon = icon("shopping-basket")),
-    #            menuSubItem("Evaluación de Modelos", tabName = "modelEval",icon = icon("shopping-cart")),
-    #            menuSubItem("Recomendaciones", tabName = "recomendaciones",icon = icon("thumbs-o-up"))
-    #            ),
-    # 
-    #   menuItem("SERIES TEMPORALES", tabName = "s_temporales", icon = icon("area-chart"),
-    #            collapsible = TRUE,
-    #            menuSubItem("ARIMA", tabName = "arima",icon = icon("hourglass-2")),
-    #            menuSubItem("TBATS", tabName = "tbats",icon = icon("hourglass"))
-    #   ),
-    # 
-    #   menuItem("VISUALIZACIONES", tabName = "visualizaciones", icon = icon("eye"),
-    #            collapsible = TRUE,
-    #            menuSubItem("Agrupaciones", tabName = "agrupaciones",icon = icon("object-group")),
-    #            menuSubItem("Geolocalización", tabName = "geolocalizacion",icon = icon("globe")),
-    #            menuSubItem("RutaOptima", tabName = "rutaoptima",icon = icon("motorcycle"))
-    #            )
-    # 
-    #   )),#conditionalPanel
-    # 
-    #   sidebarMenu(id = "tabs_mongo",
-    #      menuItem("BBDD", tabName = "basesDeDatos", icon = icon("database"),
-    #               collapsible = TRUE,
-    #               menuSubItem("MongoDB", tabName = "mongodb",icon = icon("envira")))
-    #      
-    # )
-    
-    ),
+                ),
   
   dashboardBody(style = 'overflow-y: scroll', #De esta manera añadimos un scroll vertical al Body
     tabItems(
       tabItem(tabName = "importacionDatos",
               fluidRow(box(width = 12,
                 fluidRow(
-                box( radioButtons("tipoImport", tags$p("TIPO DE ARCHIVO A IMPORTAR", style = "font-size: 120%;color:blue;font-weight: bold"),
+                box(width=6, radioButtons("tipoImport", tags$p("TIPO DE ARCHIVO A IMPORTAR", style = "font-size: 120%;color:blue;font-weight: bold"),
                                   c("CSV" = "csv",
                                     "API" = "api")))
                     ),
                       fluidRow( conditionalPanel(condition="input.tipoImport=='csv'",
-                                box(width = 12,
+                                box(width = 6,
                                   fileInput('datafile', tags$p("Seleccionar archivo CSV", style = "font-size: 120%;color:blue;font-weight: bold"),
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain'))
                                    ))
@@ -171,7 +89,6 @@ dashboardPage(
                                     box(tags$p("Datos Cargados", style = "font-size: 120%;color:blue;font-weight: bold"), width = 12, status = "primary",
                                      div(style = 'overflow-x: scroll', tableOutput("filetable"))
                                    )))
-                      #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_carga")))
               ),
       
       
@@ -194,13 +111,10 @@ dashboardPage(
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                             div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("val2")),
                             br(),
+                            tags$style(type='text/css', "#SeleccionarVariables { width:100%; margin-top: 25px;}"),
+                            div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("SeleccionarVariables", "Filtrar Datos",style=blueStyle)),
                             div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                            br(),
-                            
-                            #The action button prevents an action firing before we're ready
-                            actionButton("SeleccionarVariables", "Filtrar",style=blueStyle),
-                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                            shinySaveButton("guardarFiltro", "Guardar Filtro", class="shinySave btn-info", "Guardar archivo como ...", filetype=list(csv="csv")),
+                            shinySaveButton("guardarFiltro", "Guardar Cambios", class="shinySave btn-info", "Guardar archivo como ...", filetype=list(csv="csv")),
                             br(),
                             br(),
                             verbatimTextOutput("consulta_msj")
@@ -216,7 +130,7 @@ dashboardPage(
                fluidRow(
                   box(tags$p("AÑADIR ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                     br(),
-                    div(style="display: inline-block;vertical-align:top; width: 130px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
+                    div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("nuevoAtributo", "Nuevo Atributo:")),
                     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosEdicion")),
                     div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
@@ -232,10 +146,13 @@ dashboardPage(
                     div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Factor'",textInput("factorNumerico", "Valor",width="100px"))),
                     div(style="display: inline-block;vertical-align:top; width: 100px;",conditionalPanel(condition="input.edicion_tipoDato=='Atributo'",div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("otroAtributo")))),
                     br(),
-                    br(),
+                    tags$style(type='text/css', "#ejecutarAtributo { width:100%; margin-top: 25px;}"),
                     div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarAtributo", "Añadir Atributo",style=blueStyle)),
-                    div(style="display: inline-block;vertical-align:middle; width: 20px;",HTML("<br>")),
-                    shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-info","Guardar archivo como ...", filetype=list(csv="csv"))
+                    div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
+                    shinySaveButton("guardar_edicion", "Guardar Cambios", class="shinySave btn-info","Guardar archivo como ...", filetype=list(csv="csv")),
+                    br(),
+                    br(),
+                    verbatimTextOutput("edicion_msj")
                   )),
                
       fluidRow(conditionalPanel(condition="input.ejecutarAtributo",
@@ -248,11 +165,15 @@ dashboardPage(
               
                                fluidRow(
                                  box(tags$p("BUSCAR VALORES NA", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
-                                     br(),
-                                     actionButton("valoresNA", "Buscar valores NA",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                     div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
-                                     actionButton("eliminarNA_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-                                     actionButton("restaurar_Limpiar","Restaurar Dataset",style="float:right;color: #fff; background-color: #337ab7; border-color: #2e6da4"),
+
+                                     tags$style(type='text/css', "#valoresNA { width:100%; margin-top: 25px;}"),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresNA", "Buscar Valores NA",style=blueStyle)),
+                                     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                     tags$style(type='text/css', "#eliminarNA_Limpiar { width:100%; margin-top: 25px;}"),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarNA_Limpiar","Eliminar Valores NA",style=blueStyle)),
+                                     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                     tags$style(type='text/css', "#restaurar_Limpiar { width:100%; margin-top: 25px;}"),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;float: right",actionButton("restaurar_Limpiar","Restaurar Dataset",style=blueStyle)),
                                      br(),
                                      br(),
                                      verbatimTextOutput("mensajes_limpiezaNA"),
@@ -271,20 +192,15 @@ dashboardPage(
                                                                                                                       ))),
                                      div(style="display: inline-block;vertical-align:middle; width: 50px;",HTML("<br>")),
                                      tags$style(type='text/css', "#valoresAnomalos_Buscar { width:100%; margin-top: 25px;}"),
-                                     div(style="display: inline-block;vertical-align:top; width: 100px;",actionButton("valoresAnomalos_Buscar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresAnomalos_Buscar","Buscar",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
                                      div(style="display: inline-block;vertical-align:top; width: 20px;",HTML("<br>")),
                                      tags$style(type='text/css', "#valoresAnomalos_Limpiar { width:100%; margin-top: 25px;}"),
-                                     div(style="display: inline-block;vertical-align:top; width: 120px;",actionButton("valoresAnomalos_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+                                     div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("valoresAnomalos_Limpiar","Eliminar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4")),
                                      br(),
                                      verbatimTextOutput("mensajes_limpiezaAnomalos"),
                                      tableOutput("resultados_limpiezaAnomalos")
-                                     #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("eliminarValoresErroneos_Limpiar","Borrar Valores",style="display: inline-block;color: #fff; background-color: #337ab7; border-color: #2e6da4"))
-                                     
                                  )),
-                               
-                               #fluidRow(box(title="Resultados",width = 12, tableOutput("resultados_limpieza"))),
-                               #fluidRow(box(title="Mensajes",width = 12,verbatimTextOutput("mensajes_limpieza"))),
-                               fluidRow(box(width = 12,
+                              fluidRow(box(width = 12,
                                             shinySaveButton("guardar_limpieza", "Guardar Cambios", class="shinySave btn-info","Guardar archivo como ...", filetype=list(csv="csv"))
                                ))
       ),
@@ -293,22 +209,16 @@ dashboardPage(
               fluidRow(box(tags$p("SUMARIO DEL DATASET", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                            br(),
                            verbatimTextOutput("dosvariables_sumarioGeneral",placeholder = TRUE))),
-              # fluidRow(
-              #   box(title="Factorizar",width = 12,
-              #       div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributosCambioDeTipos")),
-              #       div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("factores", "Factores (;)")),
-              #       br(),
-              #       div(style="display: inline-block;vertical-align:bottom; width: 150px;",actionButton("ejecutarFactorizacion", "Ejecutar",style=blueStyle))
-              #   )),
-              fluidRow(box(tags$p("FACTORIZACIÓN DE ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+             
+              fluidRow(box(tags$p("FACTORIZAR ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                            br(),
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_atributos")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")), 
-                           div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="output.intervalos=='TRUE'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos"))),
+                           div(style="display: inline-block;vertical-align:top; width: 150px;",conditionalPanel(condition="output.intervalos=='TRUE'",textInput("dosvariables_TextInput_intervalos", "Nº de intervalos:"))),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                            tags$style(type='text/css', "#dosvariables_Action_factorizar { width:100%; margin-top: 25px;}"),
                            tags$style(type='text/css', "#dosvariables_Action_factoReset { width:100%; margin-top: 25px;}"),
-                           div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Ejecutar",style=blueStyle)),
+                           div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factorizar", "Factorizar",style=blueStyle)),
                            div(style="display: inline-block;vertical-align:top; width: 25px;",HTML("<br>")),
                            div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("dosvariables_Action_factoReset", "Reset",style=blueStyle)),
                            br(), 
@@ -326,10 +236,10 @@ dashboardPage(
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariable")),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracion1", "Tipo de Exploración:",
-                                                                                                 c("Sumario" = "sumario",
-                                                                                                   "Media" = "media",
-                                                                                                   "Desviación St." = "desviacion",
-                                                                                                   "Varianza" = "varianza"))),
+                                                                                                 c("Sumario" = "Sumario",
+                                                                                                   "Media" = "Media",
+                                                                                                   "Desviación St." = "Desviacion",
+                                                                                                   "Varianza" = "Varianza"))),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   #Añadimos el estilo al botón de Ejecutar
                   tags$style(type='text/css', "#Exploraciones_ejecutar1 { width:100%; margin-top: 25px;}"),
@@ -339,7 +249,7 @@ dashboardPage(
                  verbatimTextOutput("resultados_exploracion1")
                  )),
 
-              fluidRow(box(tags$p("FILTRO DE GRÁFICA 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
+              fluidRow(box(tags$p("FILTRO DE EXPLORACIÓN GRÁFICA 1", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            br(),
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -349,7 +259,7 @@ dashboardPage(
                                                                                                        "Plot" = "plot"))),
                            verbatimTextOutput("mensajes_exploracionGrafica")
                         ),
-                       box(tags$p("FILTRO DE GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
+                       box(tags$p("FILTRO DE EXPLORACIÓN GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
                            br(),
                            div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoUnaVariableGrafica2")),
                            div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -396,16 +306,8 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("atributoDosVariablesGraficas2")),
-                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         #div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("dosvar_tipoExploracionGrafica", "Gráfica 1:",
-                         #                                                                                 c("FF" = "ff",
-                         #                                                                                  "FN" = "fn",
-                         #                                                                                   "NN" = "nn"))),
                          verbatimTextOutput("mensajes_dosvar_exploracionGrafica"),
                          withSpinner(plotOutput("explor1_dosvar_grafica1",click = "plot1_dosvar_click")),verbatimTextOutput("explor1_dosvar_info")
-
-                         #br(),
-                         #div(style="display: inline-block;vertical-align:top; width: 150px;",actionButton("ExploracionesGraficas_ejecutar1", "Ejecutar",style=blueStyle))
                       ))
             ),
 
@@ -417,6 +319,7 @@ dashboardPage(
             fluidRow(box(tags$p("CORRELACIÓN ENTRE DOS ATRIBUTOS", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                   br(),
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at1")),
+                  div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at2")),
                   div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                   tags$style(type='text/css', "#dosvar_Action_correlacion { width:100%; margin-top: 25px;}"),
@@ -432,9 +335,6 @@ dashboardPage(
     tabItem(tabName = "multi_expGrafica",
             fluidRow(box(tags$p("ANÁLISIS GRÁFICO MULTIVARIABLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          br(),
-                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("multivariable_Ui_gra_at1")),
-                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         #tags$style(type='text/css', "#multivar_Action_gra { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("multivar_Action_gra", "Relaciones Gráficas",style=blueStyle)),
                          br(), 
                          br(),
@@ -446,10 +346,6 @@ dashboardPage(
     tabItem(tabName = "multi_cor",
             fluidRow(box(tags$p("CORRELACIÓN MULTIVARIABLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          br(),
-                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at1")),
-                         #div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("dosvariables_Ui_correla_at2")),
-                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         #tags$style(type='text/css', "#multivar_Action_correlacion { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("multivar_Action_correlacion", "Test de Correlación",style=blueStyle)),
                          br(),
                          br(),
@@ -468,35 +364,47 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#reglinealsimple_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("reglinealsimple_Action", "Ejecutar",style=blueStyle)),
-                         br(),
-                         br(),
-                         verbatimTextOutput("reglienalsimple_msj"),
-                         verbatimTextOutput("reglienalsimple_print")
+                         verbatimTextOutput("reglienalsimple_msj")
                          )
+                    ),
+                     
+           fluidRow(conditionalPanel(condition="output.salidaOkMostrarVentanasSLR=='TRUE'",
+                     box(id="box_SLR1",width=6,
+                         br(),
+                         verbatimTextOutput("reglienalsimple_print"),
+                         br(),
+                         verbatimTextOutput("reglienalsimple_MSE")
                      ),
-                         
-                         fluidRow(conditionalPanel(condition="input.reglinealsimple_Action",box(width = 6,
-                                      withSpinner(plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1"))),
-                                  box(width = 6,
-                                      withSpinner(plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2"))),
-                                  box(width = 6,
-                                      withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))),
-                                  box(width = 6,
-                                      withSpinner(plotOutput("reglienalsimple_plot4",click = "reglienalsimple_plot_click4"))))
-                         ),
-                          fluidRow(conditionalPanel(condition="input.reglinealsimple_Action",box(tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
-                                       br(),
-                                       div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("valorX", "Valores de X (sep=;)")),
-                                       div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                                       div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("intervaloConfianza", "Int. de Confianza",
-                                                                                                                        c("99%" = ".99",
-                                                                                                                          "95%" = ".95",
-                                                                                                                          "90%" = ".90"))),
-                                       div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                                       tags$style(type='text/css', "#SLR_prediccion_Action { width:100%; margin-top: 25px;}"),
-                                       div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir",style=blueStyle)),
-                                       verbatimTextOutput("SLR_prediccion_print")))
-                             )),
+                     box(width=6,
+                         withSpinner(plotOutput("reglienalsimple_plotSLR",click = "reglienalsimple_plotSLR_click",dblclick = "reglienalsimple_plotSLR_dblclick",
+                                     brush = brushOpts(id = "reglienalsimple_plotSLR_brush",resetOnNew = TRUE))),
+                                      verbatimTextOutput("reglienalsimple_plotSLR_info"))
+                     )
+              ),
+                     
+          fluidRow(conditionalPanel(condition="output.salidaOkMostrarVentanasSLR=='TRUE'",          
+                     box(id="box_SLR2",width = 6,
+                        withSpinner(plotOutput("reglienalsimple_plot1",click = "reglienalsimple_plot_click1"))),
+                    box(id="box_SLR3",width = 6,
+                        withSpinner(plotOutput("reglienalsimple_plot2",click = "reglienalsimple_plot_click2"))),
+                    box(id="box_SLR4",width = 6,
+                        withSpinner(plotOutput("reglienalsimple_plot3",click = "reglienalsimple_plot_click3"))),
+                    box(id="box_SLR5",width = 6,
+                        withSpinner(plotOutput("reglienalsimple_plot4",click = "reglienalsimple_plot_click4"))))
+           ),
+            fluidRow(conditionalPanel(condition="output.salidaOkMostrarVentanasSLR=='TRUE'",box(id="box_SLR6",tags$p("PREDICCIONES DEL MODELO SLR", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                         br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("valorX", "Valores de X (sep=;):")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("intervaloConfianza", "Int. de Confianza:",
+                                                                                                          c("99%" = ".99",
+                                                                                                            "95%" = ".95",
+                                                                                                            "90%" = ".90"))),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         tags$style(type='text/css', "#SLR_prediccion_Action { width:100%; margin-top: 25px;}"),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("SLR_prediccion_Action", "Predecir",style=blueStyle)),
+                         verbatimTextOutput("SLR_prediccion_print")))
+               )),
      
     tabItem(tabName = "reglineal_multi",
             fluidRow(box(tags$p("REGRESIÓN LINEAL MÚLTIPLE", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
@@ -510,18 +418,19 @@ dashboardPage(
                          br(),
                          br(),
                          verbatimTextOutput("reglienalmulti_msj"),
-                         verbatimTextOutput("reglienalmulti_print"))
+                         verbatimTextOutput("reglienalmulti_print"),
+                         verbatimTextOutput("reglienalmulti_MSE"))
             ),
-            fluidRow(conditionalPanel(condition="input.reglinealmulti_Action",box(width = 6,
+            fluidRow(conditionalPanel(condition="output.salidaOkMostrarVentanasMLR=='TRUE'",box(width = 6,
                          withSpinner(plotOutput("reglienalmulti_plot1",click = "reglienalmulti_plot1_click"))),
                      box(width = 6,
                          withSpinner(plotOutput("reglienalmulti_plot2",click = "reglienalmulti_plot2_click"))),
                      box(width = 12,
                          withSpinner(plotOutput("reglienalmulti_plot3",click = "reglienalmulti_plot3_click")))
             )),
-            fluidRow(conditionalPanel(condition="input.reglinealmulti_Action",
-              box(tags$p("PREDICCIONES DEL MODELO DE REGRESIÓN MÚLTIPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
-                  fileInput('regreMultiEvaluation', 'Selecciona CSV para evaluación',
+            fluidRow(conditionalPanel(condition="output.salidaOkMostrarVentanasMLR=='TRUE'",
+                     box(tags$p("PREDICCIONES DEL MODELO DE REGRESIÓN MÚLTIPLE", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                           fileInput('regreMultiEvaluation', 'Selecciona CSV para evaluación',
                             accept=c('text/csv', 'text/comma-separated-values,text/plain')),
                   tags$style(type='text/css', "#evalCSVmultiRegre_Action { width:100%; margin-top: 25px;}"),
                   div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("evalCSVmultiRegre_Action", "Predicción",style=blueStyle)),
@@ -546,9 +455,9 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_at2")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n1","Nº Clusters 1")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n1","Nº Clusters 1:")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n2","Nº Clusters 2")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("cluster_n2","Nº Clusters 2:")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#cluster_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("cluster_Action", "Ejecutar",style=blueStyle)),
@@ -596,7 +505,7 @@ dashboardPage(
     
     #Jerarquía
     tabItem(tabName = "jerarquia",
-            fluidRow(box(tags$p("CLUSTERING JERARQUICO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+            fluidRow(box(tags$p("CLUSTERING JERÁRQUICO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("clusterj_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
@@ -618,8 +527,9 @@ dashboardPage(
                                    div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_AddValorCorte", "Dibujar",style=blueStyle)),
                                    br(),
                                    verbatimTextOutput("clusterj_print")
-                               ),
-                               box(width = 12, 
+                               )),
+              conditionalPanel(condition ="input.clusterj_AddValorCorte",
+                              box(width = 12, 
                                    withSpinner(plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%")),
                                    verbatimTextOutput("clusterj_print1"),
                                    verbatimTextOutput("clusterj_print2")
@@ -639,13 +549,11 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_Action", "Evaluar",style=blueStyle)),
                          br(),
                          verbatimTextOutput("clustereva_msj"))),
-            fluidRow(conditionalPanel(condition ="input.clustereva_Action",
-               box(width = 12,
                 fluidRow(conditionalPanel(condition ="input.clustereva_Action",
-                     box(tags$p("GRÁFICAS DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                     box(tags$p("GRÁFICA DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click")),
                          br(),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval1", "Grupo 1",
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval1", "Nº Clusters 1:",
                                                                                                          c("2"="2",
                                                                                                            "3" = "3",
                                                                                                            "4" = "4",
@@ -658,7 +566,7 @@ dashboardPage(
                                                                                                          selected="dos$cluster"
                          )),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval2", "Grupo 2",
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("cluster_eval2", "Nº Clusters 1:",
                                                                                                          c("2"="2",
                                                                                                            "3" = "3",
                                                                                                            "4" = "4",
@@ -675,22 +583,14 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_CompaAction", "Comparar",style=blueStyle)),
                          br()))),
              fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
-                       box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
+                       box(tags$p("GRÁFICAS MODELO 1", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                            withSpinner(plotOutput("clustereva_plot1",click = "clustereva_plot1_click")),
                           withSpinner(plotOutput("clustereva_plot2",click = "clustereva_plot2_click"))),
-                       box(tags$p("GRÁFICAS ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
+                       box(tags$p("GRÁFICAS MODELO 2", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                            withSpinner(plotOutput("clustereva_plot3",click = "clustereva_plot3_click")),
                           withSpinner(plotOutput("clustereva_plot4",click = "clustereva_plot4_click")))
-                       
-                           
-                       # box(tags$p("SELECCIÓN ", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                       #     div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("cluster_EvalFinal")),
-                       #     div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                       #     tags$style(type='text/css', "#clustereva_SelectAction { width:100%; margin-top: 25px;}"),
-                       #     div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_SelectAction", "Seleccionar",style=blueStyle)),
-                       #     verbatimTextOutput("clustereva_print"))
              ))   
-            )))),
+            ),
     #Redes Neuronales
     tabItem(tabName = "redneuronal",
             fluidRow(box(tags$p("RED NEURONAL DE RETROPROPAGACIÓN", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
@@ -706,7 +606,6 @@ dashboardPage(
                          br(),
                          conditionalPanel(condition ="input.hidenLayers==2", div(style="display: inline-block;vertical-align:top; width: 300px;", sliderInput("neurLayer2", "Nº de neuronas de la capa 2", 
                                                                                                                                                               min = 1, max = 10, value = 1, step= 1))),
-                         br(),
                          tags$style(type='text/css', "#redneuronal_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("redneuronal_Action", "Ejecutar",style=blueStyle)),
                          br(),
@@ -715,7 +614,7 @@ dashboardPage(
                     
                     conditionalPanel(condition ="input.redneuronal_Action",
                                      
-                     box(tags$p("MODELO DE RED", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
+                     box(tags$p("MODELO DE RED NEURONAL GENERADO (NN)", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("redneural_plot1",click = "redneural_plot1_click")),
                          verbatimTextOutput("redneuronal_msj2")),
                      
@@ -742,9 +641,11 @@ dashboardPage(
     tabItem(tabName = "arima",
             fluidRow(box(tags$p("ANÁLISIS ARIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
-                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("tipoPrediccion", "Tipo de Predicción",
-                                                                                                         c("Mensual"="mensual",
-                                                                                                           "Anual" = "anual"),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("arima_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("tipoPrediccion", "Frecuencia:",
+                                                                                                         c("Mensual"="mensual"),
+                                                                                                           #"Anual" = "anual"),
                                                                                                          selected="mensual")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#arima_predAction { width:100%; margin-top: 25px;}"),
@@ -806,8 +707,14 @@ dashboardPage(
     tabItem(tabName = "tbats",
             fluidRow(box(tags$p("PRONÓSTICO TBATS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("tbats_at1")),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                         div(style="display: inline-block;vertical-align:top; width: 150px;",selectInput("tipoPrediccionTbats", "Frecuencia:",
+                                                                                                         c("Mensual"="mensual"),
+                                                                                                         selected="mensual")),
+                         br(),
                          div(style="display: inline-block;vertical-align:top; width: 50%",sliderInput("slider_predtbats", "Nº de puntos proyectados", 
-                                     min = 2, max = 26, value = 1, step= 1)),
+                                     min = 2, max = 100, value = 1, step= 1)),
                           br(), 
                          tags$style(type='text/css', "#tbats_predAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("tbats_predAction", "Predicción",style=blueStyle)),
@@ -824,7 +731,6 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_at1")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_at2")),
-                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          br(),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_factor")),
@@ -832,7 +738,6 @@ dashboardPage(
 
                          div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("visual_grupos", "Nº de Grupos", 
                                                                                                       min = 2, max = 10, value = 1, step= 1)),
-                         #div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          br(),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_color")),
@@ -844,17 +749,14 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
 
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         #tags$style(type='text/css', "#arima_predAction { width:100%; margin-top: 25px;}"),
-                         #div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Predecir",style=blueStyle)),
-                         br(),
-                          conditionalPanel(condition ="input.visual_at1!=''",box(tags$p("GRÁFICAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
+                         br()),
+                          conditionalPanel(condition ="input.visual_at1!=''",box(tags$p("GRÁFICAS DE AGRUPACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
                                                                                  withSpinner(plotOutput("visual_plot1",click = "visual_plot1_click"))))
-            ))),
+            )),
     
     #Geolocalización
     tabItem(tabName = "geolocalizacion",
             fluidRow(box(tags$p("MAPA DE COORDENADAS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                         br(),
                          tags$style(type='text/css', "#geo_action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("geo_action", "Geolocalización",style=blueStyle)),
                          br(),
@@ -866,10 +768,9 @@ dashboardPage(
     
     #Ruta Optima
     tabItem(tabName = "rutaoptima",
-            fluidRow(box(tags$p("RUTA OPTIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
-                         br(),
+            fluidRow(box(tags$p("RUTA ÓPTIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          tags$style(type='text/css', "#ruta_action { width:100%; margin-top: 25px;}"),
-                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("ruta_action", "Ruta Optima",style=blueStyle)),
+                         div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("ruta_action", "Ruta Óptima",style=blueStyle)),
                          br(),
                          br(),
                          verbatimTextOutput("ruta_msj"),
@@ -887,9 +788,6 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("datosRecomendaciones_at3")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
-                         #div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
-                         #                                                                               min = 1, max = 10, value = 1, step= 1)),
-                         #br(),
                          tags$style(type='text/css', "#datosRecomendaciones_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("datosRecomendaciones_Action", "Consulta",style=blueStyle)),
                          br(),
@@ -910,9 +808,6 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at3")),
                          br(),
-                         #div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderRecom", "Nº de Recomendaciones", 
-                          #                                                                               min = 1, max = 10, value = 1, step= 1)),
-                         #br(),
                          div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderEval", "K - Validación Cruzada", 
                                                                                                          min = 1, max = 10, value = 1, step= 1)),
                          br(),
@@ -988,12 +883,8 @@ dashboardPage(
                          br(),
                          tags$style(type='text/css', "#Exportar_DocToBBDD { width:100%; margin-top: 25px;}"),
                          conditionalPanel(condition="output.importadaColeccionDeMongo=='TRUE'",shinySaveButton("guardarImportFromMongo", "Exportar documento a csv.", class="btn btn-info", "Guardar archivo como ...", filetype=list(csv="csv")))
-                         
-                         #conditionalPanel(condition="output.importadaColeccionDeMongo=='TRUE'",shinySaveButton("guardarImportFromMongo", "Exportar documento a csv.", class=" btn-info", "Guardar archivo como ...", filetype=list(csv="csv")))
                          ))
             
-                         
-              #h2("Mongodb tab content")
       )#tabItem
     ) #tabItems
   )
