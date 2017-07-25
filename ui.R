@@ -256,7 +256,8 @@ dashboardPage(
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica1", "Gráfica 1:",
                                                                                                      c("Histograma" = "histograma",
                                                                                                        "Diagrama de Caja" = "caja",
-                                                                                                       "Plot" = "plot"))),
+                                                                                                       "Plot" = "plot",
+                                                                                                       "Pie-Chart"="pie_chart"))),
                            verbatimTextOutput("mensajes_exploracionGrafica")
                         ),
                        box(tags$p("FILTRO DE EXPLORACIÓN GRÁFICA 2", style = "font-size: 120%;color:blue;font-weight: bold"),width = 6,
@@ -266,7 +267,8 @@ dashboardPage(
                            div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("tipoExploracionGrafica2", "Gráfica 2:",
                                                                                                             c("Histograma" = "histograma",
                                                                                                               "Diagrama de Caja" = "caja",
-                                                                                                              "Plot" = "plot"))),
+                                                                                                              "Plot" = "plot",
+                                                                                                              "Pie-Chart"="pie_chart"))),
                            verbatimTextOutput("mensajes_exploracionGrafica2")
                        )
                 ),
@@ -462,10 +464,11 @@ dashboardPage(
                          tags$style(type='text/css', "#cluster_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("cluster_Action", "Ejecutar",style=blueStyle)),
                          br(),
+                         br(),
                          verbatimTextOutput("cluster_msj")
                          )),
             
-                  fluidRow(conditionalPanel(condition="input.cluster_Action",
+                  fluidRow(conditionalPanel(condition="output.salidaOKClusters=='TRUE'",
                               box(width = 6, 
                               withSpinner(plotOutput("cluster_plot1",click = "cluster_plot1_click")),
                               div(style="display: inline-block;vertical-align:top; width: 150px;", selectInput("cluster_explo1", "Cluster 1",
@@ -516,10 +519,11 @@ dashboardPage(
                          tags$style(type='text/css', "#clusterj_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clusterj_Action", "Ejecutar",style=blueStyle)),
                          br(),
+                         br(),
                          verbatimTextOutput("clusterj_msj")
             )),
             fluidRow(
-              conditionalPanel(condition ="input.clusterj_Action",
+              conditionalPanel(condition ="output.salidaOKClustersJe=='TRUE'",
                                box(width = 12, 
                                    withSpinner(plotOutput("clusterj_plot1",click = "clusterj_plot1_click")),
                                    div(style="display: inline-block;vertical-align:top; width: 150px;",textInput("clusterj_corte","Valor de corte:")),
@@ -528,7 +532,7 @@ dashboardPage(
                                    br(),
                                    verbatimTextOutput("clusterj_print")
                                )),
-              conditionalPanel(condition ="input.clusterj_AddValorCorte",
+              conditionalPanel(condition ="output.salidaOKClustersJe=='TRUE'",
                               box(width = 12, 
                                    withSpinner(plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%")),
                                    verbatimTextOutput("clusterj_print1"),
@@ -548,8 +552,9 @@ dashboardPage(
                          tags$style(type='text/css', "#clustereva_Action { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_Action", "Evaluar",style=blueStyle)),
                          br(),
+                         br(),
                          verbatimTextOutput("clustereva_msj"))),
-                fluidRow(conditionalPanel(condition ="input.clustereva_Action",
+                fluidRow(conditionalPanel(condition ="output.salidaOKClustersEva=='TRUE'",
                      box(tags$p("GRÁFICA DE EVALUACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("clusterelbow_plot1",click = "clustereelbow_plot1_click")),
                          br(),
@@ -582,7 +587,7 @@ dashboardPage(
                          tags$style(type='text/css', "#clustereva_CompaAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_CompaAction", "Comparar",style=blueStyle)),
                          br()))),
-             fluidRow(conditionalPanel(condition ="input.clustereva_CompaAction",           
+             fluidRow(conditionalPanel(condition ="output.salidaOKClustersEva=='TRUE' && input.clustereva_CompaAction",           
                        box(tags$p("GRÁFICAS MODELO 1", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                            withSpinner(plotOutput("clustereva_plot1",click = "clustereva_plot1_click")),
                           withSpinner(plotOutput("clustereva_plot2",click = "clustereva_plot2_click"))),
@@ -612,7 +617,7 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("redneuronal_msj")),
                     
-                    conditionalPanel(condition ="input.redneuronal_Action",
+                    conditionalPanel(condition ="output.salidaOKNN=='TRUE'",
                                      
                      box(tags$p("MODELO DE RED NEURONAL GENERADO (NN)", style = "font-size: 120%;color:blue;font-weight: bold"),width = 12,
                          withSpinner(plotOutput("redneural_plot1",click = "redneural_plot1_click")),
@@ -652,9 +657,11 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predAction", "Analizar",style=blueStyle)),
                          br(),
                          verbatimTextOutput("arima_msj"),
-                         verbatimTextOutput("arima_print1"),
+                         verbatimTextOutput("arima_print1")
+                        ),
                          
-                         conditionalPanel(condition ="input.arima_predAction",
+                         conditionalPanel(condition ="output.salidaOKARIMA=='TRUE'",
+                                    box(width=12,
                                           box(tags$p("GRÁFICAS DE DESCOMPOSICIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12, height = "650px",
                                                                                withSpinner(plotOutput("arima_plot1",click = "arima_plot1_click"))),
                          box(tags$p("GRÁFICAS DE DIFERENCIACIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
@@ -685,23 +692,24 @@ dashboardPage(
                                                                                                                                                                  selected="0")),
                                                                                br(),
                                                                                tags$style(type='text/css', "#arima_generModelArima { width:100%; margin-top: 25px;}"),
-                                                                               div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_generModelArima", "Generar Modelo",style=blueStyle))),
+                                                                               div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_generModelArima", "Generar Modelo",style=blueStyle)),
                                                                                br(),
-                                                                               verbatimTextOutput("arima_msj2")
+                                                                               br(),
+                                                                               verbatimTextOutput("arima_msj2"))
                                                                                
-                         ),
-                         conditionalPanel(condition ="input.arima_generModelArima",box(tags$p("MODELO ARIMA GENERADO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         )),
+                         conditionalPanel(condition ="output.salidaOKARIMA=='TRUE' && input.arima_generModelArima",box(tags$p("MODELO ARIMA GENERADO", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                                                                                        withSpinner(plotOutput("arima_plot4",click = "arima_plot4_click")))
                          ),
-                         conditionalPanel(condition ="output.arima_plot4",box(tags$p("PREDICCIONES", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                         conditionalPanel(condition ="output.salidaOKARIMA=='TRUE' && output.arima_plot4",box(tags$p("PREDICCIONES DEL MODELO ARIMA", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                                                                               sliderInput("slider_predarima", "Nº de puntos proyectados", 
-                                                                                          min = 2, max = 100, value = 1, step= 1),
+                                                                                          min = 1, max = 25, value = 1, step= 1),
                                                                               tags$style(type='text/css', "#arima_predicAction { width:100%; margin-top: 25px;}"),
                                                                               div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("arima_predicAction", "Predicción",style=blueStyle)),
                                                                               withSpinner(plotOutput("arima_plot5",click = "arima_plot5_click")))
                          )
                          
-    ))),
+    )),
     
     #Time series con TBATS
     tabItem(tabName = "tbats",
@@ -714,14 +722,14 @@ dashboardPage(
                                                                                                          selected="mensual")),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 50%",sliderInput("slider_predtbats", "Nº de puntos proyectados", 
-                                     min = 2, max = 100, value = 1, step= 1)),
+                                     min = 1, max = 25, value = 1, step= 1)),
                           br(), 
                          tags$style(type='text/css', "#tbats_predAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("tbats_predAction", "Predicción",style=blueStyle)),
                          br(),
                          br(),
                          verbatimTextOutput("tbats_msj"),
-                         conditionalPanel(condition ="input.tbats_predAction", withSpinner(plotOutput("tbats_plot1")))))
+                         conditionalPanel(condition ="output.salidaOKTBATS=='TRUE'", withSpinner(plotOutput("tbats_plot1")))))
     ),
     
     #Series temporales
@@ -736,8 +744,8 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_factor")),
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
 
-                         div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("visual_grupos", "Nº de Grupos", 
-                                                                                                      min = 2, max = 10, value = 1, step= 1)),
+                         div(style="display: inline-block;vertical-align:top; width: 400px;",conditionalPanel(condition="output.salidaOKFactorAgrupacion=='TRUE'", sliderInput("visual_grupos", "Nº de Grupos", 
+                                                                                                      min = 2, max = 10, value = 1, step= 1))),
                          br(),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("visual_color")),
@@ -792,10 +800,13 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("datosRecomendaciones_Action", "Consulta",style=blueStyle)),
                          br(),
                          br(),
-                         verbatimTextOutput("datosRecomendaciones_msj"),
-                         br(),
-                         splitLayout(cellWidths = c("50%", "50%"), conditionalPanel(condition ="input.datosRecomendaciones_Action",withSpinner(plotOutput("datosRecomendaciones_plot1"))),
-                                     conditionalPanel(condition ="input.datosRecomendaciones_Action",withSpinner(plotOutput("datosRecomendaciones_plot2"))))
+                         verbatimTextOutput("datosRecomendaciones_msj")
+            ),
+            conditionalPanel(condition ="output.salidaOKDispersion=='TRUE'",
+                      box(width = 12,
+                         splitLayout(cellWidths = c("50%", "50%"), 
+                                     withSpinner(plotOutput("datosRecomendaciones_plot1")),
+                                     withSpinner(plotOutput("datosRecomendaciones_plot2"))))
             ))
     ),        
     #Filtrado Colaborativo - evaluación de modelo
@@ -809,15 +820,20 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 150px;",uiOutput("modelEval_at3")),
                          br(),
                          div(style="display: inline-block;vertical-align:top; width: 400px;",sliderInput("modelEval_sliderEval", "K - Validación Cruzada", 
-                                                                                                         min = 1, max = 10, value = 1, step= 1)),
+                                                                                                         min = 2, max = 10, value = 1, step= 1)),
                          br(),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("modelEval_Action", "Evaluación",style=blueStyle)),
                          br(),
                          br(),
-                         verbatimTextOutput("modelEval_msj"),
-                         splitLayout(cellWidths = c("50%", "50%"), conditionalPanel(condition ="input.modelEval_Action",withSpinner(plotOutput("modelEval_plot1"))),
-                        conditionalPanel(condition ="input.modelEval_Action",withSpinner(plotOutput("modelEval_plot2"))))
+                         verbatimTextOutput("modelEval_msj")
+                         ),
                          
+                     conditionalPanel(condition ="output.salidaOKEvalRecomen=='TRUE'",
+                          box(width = 12,
+                         splitLayout(cellWidths = c("50%", "50%"), 
+                                     withSpinner(plotOutput("modelEval_plot1")),
+                                     withSpinner(plotOutput("modelEval_plot2")))
+                          )   
             ))),
     
     #Filtrado Colaborativo - recomendaciones
@@ -852,7 +868,8 @@ dashboardPage(
                          br(),
                          verbatimTextOutput("colaborativo_msj"),
                          br(),
-                         tableOutput("colaborativo_table")
+                         conditionalPanel(condition ="output.salidaOKrecomendarAction=='TRUE'",
+                                          tableOutput("colaborativo_table"))
                          
             ))),
     
