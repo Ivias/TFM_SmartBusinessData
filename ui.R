@@ -53,17 +53,26 @@ dashboardPage(
       tabItem(tabName = "importacionDatos",
               fluidRow(box(width = 12,
                 fluidRow(
-                box(width=6, radioButtons("tipoImport", tags$p("TIPO DE ARCHIVO A IMPORTAR", style = "font-size: 120%;color:blue;font-weight: bold"),
+                box(width=12, radioButtons("tipoImport", tags$p("TIPO DE ARCHIVO A IMPORTAR", style = "font-size: 120%;color:blue;font-weight: bold"),
                                   c("CSV" = "csv",
                                     "API" = "api")))
-                    ),
-                      fluidRow( conditionalPanel(condition="input.tipoImport=='csv'",
-                                box(width = 6,
+                ),
+     
+                  fluidRow( conditionalPanel(condition="input.tipoImport=='csv'",
+                                                
+                                  box(width = 6,
                                   fileInput('datafile', tags$p("Seleccionar archivo CSV", style = "font-size: 120%;color:blue;font-weight: bold"),
                                       accept=c('text/csv', 'text/comma-separated-values,text/plain'))
-                                   ))
+                                   ),
+                                  box(width=6, tags$p("Opciones de Importación", style = "font-size: 120%;color:blue;font-weight: bold"),
+                                      div(style="display: inline-block;vertical-align:top; width: 150px;",radioButtons("importFactor","¿Importar factores?:",
+                                                                                                                       c("TRUE" = "trueFactor",
+                                                                                                                         "FALSE" = "falseFactor"),selected="trueFactor")),
+                                      div(style="display: inline-block;vertical-align:top; width: 150px;", radioButtons("delimitadorCSV","Delimitador del csv:",
+                                                                                                                        c("," = "csvComa",
+                                                                                                                          ";" = "csvPuntoyComa")))))
                       ),
-                      fluidRow(conditionalPanel(condition="input.tipoImport=='api'",
+                  fluidRow(conditionalPanel(condition="input.tipoImport=='api'",
                                 box(tags$p("Importar datos desde API-WEB", style = "font-size: 120%;color:blue;font-weight: bold"),width = 9,
                                     div(style="display: inline-block;vertical-align:top; width: 400px;",textInput("URL", "URL Compuesta:")),
                                     br(),

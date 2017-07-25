@@ -1,5 +1,8 @@
 shinyServer(function(input, output, session) {
   
+  #Se fija el tamaño max de los archivos importados a 100Mb
+  options(shiny.maxRequestSize=100*1024^2)
+  
   #inicializamos variables de control de carga de archivos
   filesalida<-NULL
   fileCSV<-FALSE
@@ -144,13 +147,33 @@ api<-function(){
       
       if(is.null(infile)){ return(NULL)}
       
-      #Leemos el archivo y tratamos los '?' como NA
-      file<-read.csv(infile$datapath,sep=",",na.strings=c("?",""),stringsAsFactors = TRUE)
       
-      #Mostramos los datos por pantalla
-      output$API_msj <- renderText({
-        "Se muestran los 100 primeros registros del archivo CSV."
-      })
+      requiereFactores <- switch(isolate(input$importFactor),
+                                 trueFactor = TRUE,
+                                 falseFactor = FALSE)
+                   
+      delimitadorCSVescogido <- switch(isolate(input$delimitadorCSV),
+                                csvComa = ",",
+                                 csvPuntoyComa = ";")
+      
+      #Leemos el archivo y tratamos los '?' como NA
+      file<-read.csv(infile$datapath,na.strings=c("?",""),stringsAsFactors = requiereFactores, sep=delimitadorCSVescogido)
+      
+      if (ncol(file)==1){
+        #Mostramos los datos por pantalla
+        output$API_msj <- renderText({
+          "Es posible que haya un error en la configuración de importación. Revisar el delimitador escogido."
+        })
+        
+      }else{
+        #Mostramos los datos por pantalla
+        output$API_msj <- renderText({
+          "Se muestran los 100 primeros registros del archivo CSV."
+        })
+        
+      }
+      
+    
       
       #Se visualiza el contenido del archivo
       output$filetable <- renderTable({
@@ -326,6 +349,7 @@ api<-function(){
     output$multivar_msj_correlacion <- renderPrint({invisible()})
     output$multivar_print_correlacion <- renderPrint({invisible()})
     output$reglienalsimple_msj <- renderPrint({invisible()})
+    output$reglienalmulti_MSE <- renderPrint({invisible()})
     output$reglienalsimple_print <- renderPrint({invisible()})
     output$SLR_prediccion_print <- renderPrint({invisible()})
     output$reglienalmulti_msj <- renderPrint({invisible()})
@@ -361,6 +385,7 @@ api<-function(){
     output$filetabledicion <- renderTable({})
     output$resultados_limpiezaNA <- renderTable({})
     output$resultados_limpiezaAnomalos <- renderTable({})
+    output$regreMultiEvaluation <- renderTable({})
     output$tableEvalNeuronal <- renderTable({})
     output$colaborativo_table <- renderTable({})
     output$mongo_table <- renderTable({})
@@ -2260,7 +2285,7 @@ api<-function(){
   
 
   
-  #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
+  #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida del modelo MLR
   output$fileMLRdatacargado <- eventReactive(input$regreMultiEvaluation,{
     output$regreMultiEvaluation_msj<-renderText({
       print("Se ha cargado un archivo para realizar pronósticos según el modelo MLR.")
@@ -2271,7 +2296,7 @@ api<-function(){
   outputOptions(output, "fileMLRdatacargado", suspendWhenHidden = FALSE)
   
   
-  #Mostramos el fichero cargado para pronosticar en base a la red neuronal generada
+  #Mostramos el fichero cargado para pronosticar en base al modelo MLR
   observe({
     
     fileMRLCarga<-input$regreMultiEvaluation
@@ -2838,13 +2863,13 @@ api<-function(){
    #Creamos la semilla y el modelo jerarquico
     set.seed(456)
     hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
-    print("Voy a petar")
+
     #Visualizacion del modelo y exportamos a variable global
     dendro<<-stats::as.dendrogram(hc_model)
-    print("dendr")
+
      #Exportamos como variable global para que pueda ser recogido por el siguiente evento
      dendro_six_color<<-color_branches(dendro, k=as.numeric(input$clusterj_nclusters))
-     print("dendrsix")
+ 
       output$clusterj_plot1 <- renderPlot({
         plot(dendro_six_color,leaflab="none", horiz=TRUE,
              main="Dendrograma de los atributos seleccionados", xlab="Altura")
@@ -3472,8 +3497,15 @@ api<-function(){
     lim<-nrow(r)
     
     #Definimos lel modelo de recomendación
-    modelo <- Recommender(r[c(1:(pos-1),(pos+1):lim)], method = input$colaborativo_metodo, param = list(method = input$colaborativo_distancia))
+    if(pos>1){
+      
+      modelo <- Recommender(r[c(1:(pos-1),(pos+1):lim)], method = input$colaborativo_metodo, param = list(method = input$colaborativo_distancia))
     
+    }else{
+      
+      modelo <- Recommender(r[c(2:lim)], method = input$colaborativo_metodo, param = list(method = input$colaborativo_distancia))
+      
+    }
     #Predecimos las Top-N recomendaciones
     recomendaciones <- predict(modelo, r[pos], n=input$colaborativo_slider)
     
