@@ -541,7 +541,7 @@ dashboardPage(
                                    br(),
                                    verbatimTextOutput("clusterj_print")
                                )),
-              conditionalPanel(condition ="output.salidaOKClustersJe=='TRUE'",
+              conditionalPanel(condition ="output.salidaOKClustersJeCorte=='TRUE'",
                               box(width = 12, 
                                    withSpinner(plotOutput("clusterj_plotFinal",click = "clusterj_plotFinal_click",width = "50%")),
                                    verbatimTextOutput("clusterj_print1"),

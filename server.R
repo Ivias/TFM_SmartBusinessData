@@ -147,11 +147,12 @@ api<-function(){
       
       if(is.null(infile)){ return(NULL)}
       
-      
+      #Recogemos el valor de la configuración de importación para variables factor
       requiereFactores <- switch(isolate(input$importFactor),
                                  trueFactor = TRUE,
                                  falseFactor = FALSE)
-                   
+      
+      #Recogemos el tipo de separador escogido para importar archivos cvs           
       delimitadorCSVescogido <- switch(isolate(input$delimitadorCSV),
                                 csvComa = ",",
                                  csvPuntoyComa = ";")
@@ -392,7 +393,7 @@ api<-function(){
     
   }
   
-  
+#Ocultamos paneles cada vez que se realiza una nueva carga de datos
  Funcion_OcultarPaneles<-function(){
    
    output$salidaOkMostrarVentanasSLR <- reactive({valorDevuelto<-"FALSE"})
@@ -400,6 +401,7 @@ api<-function(){
    output$salidaOKNN <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKClusters <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKClustersJe <- reactive({valorDevuelto<-"FALSE"})
+   output$salidaOKClustersJeCorte <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKClustersEva <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKDispersion <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKEvalRecomen <- reactive({valorDevuelto<-"FALSE"})
@@ -417,7 +419,7 @@ api<-function(){
     obtenerNodoAPI<-input$API_nodeAction
     tipoImport<-input$tipoImport
     
-    #Llamamos a la función que borra los plots, prints y tablas, al tratarse de una nueva carga
+    #Llamamos a la función que borra los plots, prints,tablas y paneles, al tratarse de una nueva carga
     Funcion_BorraPlots()
     Funcion_BorraPrints()
     Funcion_BorraTablas()
@@ -461,12 +463,14 @@ api<-function(){
   observeEvent(input$API_nodeAction,{
     
     if(fileAPI==TRUE){
+      
     fileAPIcarganode<-funcion_seleccionarNodoAPI()
     
     if (raw.result$status_code!=404){
       
       nmax<-nrow(fileAPIcarganode)
       
+      #Mostramos sólo los 100 primeros registros para no tener problemas de renderización en las tablas en caso de datos masivos.
       if(nmax>100 || nmax==100){
         
         #Se visualiza el contenido del archivo
@@ -495,6 +499,7 @@ api<-function(){
         print("Error: Status Code 404.")
       })
       
+      #Reseteamos la tabla
       output$filetable <- renderTable({})
     }
     }else{
@@ -510,7 +515,8 @@ api<-function(){
   #------------------CONSULTA DE DATOS--------------------------
   
   
-  #Los combos los atributos deben actualizarse de acuerdo a los checkbox seleccionados
+  #Los combos los atributos deben actualizarse de acuerdo a los checkbox seleccionados en la consulta
+  #Combo Atributo 1
   observeEvent(input$variablesLista,{
     file<- filedata()
     file.subset <- file[, input$variablesLista]
@@ -524,7 +530,7 @@ api<-function(){
       
     })
     
-    
+    #Combo valor Atributo1
     output$val1 <- renderUI({
       df <-file.subset
       if (is.null(df)) return(NULL)
@@ -541,17 +547,17 @@ api<-function(){
       
     })
     
+    #Combo Atributo2
     output$var2 <- renderUI({
       df <-file.subset
       if (is.null(df)) return(NULL)
       
       items=names(df)
-      #names(items)=items
       selectInput("Variable2", "Atributo 2:",items)
       
     })
     
-    
+    #Combo valores Atributo 2
     output$val2 <- renderUI({
       df <-file.subset
       if (is.null(df)) return(NULL)
@@ -569,17 +575,17 @@ api<-function(){
     
   })
   
-  
-  output$str <- renderPrint({
-   df <-filedata()
-    if (is.null(df)) return(NULL)
-
-    str(df)
-  })
-  
+  # #Cuadro sumario de la estructura del dataset
+  # output$str <- renderPrint({
+  #  df <-filedata()
+  #   if (is.null(df)) return(NULL)
+  # 
+  #   str(df)
+  # })
+  # 
   
  
-  #Renderiza los combos en funcion de los datos del archivo
+  #checkboxGroupInput de la consulta
   output$variables <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -589,6 +595,7 @@ api<-function(){
     
   })
   
+  #Cuadro sumario de la estructura del dataset
   output$TextoSTR <- renderPrint({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -596,19 +603,21 @@ api<-function(){
     str(df)
   })
   
+  #Función que filtra el dataset de acuerdo al contenido de los checkbox
   FuncionFiltroColumnas <-eventReactive(input$SeleccionarVariables,{
     file=filedata()
     if (is.null(file)) return(NULL)
     
+    #Fichero filtrado por los checkbox
     file.subset <- file[, input$variablesLista]
     
-    #Necesitamos incorporar un mensaje que diga que se necesitan al menos dos columnas seleccionadas
+    #Recogemos los valores de los atributos siempre que se haya seleccionado más de un checkbox
    if (length(input$variablesLista)>1){
      var1=input$Variable1
      val1=input$Valor1
      var2=input$Variable2
      val2=input$Valor2
-    
+    #Filtramos el contenido de acuerdo a los atributos y valores
      if(val1!="" && val2=="" ){
        fileout <- file.subset[file.subset[,var1]==val1,]
      }else if(val2!="" && val1!="" ){
@@ -620,6 +629,8 @@ api<-function(){
      
      
    }else{
+     
+     #Si se ha seleccionado sólo un check devuelve NULL
      return(NULL)
    }
    
@@ -629,6 +640,8 @@ api<-function(){
   observeEvent(input$SeleccionarVariables, {
     
     filtroCol<-FuncionFiltroColumnas()
+    
+    #Se deben al menos seleccionar 2 checks
     if(is.null(filtroCol)){
       output$consulta_msj <- renderText({
         print("Se debe seleccionar más de un atributo para consultar.")
@@ -639,6 +652,7 @@ api<-function(){
       
     }else{
       
+      #Mostramos los 100 primeros valores de la consulta para evitar porblemas de renderización
       if (nrow(filtroCol)>100){
         output$filetablecolumnas <- renderTable({
           filtroCol[1:100,]
@@ -649,6 +663,7 @@ api<-function(){
         })
       
       }else{
+        
         output$filetablecolumnas <- renderTable({
           filtroCol
         })
@@ -662,6 +677,7 @@ api<-function(){
     
   })
   
+  #Sistema de guardado de cambios
   observe({
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardarFiltro", roots=volumes, session=session)
@@ -753,9 +769,11 @@ api<-function(){
   
   
   #---Pasamos a la búsqueda de valores anómalos---------
+  #Iniciamos variables de control
   buscadosvaloreserror<-"False"
   borradosvaloreserror<<-"False"
 
+  #Combo atributos
   output$atributosLimpieza <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -765,8 +783,10 @@ api<-function(){
 
   })
 
-  #Función que restaura los valores NA eliminados previamente
+  #Función que busca valores anomalos
   Funcion_buscaValoresErroneos<-eventReactive(input$valoresAnomalos_Buscar,{
+    
+    #Comprobamso si lo hacemos a partir del fichero con los valores NA eliminado previamente o no
     if (eliminadosNA=="True"){
       df<-Funcion_eliminarValoresNA()
     }else{
@@ -775,20 +795,26 @@ api<-function(){
     
     if (is.null(df)) return(NULL)
     atributo<-input$atributosLimpieza
+    
+    #Verificamos el tipo de búsqueda de valores anómalos
     if(input$tipoDato_Limpieza=="string"){
-    subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]")
+      subset <- str_subset(as.vector(df[,atributo]), "[a-z A-Z]")
     }else{
       subset <- str_subset(as.vector(df[,atributo]), "[0-9]")
     }
+    
     location <- str_detect(as.vector(df[,atributo]), subset)
     buscadosvaloreserror<<-"True"
+    
+    #Se devuelven los valores anómalos encontrados a la llamada principal
     fileout<-df[location, ]
 
   })
 
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$valoresAnomalos_Buscar, {
-    #Evento que dibuja el resultado
+    
+    #Evento que dibuja el resultado de la búsqueda anterior
     output$resultados_limpiezaAnomalos <- renderTable({Funcion_buscaValoresErroneos()})
     output$mensajes_limpiezaAnomalos <- renderText({
 
@@ -797,13 +823,15 @@ api<-function(){
     })
 
   })
+  
+  
   #Control de eliminaciones de registros anómalos
   eliminadosValoresAnomalos<-"False"
   segundaeliminacionAnomala<-"False"
   
   #Función que elimina los valores Anómalos
   Funcion_eliminarValoresAnomalos<-eventReactive(input$valoresAnomalos_Limpiar,{
-    #Comprobamos si se han eliminado los valores NA
+    #Comprobamos si se han eliminado los valores anómalos
     if (eliminadosNA=="True"){
       df<-Funcion_eliminarValoresNA()
     }else {
@@ -824,12 +852,14 @@ api<-function(){
   
   #Evento que ejecuta la función anterior y muestra el mensaje por pantalla
   observeEvent(input$valoresAnomalos_Limpiar, {
+    
     Funcion_eliminarValoresAnomalos()
     output$mensajes_limpiezaAnomalos <- renderText({
       
         print("Registros eliminados. Para actualizar el dataset debe guardar los cambios.")
       
     })
+    
     #Evento que reinicia los resultados de la tabla
     output$resultados_limpiezaAnomalos <- renderTable({})
   })
@@ -856,6 +886,7 @@ api<-function(){
   
   #------------------MENU DE EDICION DE DATOS--------------------------
   
+  #Carga de Atributos en combos
   output$atributosEdicion <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -865,6 +896,7 @@ api<-function(){
     
   })
   
+  #Carga de Atributos en combos
   output$otroAtributo <- renderUI({
     df <-filedata()
     if (is.null(df)) return(NULL)
@@ -874,7 +906,7 @@ api<-function(){
     
   })
   
-  
+  #Función que realiza las operaciones aritméticas de entre atributos o con factores en el menú de edición
   FuncionAddAtributo <-eventReactive(input$ejecutarAtributo,{
     df=filedata()
     if (is.null(df)) return(NULL)
@@ -895,7 +927,7 @@ api<-function(){
 
           )
     
-    #En el caso de ñla operación sea mediante un factor numérico
+    #En el caso de que la operación sea mediante un factor numérico
     if (input$edicion_tipoDato=="Factor") {
       
       if (class(df[,input$atributosEdicion]) == "numeric" && input$factorNumerico!="" &&  !is.na(as.numeric(input$factorNumerico))){
@@ -969,6 +1001,7 @@ api<-function(){
 
       })
   
+  #Llamada a la función de operaciones aritméticas anterior
   observeEvent(input$ejecutarAtributo, {
 
     #Generamos la nueva tabla de datos
@@ -981,7 +1014,7 @@ api<-function(){
 
   })
   
-  #Botón de guardado
+  #Botón de guardado de cambios
   observe({
     volumes <- c("UserFolder"=getwd())
     shinyFileSave(input, "guardar_edicion", roots=volumes, session=session)
@@ -996,7 +1029,7 @@ api<-function(){
 ####-------EXPLORACIONES---------#########
   
   ####-------Factorización---------#########
-  
+  #Variables de control de factorización de atributos
   ficheroFactorizado<-"False"
   
   #Evento que muestra las gráficas sin esperar un ActionButton
@@ -1069,8 +1102,8 @@ api<-function(){
       #En caso de que el atributo sea de tipo caracter y ya esté factorizado o no previamente.
         #En este caso es que alguna variable es de tipo caracter con lo que hay que usar la estrategia names de columna
         factoresArray<-unique(df[,atributo])
-        #arrayList<-strsplit(factoresArray,";")[[1]]
-        #df[,atributo]<-factor(df[,atributo], ordered=TRUE, levels=factoresArray)
+        
+        #Se factoriza el atributo
         df[,atributo]<-factor(df[,atributo], levels=sort(factoresArray))
         
         #Escribimos el msj por pantalla
@@ -2413,17 +2446,23 @@ api<-function(){
     hayCaracter<-FALSE
 
     
+    #Barra de progreso mostrada
+    withProgress(message = 'Generando red...',detail = 'Puede tardar un poco...', value = 0, {
+      
+    
     #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
     col_idx <- grep(input$redneuronal_at2, names(df)) 
     df <- df[, c((1:ncol(df))[-col_idx],col_idx)]
     
     #Guardamos df en una variable global para posteriorres predicciones
     df_paraEvalRed <<-df
+    incProgress(1/4)
     
     #Comprobamos que no haya ni caracteres ni factores en los atributos de entrada
       columnasCaracter<-sapply(df,is.character)
       columnasFactor<-sapply(df,is.factor)
-      
+   
+    
       if(TRUE %in% columnasCaracter || TRUE %in% columnasFactor){
         hayCaracter<-TRUE
         
@@ -2443,7 +2482,7 @@ api<-function(){
           nn <<-neuralnet(formulacion,data=df_escalado,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
         }
       } 
-      
+    incProgress(2/4)
     
     
     if(hayCaracter==FALSE){
@@ -2480,7 +2519,7 @@ api<-function(){
           nn_eval <- neuralnet(formul,data=train_,hidden=c(as.numeric(input$neurLayer1)),linear.output=T)
         }
         
-        
+        incProgress(3/4)
         
         #Computamos los datos de test de entrada, todas las columnas menos la última que es donde está la salida de la red
         aComputar<-as.numeric(ncol(test_)-1)
@@ -2490,7 +2529,8 @@ api<-function(){
          
          #Obtenemos el error cuadrático medio
          MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(test_)
-         
+       
+      incProgress(4/4)  
         
       #Se muestran las salidas correspondientes
       output$redneuronal_msj<-renderText({
@@ -2536,6 +2576,8 @@ api<-function(){
       outputOptions(output, "salidaOKNN", suspendWhenHidden = FALSE)
       
     }
+    
+    })#withprogress
   })
   
   
@@ -2848,6 +2890,11 @@ api<-function(){
     at1<-input$clusterj_at1
     at2<-input$clusterj_at2
     
+    
+    #Barra de progreso mostrada
+    withProgress(message = 'Generando dendograma...',detail = 'Puede tardar un poco...', value = 0, {
+    
+    
     if(is.numeric(df[,input$clusterj_at1]) &&  is.numeric(df[,input$clusterj_at2]) && !is.na(as.numeric(input$clusterj_nclusters))){
     
     #Generamos un nuevo fichero a partir de las dos columnas
@@ -2859,17 +2906,21 @@ api<-function(){
     
     #Lo globalizamos para que sea accesible
     fileClusterNorm<<-df
+    incProgress(1/4)
     
    #Creamos la semilla y el modelo jerarquico
     set.seed(456)
     hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
-
+    incProgress(2/4)
+    
     #Visualizacion del modelo y exportamos a variable global
     dendro<<-stats::as.dendrogram(hc_model)
-
+    incProgress(3/4)
+    
      #Exportamos como variable global para que pueda ser recogido por el siguiente evento
      dendro_six_color<<-color_branches(dendro, k=as.numeric(input$clusterj_nclusters))
- 
+     incProgress(4/4)
+     
       output$clusterj_plot1 <- renderPlot({
         plot(dendro_six_color,leaflab="none", horiz=TRUE,
              main="Dendrograma de los atributos seleccionados", xlab="Altura")
@@ -2900,23 +2951,47 @@ api<-function(){
       outputOptions(output, "salidaOKClustersJe", suspendWhenHidden = FALSE)
       
     }
+      
+    })#With progress
     
   })
   
   observeEvent(input$clusterj_AddValorCorte,{
     valor<-input$clusterj_corte
 
+    
      output$clusterj_plot1 <- renderPlot({
-      plot(dendro_six_color,leaflab="none", horiz=TRUE,
+       
+       #Barra de progreso mostrada
+       withProgress(message = 'Generando corte...',detail = 'Puede tardar un poco...', value = 0, {
+         incProgress(1/3)
+         
+          plot(dendro_six_color,leaflab="none", horiz=TRUE,
             main="Dendrograma de los atributos seleccionados", xlab="Altura")
           abline(v=valor, lty="dashed", col="blue")
+          incProgress(2/3)
+          incProgress(3/3)
+       })
+       
      })
 
     output$clusterj_print <- renderPrint({
       str(cut(dendro,h=valor)$upper)
     })
-  
+    
+    #Guardamos una salida out 
+    output$salidaOKClustersJeCorte <- reactive({valorDevuelto<-"TRUE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKClustersJeCorte", suspendWhenHidden = FALSE)
+    
     output$clusterj_plotFinal <- renderPlot({
+      
+      #Barra de progreso mostrada
+      withProgress(message = 'Generando modelo...',detail = 'Puede tardar un poco...', value = 0, {
+        incProgress(1/4)
+        
+        
       #Incluimos la gráfica de análisis para jerarquía
       #Preparando los resultados
       df<-fileClusterNorm
@@ -2928,19 +3003,19 @@ api<-function(){
       #Creamos la semilla y el modelo jerarquico
       set.seed(456)
       hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
-      
+     
       #Visualizacion del modelo y exportamos a variable global
       
       dendrog<<-as.dendrogram(hc_model)
       
       modelo <- kmeans(df[, 3:4], as.numeric(input$clusterj_nclusters)) 
-      
+      incProgress(2/4)
       
       #Continuamos mostrando las graficas comparadas
       df$clusModelo <- modelo$cluster 
       dend_modelo <- dendextend::cutree(dendrog, k = as.numeric(input$clusterj_nclusters)) 
       df$dendModelo <- dend_modelo 
-      
+      incProgress(2/4)
       
       if(!require("dplyr")) install.packages("dplyr") 
       suppressMessages(suppressWarnings(library(dplyr))) 
@@ -2957,6 +3032,7 @@ api<-function(){
       labels <- as.data.frame(df %>%  
                                 group_by(dendModelo) %>%  
                                 summarise(avg_age = median(var1), avg_inc = median(var2))) 
+      incProgress(3/4)
       
       #Dibujamos la gráfica teniendo en cuenta que hemocs cambiado el nombre de las 2 primeras columnas
       plot(df$var1, df$var2, col = df$dendModelo, 
@@ -2966,7 +3042,13 @@ api<-function(){
       points(labels[ ,2], labels[ ,3], pch = 21, col = 'maroon', bg = 'white', cex = 3) 
       #Texto de los centros
       text(labels[, 2], labels[, 3], cex = 1.1, col = 'black', labels[, 1]) 
+      incProgress(4/4)
+      
+      })#withProgress
+      
     })
+    
+    
     
     output$clusterj_print1 <- renderPrint({
       dfmodelado %>% group_by(dendModelo) %>% summarise(ClusterSize = n()) 
@@ -2978,6 +3060,9 @@ api<-function(){
                   max_age = max(var1), med_inc = median(var2), 
                   min_inc = min(var2), max_inc = max(var2)) 
     })
+    
+    
+
       
   })
   
@@ -3009,6 +3094,11 @@ api<-function(){
     at1<-input$clustereva_at1
     at2<-input$clustereva_at2
     
+    
+    #Barra de progreso mostrada
+    withProgress(message = 'Generando modelos...',detail = 'Puede tardar un poco...', value = 0, {
+    incProgress(1/4)
+    
     #Comprobamos que todos los atributos de entrada son numéricos
     if (is.numeric(df[,input$clustereva_at1]) &&  is.numeric(df[,input$clustereva_at2])){
       
@@ -3019,6 +3109,7 @@ api<-function(){
       #Nomalizamos las escalas añadiendo dos nuevas columnas al dataset
       df[,paste(at1,"scale1",sep="_")]<-as.numeric(scale(df[,at1]))
       df[,paste(at2,"scale2",sep="_")]<-as.numeric(scale(df[,at2]))
+      incProgress(2/4)
       
       set.seed(456) 
       dos <- kmeans(df[, 3:4], 2) 
@@ -3030,7 +3121,7 @@ api<-function(){
       ocho <- kmeans(df[, 3:4], 8) 
       nueve <- kmeans(df[, 3:4], 9) 
       diez <- kmeans(df[, 3:4], 10) 
-     
+      incProgress(3/4)
       
     # Evaluamos los modelos 
       optimizado <- data.frame(clusters = c(2:10), wss = rep(0, 9)) 
@@ -3043,6 +3134,7 @@ api<-function(){
       optimizado[7, 2] <- as.numeric(ocho$tot.withinss) 
       optimizado[8, 2] <- as.numeric(nueve$tot.withinss) 
       optimizado[9, 2] <- as.numeric(diez$tot.withinss) 
+      incProgress(4/4)
       
       output$clusterelbow_plot1 <- renderPlot({
         
@@ -3075,6 +3167,8 @@ api<-function(){
       outputOptions(output, "salidaOKClustersEva", suspendWhenHidden = FALSE)
       
     }
+      
+    })#withProgress
   })
   
   observeEvent(input$clustereva_CompaAction,{
@@ -3084,6 +3178,10 @@ api<-function(){
     at1<-input$clustereva_at1
     at2<-input$clustereva_at2
     
+    #Barra de progreso mostrada
+    withProgress(message = 'Generando modelos...',detail = 'Puede tardar un poco...', value = 0, {
+      incProgress(1/4)
+      
     #Generamos un nuevo fichero a partir de las dos columnas
     df<-df[,c(at1,at2)]
     
@@ -3094,6 +3192,7 @@ api<-function(){
     #Creamos la semilla y el modelo jerarquico
     set.seed(456)
     hc_model<-hclust(dist(df[,3:4]),method="ward.D2")
+    incProgress(2/4)
     
     #Visualizacion del modelo y exportamos a variable global
     dendro<<-as.dendrogram(hc_model)
@@ -3105,39 +3204,40 @@ api<-function(){
     df$clus5 <- cinco$cluster 
     dend_five <- dendextend::cutree(dendro, k = as.numeric(input$cluster_eval1)) 
     df$dend5 <- dend_five 
-    
+    incProgress(3/4)
     
     df$clus6 <- seis$cluster 
     dend_six <- dendextend::cutree(dendro, k = as.numeric(input$cluster_eval2)) 
-    df$dend6 <- dend_six 
+    df$dend6 <- dend_six
+    incProgress(4/4)
     
     # Choosing a Model 
     output$clustereva_plot1 <- renderPlot({
-      #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
+       
       plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = cinco$cluster, 
         pch = cinco$cluster, xlab = isolate(input$clustereva_at1), ylab=isolate(input$clustereva_at2), main = '5-means Clustering') 
     })
     
     output$clustereva_plot3 <- renderPlot({
-      #par(mfrow = c(2, 2), mar = c(3, 4, 4, 2) + 0.1) 
+      
       plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = seis$cluster, xlab = isolate(input$clustereva_at1), 
         ylab = isolate(input$clustereva_at2), pch = seis$cluster, main = '6-means Clustering') 
     
     })
     
     output$clustereva_plot2 <- renderPlot({
-      #par(mar = c(5, 4, 2, 2) + 0.1) 
+      
       plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = df$dend5, 
              pch = df$dend5, xlab=isolate(input$clustereva_at1), ylab=isolate(input$clustereva_at2), main = 'k = 5 Jerárquico') 
     })
     
     output$clustereva_plot4 <- renderPlot({
-      #par(mar = c(5, 4, 2, 2) + 0.1) 
+    
       plot(df[,input$clustereva_at1], df[,input$clustereva_at2], col = df$dend6, xlab=isolate(input$clustereva_at1), ylab = isolate(input$clustereva_at2),  
             pch = df$dend6, main = 'k = 6 Jerárquico') 
     })
   
-    
+    })#withProgress
   })
   
  
@@ -3252,12 +3352,17 @@ api<-function(){
   #Comprobamos que el atributo valoraciones es numérico
   if (is.numeric(df[,input$modelEval_at3])){
     
-  
+    #Barra de progreso mostrada
+    withProgress(message = 'Evaluando modelos...',detail = 'Puede tardar un poco...', value = 0, {
+      incProgress(1/4)
+      
     #Se genera la matriz a partir del dataframe
     matriz<-acast(df, df[,input$modelEval_at1]~df[,input$modelEval_at2], value.var=input$modelEval_at3)
     
+    
     #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
     r <- as(matriz,"realRatingMatrix")
+    incProgress(2/4)
     
   #Creamos una lista con los algoritmos a evaluar para la matriz real.
   models_to_evaluate <- list(  
@@ -3268,23 +3373,35 @@ api<-function(){
     UBCF_jac = list(name = "UBCF", param = list(method= "jaccard", nn=25)),
     UBCF_cos = list(name = "UBCF", param = list(method = "cosine", nn=25))
   )
+ 
   
   #Número de Items que vamos a usar para evaluar el esquema, lo ideal es que sea menor que el mínimo dispuesto por un usuario
   minItems<-min(rowCounts(r)) 
   items_dados= minItems-1
   
   eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = items_dados, goodRating=3)
+
   
   n_recommendations <- c(1, 3, 5, 10)
   
   #Generamos los resultados de la evaluación sobre el modelo
   list_results <- evaluate(x = eval_sets, method = models_to_evaluate, 
                            n = n_recommendations)
+  incProgress(3/4)
+  incProgress(4/4)
   
+  salidaDeLaFuncion<-list_results
+  
+    })#Withprogess
+    
   }else{
     return(NULL)
   }
+  
+    
   }
+  
+  
   
   #Observamos el botón de acción para evaluar los modelos de filtrado colaborativo
   observeEvent(input$modelEval_Action,{
@@ -3405,6 +3522,7 @@ api<-function(){
           output$modelEval_msj<-renderText({
            print("Error: el atributo <Valoraciones> no es de tipo numérico.")
           })
+          
           output$modelEval_plot1<-renderPlot({})
           output$modelEval_plot2<-renderPlot({})
           
