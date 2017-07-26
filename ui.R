@@ -815,7 +815,30 @@ dashboardPage(
                       box(width = 12,
                          splitLayout(cellWidths = c("50%", "50%"), 
                                      withSpinner(plotOutput("datosRecomendaciones_plot1")),
-                                     withSpinner(plotOutput("datosRecomendaciones_plot2"))))
+                                     withSpinner(plotOutput("datosRecomendaciones_plot2"))),
+                         br(),
+                         verbatimTextOutput("dispersionMatriz_msj"),
+                         verbatimTextOutput("dispersionMatriz_msj2"))
+            ),
+            conditionalPanel(condition ="output.salidaOKDispersion=='TRUE'",
+                             br(),
+                             box(tags$p("REDUCCIÓN DE LA DISPERSIÓN", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
+                                 conditionalPanel(condition="output.salidaOKSlidersDisp=='TRUE' ",
+                                 div(style="display: inline-block;vertical-align:top; width: 400px;",uiOutput("RedDisperMatrix")),
+                                 div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                 div(style="display: inline-block;vertical-align:top; width: 400px;",uiOutput("RedDisperMatrix2"))),
+                                 br(),
+                                 tags$style(type='text/css', "#RedDisp_Action { width:100%; margin-top: 25px;}"),
+                                 div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("RedDisp_Action", "Reducir Dispersión",style=blueStyle)),
+                                 div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                 tags$style(type='text/css', "#RedDisp_Guardar { width:100%; margin-top: 25px;}"),
+                                 div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("RedDisp_Guardar", "Guardar Cambios",style=blueStyle)),
+                                 div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
+                                 tags$style(type='text/css', "#RedDisp_Reset { width:100%; margin-top: 25px;}"),
+                                 div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("RedDisp_Reset", "Reset",style=blueStyle)),
+                                 br(),
+                                 br(),
+                                 verbatimTextOutput("dispersionReduccionHecha_msj"))
             ))
     ),        
     #Filtrado Colaborativo - evaluación de modelo

@@ -372,6 +372,7 @@ api<-function(){
     output$geo_msj <- renderPrint({invisible()})
     output$ruta_msj <- renderPrint({invisible()})
     output$datosRecomendaciones_msj <- renderPrint({invisible()})
+    output$dispersionReduccionHecha_msj <- renderPrint({invisible()})
     output$modelEval_msj <- renderPrint({invisible()})
     output$colaborativo_msj <- renderPrint({invisible()})
     output$mongo_msj_action <- renderPrint({invisible()})
@@ -408,6 +409,13 @@ api<-function(){
    output$salidaOKrecomendarAction <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKARIMA <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKTBATS <- reactive({valorDevuelto<-"FALSE"})
+   
+ }
+ 
+ #Reset de todas las variables generadas globalmente
+ Function_ResetVariablesGlobales<-function(){
+   
+   rm(  )
    
  }
     
@@ -3243,35 +3251,105 @@ api<-function(){
  
   
   #-------FILTRADO COLABORATIVO----------
+  #Iniciamos variables de control
+  SeHaAfinado<<-FALSE
   
-  #------Consulta de datos------------
-  output$datosRecomendaciones_at1 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("datosRecomendaciones_at1", "Usuarios:",items)
+  #------Consulta de datos de la matriz principal------------
+  
+  #Geenramos el slidebar de reducción de la dispersión de la matriz dinámicamente
+  observe({
     
-  })
-  
-  output$datosRecomendaciones_at2 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("datosRecomendaciones_at2", "Items:",items)
+    #Lo que se observa
+    cambio1<-input$RedDisp_Guardar
+    cambio2<-input$RedDisp_Reset
     
-  })
-  
-  output$datosRecomendaciones_at3 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("datosRecomendaciones_at3", "Valoraciones:",items)
     
-  })
+    #El fichero que cogemos para renderizar los combos
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
+    if (is.null(df)) return(NULL)
+    
+    
+    output$datosRecomendaciones_at1 <- renderUI({
+   
+      items=names(df)
+      selectInput("datosRecomendaciones_at1", "Usuarios:",items)
+      
+    })
+    
+    output$datosRecomendaciones_at2 <- renderUI({
   
+      items=names(df)
+      selectInput("datosRecomendaciones_at2", "Items:",items)
+      
+    })
+    
+    output$datosRecomendaciones_at3 <- renderUI({
+  
+      items=names(df)
+      selectInput("datosRecomendaciones_at3", "Valoraciones:",items)
+      
+    })
+  
+  }) 
+  
+  #Estos combos además deven renderizarse dinámicamente cada vez que se carga la matriz inicial
+  observe({
+    
+    #Escucha dinámica
+    espera<-input$datosRecomendaciones_Action
+    
+        #Slider dinámico en función de la dispersión de la matriz de valores
+        output$RedDisperMatrix <- renderUI({
+          
+          sliderInput("RedDisperMatrix", "Nº mínimo de valoraciones por Item:", 
+                      min = 1, max = valorDispMax, value = 1, step= 1)
+          
+        })
+        
+        #Slider dinámico en función de la dispersión de la matriz de valores
+        output$RedDisperMatrix2 <- renderUI({
+          
+          sliderInput("RedDisperMatrix2", "Nº mínimo de valoraciones por Usuario:", 
+                      min = 1, max = valorDispMaxRows, value = 1, step= 1)
+          
+        })
+    })
+
+  #Función que es llamada cada vez que hay que ocultar los paneles de filtrado colaboratico (Evalaluación y Recomendaciones)
+  Funcion_OcultaPanelesEvaluacRecomen<-function(){
+    
+    #Ocultamos los paneles en de Evaluaciones y Recomendaciones
+    
+    #Guardamos una salida out para los paneles de la evaluación de modelos
+    output$salidaOKEvalRecomen <- reactive({valorDevuelto<-"FALSE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKEvalRecomen", suspendWhenHidden = FALSE)
+    
+    #Guardamos una salida out para los paneles las recomendaciones
+    output$salidaOKrecomendarAction <- reactive({valorDevuelto<-"FALSE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKrecomendarAction", suspendWhenHidden = FALSE)
+    
+    #Reiniciamos mensajes de Evaluaciones y Recomendaciones
+    output$modelEval_msj <- renderPrint({invisible()})
+    output$colaborativo_msj <- renderPrint({invisible()})
+  }
+  
+  #Mostramos los resultados de la dispersión de la matriz
   observeEvent(input$datosRecomendaciones_Action,{
     
-    df<-filedata()
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
+    
     if (is.null(df)) return(NULL)
     
     if (is.numeric(df[,input$datosRecomendaciones_at3])) {
@@ -3280,25 +3358,59 @@ api<-function(){
       matriz<-acast(df, df[,input$datosRecomendaciones_at1]~df[,input$datosRecomendaciones_at2], value.var=input$datosRecomendaciones_at3)
       
       #Convertimos la matriz y hacemos de r una variable global para qe pueda ser usada por el resto de funciones
-      r <- as(matriz,"realRatingMatrix")
+      #La devolvemos globalmente para ejecutar reducciones de dispersión
+      r <<- as(matriz,"realRatingMatrix")
       
       output$datosRecomendaciones_msj<-renderText({
         print("Dispersión de la matriz de datos para realizar recomendaciones.")
       })
       
+      output$dispersionMatriz_msj<-renderText({
+        print(paste("Los items tienen como mínimo: ",min(colCounts(r))," valoraciones, y como máximo: ",max(colCounts(r))," valoraciones.",sep=""))
+      })
+      
+      output$dispersionMatriz_msj2<-renderText({
+        print(paste("Los usuarios tienen como mínimo: ",min(rowCounts(r))," valoraciones, y como máximo: ",max(rowCounts(r))," valoraciones.",sep=""))
+      })
+      
+      #Reiniciamos el dialogo de dispersión inferior
+      output$dispersionReduccionHecha_msj<-renderPrint({invisible()})
+
+      
+    #Devolvemos los valores de dispersión para generar el slider de reducción dinámicamente  
+    valorDispMin<<-min(colCounts(r))
+    valorDispMax<<-max(colCounts(r))
+    
+    valorDispMinRows<<-min(rowCounts(r))
+    valorDispMaxRows<<-max(rowCounts(r))
+    
+      
       output$datosRecomendaciones_plot1<-renderPlot({
        image(r, main="Matriz de calificaciones")
       })
       
-      output$datosRecomendaciones_plot2<-renderPlot({
-        image(r[1:20,1:50], main="Dispersión de la matriz")
-      })
+      #Hacemos zoom en la matriz
+      if(nrow(r)>20 && ncol(r)>50){
+        output$datosRecomendaciones_plot2<-renderPlot({
+          image(r[1:20,1:50], main="Dispersión de la matriz")
+        })
+      }else{
+        #No hace falta el detalle
+        output$datosRecomendaciones_plot2<-renderPlot({})
+      }
+      
       
       #Guardamos una salida out 
       output$salidaOKDispersion <- reactive({valorDevuelto<-"TRUE"})
       
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKDispersion", suspendWhenHidden = FALSE)
+      
+      #Guardamos una salida out 
+      output$salidaOKSlidersDisp <- reactive({valorDevuelto<-"TRUE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKSlidersDisp", suspendWhenHidden = FALSE)
       
     }else{
       output$datosRecomendaciones_msj<-renderText({
@@ -3313,38 +3425,232 @@ api<-function(){
       
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKDispersion", suspendWhenHidden = FALSE)
+      
+      #Guardamos una salida out 
+      output$salidaOKSlidersDisp <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKSlidersDisp", suspendWhenHidden = FALSE)
+    }
+    
+    
+    #Ocultamos paneles
+    Funcion_OcultaPanelesEvaluacRecomen()
+    
+    
+  })
+  
+  
+  
+  #Visualizamos los resultados de la reducción de la dispersión por nº de evaluacines de los Items
+  observeEvent(input$RedDisp_Action,{
+    
+    out<-tryCatch({
+      
+    if(SeHaAfinado==FALSE){
+      
+    matriz_afi<-r
+    
+      
+      while (min(rowCounts(matriz_afi))< input$RedDisperMatrix2 || min(colCounts(matriz_afi)) < input$RedDisperMatrix) {
+        matriz_afi <- matriz_afi[rowCounts(matriz_afi)>input$RedDisperMatrix2,colCounts(matriz_afi)>input$RedDisperMatrix]
+      }
+       
+    
+    
+    output$datosRecomendaciones_plot1<-renderPlot({
+      image(matriz_afi, main="Matriz de calificaciones afinada")
+    })
+    
+    #Dibujamos el zoom de la matriz
+    if(nrow(matriz_afi)>20 && ncol(matriz_afi)>50){
+        output$datosRecomendaciones_plot2<-renderPlot({
+          image(matriz_afi[1:20,1:50], main="Dispersión de la matriz afinada")
+        })
+    }else{
+        #No dibujamos nada porque habría suficiente información con una gráfica
+        output$datosRecomendaciones_plot2<-renderPlot({})
+    }
+    
+    output$dispersionMatriz_msj<-renderText({
+      print(paste("Los items de la matriz afinada tienen como mínimo: ",min(colCounts(matriz_afi))," valoraciones, y como máximo: ",max(colCounts(matriz_afi))," valoraciones.",sep=""))
+    })
+    
+    output$dispersionMatriz_msj2<-renderText({
+      print(paste("Los usuarios de la matriz afinada tienen como mínimo: ",min(rowCounts(matriz_afi))," valoraciones, y como máximo: ",max(rowCounts(matriz_afi))," valoraciones.",sep=""))
+    })
+    
+    output$dispersionReduccionHecha_msj<-renderText({
+      print("Se ha reducido la dispersión de la matriz y actualizado los valores de los paneles superiores.")
+    })
+    
+    #Devolvemos la matriz afinada recompuesta como un dataframe para que pueda ser usado en la generación de modelos y emisión de recomendaciones
+    df_Reco_afinado<<-as(matriz_afi,"data.frame")
+    
+    #Devolvemos globalmente la matriz afinada
+    matriz_afinada<<-matriz_afi
+    
+    }else{
+      
+      output$dispersionReduccionHecha_msj<-renderText({
+        print("Error: la matriz ya se encuentra afinada. <Reset> para volver a la situación inicial.")
+      })
+    }
+    
+    }, #Fin del TryCatch
+    warning=function(w){
+      output$dispersionReduccionHecha_msj<-renderText({
+        print("Warning: la matriz no cumple los criterios para poder realizar la operación. Se pierde mucha información.")
+      })
+      return(NULL)
+    },
+    error=function(e){
+      output$dispersionReduccionHecha_msj<-renderText({
+        print("Error: la matriz no cumple los criterios para poder realizar la operación. Se pierde mucha información.")
+      })
+      return(NULL)
+    }
+    
+    )#Fin TryCatch
+    
+    
+  })
+  
+  observeEvent(input$RedDisp_Guardar,{
+    
+    if(SeHaAfinado==FALSE){
+      
+    #Con la bandera, ya se puede recoger matriz_afinada del paso anterior
+    SeHaAfinado<<-TRUE
+    
+    #Devolvemos los valores de dispersión de la nueva matriz
+    valorDispMin<<-min(colCounts(matriz_afinada))
+    valorDispMax<<-max(colCounts(matriz_afinada))
+    
+    output$dispersionReduccionHecha_msj<-renderText({
+      print("Se guarda la nueva configuración matricial de cara la generación de modelos y recomendaciones.")
+    })
+    
+    output$datosRecomendaciones_msj<-renderText({
+      print("Dispersión de la matriz AFINADA de datos para realizar recomendaciones. <Reset> para volver a la situación inicial.")
+    })
+    
+    #Guardamos una salida out 
+    output$salidaOKSlidersDisp <- reactive({valorDevuelto<-"FALSE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKSlidersDisp", suspendWhenHidden = FALSE)
+    
+    #Ocultamos paneles
+    Funcion_OcultaPanelesEvaluacRecomen()
+    
+    }else{
+      
+      output$dispersionReduccionHecha_msj<-renderText({
+        print("Error: la matriz ya se encuentra afinada. <Reset> para volver a la situación inicial.")
+      })
+      
     }
     
   })
   
+  observeEvent(input$RedDisp_Reset,{
+    
+    SeHaAfinado<<-FALSE
+    
+    output$dispersionReduccionHecha_msj<-renderText({
+      print("Se vuelto a la situación matricial inicial.")
+    })
+    
+    output$datosRecomendaciones_msj<-renderText({
+      print("Dispersión de la matriz de datos para realizar recomendaciones.")
+    })
+    
+    output$dispersionMatriz_msj<-renderText({
+      print(paste("Los items tienen como mínimo: ",min(colCounts(r))," valoraciones, y como máximo: ",max(colCounts(r))," valoraciones.",sep=""))
+    })
+    
+    output$dispersionMatriz_msj2<-renderText({
+      print(paste("Los usuarios tienen como mínimo: ",min(rowCounts(r))," valoraciones, y como máximo: ",max(rowCounts(r))," valoraciones.",sep=""))
+    })
+    
+    #Devolvemos los valores de dispersión para generar el slider de reducción dinámicamente  
+    valorDispMin<<-min(colCounts(r))
+    valorDispMax<<-max(colCounts(r))
+    
+    
+    output$datosRecomendaciones_plot1<-renderPlot({
+      image(r, main="Matriz de calificaciones")
+    })
+    
+    #Hacemos zoom en la matriz
+    if(nrow(r)>20 && ncol(r)>50){
+      output$datosRecomendaciones_plot2<-renderPlot({
+        image(r[1:20,1:50], main="Dispersión de la matriz")
+      })
+    }else{
+      #No hace falta el detalle
+      output$datosRecomendaciones_plot2<-renderPlot({})
+    }
+    
+    
+    #Guardamos una salida out 
+    output$salidaOKDispersion <- reactive({valorDevuelto<-"TRUE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKDispersion", suspendWhenHidden = FALSE)
+    
+    #Guardamos una salida out 
+    output$salidaOKSlidersDisp <- reactive({valorDevuelto<-"TRUE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKSlidersDisp", suspendWhenHidden = FALSE)
+    
+    #Ocultamos paneles
+    Funcion_OcultaPanelesEvaluacRecomen()
+  })
+  
+  
+  
   #-----Evaluación de modelos-------------
 
-  output$modelEval_at1 <- renderUI({
-    df<-filedata()
+  observe({
+    
+    #Lo que se observa
+    cambio1<-input$RedDisp_Guardar
+    cambio2<-input$RedDisp_Reset
+    
+    #El fichero que cogemos para renderizar los combos
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
     if (is.null(df)) return(NULL)
+    
+  output$modelEval_at1 <- renderUI({
+
     items=names(df)
     selectInput("modelEval_at1", "Usuarios:",items)
     
   })
   
   output$modelEval_at2 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
+
     items=names(df)
     selectInput("modelEval_at2", "Items:",items)
     
   })
   
   output$modelEval_at3 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
+
     items=names(df)
     selectInput("modelEval_at3", "Valoraciones:",items)
     
   })
   
   
-  
+  })
   
   #Generamos la función de evalaución de los modelos
   Funcion_evaluacionModelosFiltrado<-function(df){
@@ -3376,8 +3682,12 @@ api<-function(){
  
   
   #Número de Items que vamos a usar para evaluar el esquema, lo ideal es que sea menor que el mínimo dispuesto por un usuario
-  minItems<-min(rowCounts(r)) 
-  items_dados= minItems-1
+  if(min(rowCounts(r))>2){
+     minItems<-min(rowCounts(r)) 
+    items_dados<- minItems-1
+  }else{
+    items_dados<-1
+  }
   
   eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = items_dados, goodRating=3)
 
@@ -3406,9 +3716,13 @@ api<-function(){
   #Observamos el botón de acción para evaluar los modelos de filtrado colaborativo
   observeEvent(input$modelEval_Action,{
     
-    df<-filedata()
+    #Recogemos el dataframe en función de si la matriz ha sido afinada o no
+    if(SeHaAfinado==TRUE){
+      df<-df_Reco_afinado
+    }else{
+      df<-filedata()
+    }
     if (is.null(df)) return(NULL)
-    
     
     out<-tryCatch(
       
@@ -3563,34 +3877,61 @@ api<-function(){
   
   
   #--------Recomendaciones
-  output$colaborativo_at1 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("colaborativo_at1", "Usuarios:",items)
-    
-  })
   
-  output$colaborativo_at2 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("colaborativo_at2", "Items:",items)
+  observe({
     
-  })
-  
-  output$colaborativo_at3 <- renderUI({
-    df<-filedata()
-    if (is.null(df)) return(NULL)
-    items=names(df)
-    selectInput("colaborativo_at3", "Valoraciones:",items)
+    #Lo que se observa
+    cambio1<-input$RedDisp_Guardar
+    cambio2<-input$RedDisp_Reset
     
-  })
-  
-  observeEvent(input$colaborativo_at1,{
-    output$colaborativo_at4 <- renderUI({
+    
+    #El fichero que cogemos para renderizar los combos
+    if(SeHaAfinado==FALSE){
       df<-filedata()
-      if (is.null(df)) return(NULL)
+    }else{
+      df<-df_Reco_afinado
+    }
+    if (is.null(df)) return(NULL)
+      
+    output$colaborativo_at1 <- renderUI({
+  
+      items=names(df)
+      selectInput("colaborativo_at1", "Usuarios:",items)
+      
+    })
+    
+    output$colaborativo_at2 <- renderUI({
+  
+      items=names(df)
+      selectInput("colaborativo_at2", "Items:",items)
+      
+    })
+    
+    output$colaborativo_at3 <- renderUI({
+  
+      items=names(df)
+      selectInput("colaborativo_at3", "Valoraciones:",items)
+      
+    })
+
+  })
+  
+  #Combo donde se renderizan los usuarios a escoger
+  observe({
+    
+    #Variable que se observa (usuario)
+    cambio<-input$colaborativo_at1
+  
+    #El fichero que cogemos para renderizar los combos
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
+    if (is.null(df)) return(NULL)
+    
+    output$colaborativo_at4 <- renderUI({
+ 
       items=df[,input$colaborativo_at1]
       selectInput("colaborativo_at4", "Usuario a recomendar:",items)
       
@@ -3642,7 +3983,12 @@ api<-function(){
   #Observamos el evento de acción y mostramos los resultados
   observeEvent(input$colaborativo_Recomen, {
     
-    df<-filedata()
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
+
     if (is.null(df)) return(NULL)
     
     #Nos asegurados que se ha indicado un usuario a recomendar
@@ -3686,7 +4032,7 @@ api<-function(){
       #Renombramos las columnas de la tabla
       colnames(salida)<-c("Items Recomendados","Valoraciones Predichas")
       
-      output$colaborativo_msj = renderText({print(paste("Se muestran los resultados para ",input$colaborativo_slider," recomendaciones",sep=""))})
+      output$colaborativo_msj = renderText({print(paste("Se muestran ",isolate(input$colaborativo_slider)," recomendaciones para el usuario ",isolate(input$colaborativo_at4),".",sep=""))})
       
       output$colaborativo_table = renderTable({salida})
       
