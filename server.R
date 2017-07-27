@@ -1380,7 +1380,7 @@ api<-function(){
       if(class(df[,input$atributoUnaVariableGrafica])!="character"){
       switch(input$tipoExploracionGrafica1, 
              histograma={
-               if (class(df[,input$atributoUnaVariableGrafica])=="numeric" || class(df[,input$atributoUnaVariableGrafica])=="integer" ){
+               if (is.numeric(df[,input$atributoUnaVariableGrafica])){
 
                    hist(df[,input$atributoUnaVariableGrafica],main = "Histograma", xlab=input$atributoUnaVariableGrafica)
                  
@@ -1514,7 +1514,7 @@ api<-function(){
       if(class(df[,input$atributoUnaVariableGrafica2])!="character"){
         switch(input$tipoExploracionGrafica2, 
                histograma={
-                 if (class(df[,input$atributoUnaVariableGrafica2])=="numeric" || class(df[,input$atributoUnaVariableGrafica2])=="integer"){
+                 if (is.numeric(df[,input$atributoUnaVariableGrafica2])){
                    
                    hist(df[,input$atributoUnaVariableGrafica2],main = "Histograma", xlab=input$atributoUnaVariableGrafica2)
                    
@@ -1676,7 +1676,7 @@ api<-function(){
     
   #Para limpiar el cuadro de texto generado por la ejecución de 'dosvar_Action_relaTab' 
   observeEvent(input$dosvar_Action_resetTab, {
-    output$dosvar_Print_relaTab <- renderPrint({})
+    output$dosvar_Print_relaTab <- renderPrint({invisible()})
   })
   
  
@@ -1766,7 +1766,7 @@ api<-function(){
         
         mosaicplot(table(df[,at1],df[,at2]), col=c("gray","black"), main="Factor / Factor", xlab=at1,ylab=at2)
         
-      }else if((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")) {
+      }else if(is.numeric(df[,at1]) && is.numeric(df[,at2])) {
         
         output$mensajes_dosvar_exploracionGrafica <- renderText({
           print("Gráfica Numeral / Numeral.")
@@ -1782,7 +1782,7 @@ api<-function(){
         
         boxplot(df[,at1] ~  df[,at2], main="Numeral / Factor",xlab=at2,ylab=at1)
         
-      }else if ((class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
+      }else if ((class(df[,at1][[1]])=="factor" || class(df[,at1][[1]])=="ordered") && is.numeric(df[,at2])){
          
          output$mensajes_dosvar_exploracionGrafica <- renderText({
             print("Error: El atributo tipo factor debe asignarse a la variable Atributo 2, para poder mostrar el diagrama de caja.")
@@ -1884,7 +1884,7 @@ api<-function(){
         df<-fileout_fact_dosVar
       }
       
-      if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
+      if (is.numeric(df[,at1]) && is.numeric(df[,at2])){
         #Mostramos el resultado del test de correlación
         output$dosvar_Print_correlacion <- renderPrint({
           #Devolvemos la correlación como variable global
@@ -1906,6 +1906,10 @@ api<-function(){
         output$dosvar_msj_correlacion <- renderText({
           print("Error: Alguno de los atributos no es numérico, no se puede ejecutar el test de correlación.")
         })
+        
+        #Reiniciamos resto de gráficas
+        output$dosvar_Print_correlacion <- renderPrint({invisible()})
+        output$graf_correla_dosVariables <- renderPlot({})
         
       }
   })
@@ -2067,7 +2071,7 @@ api<-function(){
       Y<-df[,at2]
       
       
-      if ((class(df[,at1])=="numeric" || class(df[,at1])=="integer") && (class(df[,at2])=="numeric" || class(df[,at2])=="integer")){
+      if (is.numeric(df[,at1]) && is.numeric(df[,at2])){
           
         #Exportamos el modelo SLR como variable global
          modelo<<-lm( Y ~ X, data=df )
@@ -2234,15 +2238,14 @@ api<-function(){
       
       #Creamos la fórmula sólo en el caso de que los valores de entrada sean correctos
       if(outTry1!="True"){
-        #at2<-input$reglinealmulti_at2
-        #Y<-df[,at2]
+  
         Y<-input$reglinealmulti_at2
         
         #Artefacto para construir la fórmula
         xnom<-c("")
         
         for (i in 1:length(arrayList)){
-          if ((class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric") || class(df[,input$reglinealmulti_at2])=="factor"){
+          if (!is.numeric(df[,arrayList[i]]) || class(df[,input$reglinealmulti_at2])=="factor"){
             valorCaracter<-"True"
           }
           assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
@@ -2352,7 +2355,7 @@ api<-function(){
         }else{
       
       #Mostramos el mensaje
-      output$reglienalmulti_msj <- renderText({ print("Error: alguno de los atributos (X o Y) no es numérico, o no existe en el dataset.") })
+      output$reglienalmulti_msj <- renderText({ print("Error: alguno de los atributos (X o Y) no es numérico, o no existe en el dataset. Revisar sintaxis de entrada (seprarador=;).") })
       
       #Guardamos una salida out 
       output$salidaOkMostrarVentanasMLR <- reactive({valorDevueltoMLR<-"FALSE"})
@@ -4120,7 +4123,7 @@ api<-function(){
   
   Funcion_emiteRecomendaciones<-function(df){
     
-    if (class(df[,input$colaborativo_at3])=="numeric" || class(df[,input$colaborativo_at3])=="integer"){
+    if (is.numeric(df[,input$colaborativo_at3])){
       
     #Se genera la matriz a partir del dataframe
     matriz<-acast(df, df[,input$colaborativo_at1]~df[,input$colaborativo_at2], value.var=input$colaborativo_at3)
