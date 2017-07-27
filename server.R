@@ -135,10 +135,11 @@ api<-function(){
   observe({
     
     #Leemos el tipo de importación
-    tipo<-input$tipoImport
+    #tipo<-input$tipoImport
+    tipo<-input$datafile
     
-    #Si es de tipo csv
-    if(input$tipoImport=="csv"){
+    #Si es de tipo csv , isolate para que no salte cada vez que se cambia el valor del checkbox
+    if(isolate(input$tipoImport)=="csv"){
       
       infile <- input$datafile 
       
@@ -289,7 +290,7 @@ api<-function(){
       if(fileAPI==TRUE){
       if (is.null(df)) return(NULL)
       items=rownames(df)
-      selectInput("Nodo", "Nodo:",choices=c("",items))
+      selectInput("Nodo", "Nodo:",choices=items)
       }
   })
   
@@ -442,7 +443,7 @@ api<-function(){
     cargaAPI<-input$API_Action
     cargaCSV<-input$datafile
     obtenerNodoAPI<-input$API_nodeAction
-    tipoImport<-input$tipoImport
+    #tipoImport<-input$tipoImport
     
     #Llamamos a la función que borra los plots, prints,tablas y paneles, al tratarse de una nueva carga
     Funcion_BorraPlots()
@@ -496,6 +497,12 @@ api<-function(){
     if (raw.result$status_code!=404){
       
       nmax<-nrow(fileAPIcarganode)
+      
+      #Si hay un problema en la carga del nodo
+      if (is.null(nmax)){
+        output$API_msj <- renderText({print("Error: el nodo no cumple las condiciones para ser extraido. Volver a importar los datos maestros para seleccionar un nodo adecuado.")})
+        return(NULL)
+      }
       
       #Mostramos sólo los 100 primeros registros para no tener problemas de renderización en las tablas en caso de datos masivos.
       if(nmax>100 || nmax==100){
@@ -4255,6 +4262,15 @@ api<-function(){
   })
   
   #Renderizar combos
+  output$arima_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("arima_at2", "Atributo fecha:",items)
+    
+  })
+  
+  #Renderizar combos
   output$tbats_at1 <- renderUI({
     df<-filedata()
     if (is.null(df)) return(NULL)
@@ -4262,19 +4278,29 @@ api<-function(){
     selectInput("tbats_at1", "Atributo contable:",items)
     
   })
+  
+  
+  #Renderizar combos
+  output$tbats_at2 <- renderUI({
+    df<-filedata()
+    if (is.null(df)) return(NULL)
+    items=names(df)
+    selectInput("tbats_at2", "Atributo fecha:",items)
+    
+  })
 
   #Función que se ejecuta al pulsar el botón de acción
-  Funcion_arimaModelCondicion<-function(df) {
+  Funcion_arimaModelCondicion<-function(df,atributo_at2) {
     
     if (is.null(df)) return(NULL)
     
     #Comprobamos si cumplen la condición para ser as.Date
-    listado<-lapply(df[,1], function(x) !all(is.na(as.Date(as.character(x),format="%Y-%m-%d"))))
+    listado<-lapply(df[,atributo_at2], function(x) !all(is.na(as.Date(as.character(x),format="%Y-%m-%d"))))
     nFalsos<-length(grep("FALSE",listado))
     if(nFalsos==0){
       condicion<-TRUE
     }else{
-      listado2<-lapply(df[,1], function(x) !all(is.na(as.Date(as.character(x),format="%d-%m-%Y"))))
+      listado2<-lapply(df[,atributo_at2], function(x) !all(is.na(as.Date(as.character(x),format="%d-%m-%Y"))))
       nFalsos2<-length(grep("FALSE",listado2))
       if(nFalsos2==0){
         condicion<-TRUE
@@ -4285,11 +4311,11 @@ api<-function(){
   }
   
   
-  Funcion_arimaTabla<-function(condicion,df, atributo){
+  Funcion_arimaTabla<-function(condicion,df, atributo, atributo_at2){
     #Si los valores de la primera columna del dataset son aptos (condicion<-TRUE), continuamos. Si no mostramos msj de error
     if (condicion==TRUE){
       #obtenemos el primer año del dataset
-      annoComienzo<-year(df[1,1])
+      annoComienzo<-year(df[1,atributo_at2])
       
       #Renombramos el atributo de cuenta para agrupar
       indice<-grep(atributo,colnames(df))
@@ -4297,8 +4323,8 @@ api<-function(){
       
       #Agrupamos mensualmente
       usuarios_mensuales <- as.data.frame(df %>%
-                                            group_by(anno = year(df[,1]),
-                                                     mes = month(df[,1])) %>%
+                                            group_by(anno = year(df[,atributo_at2]),
+                                                     mes = month(df[,atributo_at2])) %>%
                                             summarise(usuarios = sum(Cuenta_Mensual)))
       
       #Generamos la serie temporal con la librería ts
@@ -4334,11 +4360,11 @@ api<-function(){
     }
     
     #Verificamos si el campo fecha cumple la condición para generar una serie temporal
-    condicion<-Funcion_arimaModelCondicion(df)
+    condicion<-Funcion_arimaModelCondicion(df,input$arima_at2)
     
     if (condicion=="TRUE"){
       
-      mensual<<-Funcion_arimaTabla(condicion,df,input$arima_at1)
+      mensual<<-Funcion_arimaTabla(condicion,df,input$arima_at1,input$arima_at2)
       #Print de la representación tabular de la tabla temporal generada
       output$arima_print1 <- renderPrint({
         mensual
@@ -4451,15 +4477,15 @@ api<-function(){
       }
       
       #Verificamos si el campo fecha cumple la condición para generar una serie temporal
-      condicion<-Funcion_arimaModelCondicion(df)
+      condicion<-Funcion_arimaModelCondicion(df,input$tbats_at2)
       
       if (condicion=="TRUE"){
       
       #obtenemos el primer año del dataset
-      annoComienzo<-year(df[1,1])
+      annoComienzo<-year(df[1,input$tbats_at2])
       
       #Recogemos los años que hay en el dataset
-      numAnnos<-unique(year(df[,1]))
+      numAnnos<-unique(year(df[,input$tbats_at2]))
       
       #Renombramos el atributo de cuenta para agrupar
       indice<-grep(input$tbats_at1,colnames(df))
@@ -4467,13 +4493,13 @@ api<-function(){
       
       #Agrupamos mensualmente
       usuarios_mensuales <- as.data.frame(df %>%
-                                            group_by(anno = year(df[,1]),
-                                                     mes = month(df[,1])) %>%
+                                            group_by(anno = year(df[,input$tbats_at2]),
+                                                     mes = month(df[,input$tbats_at2])) %>%
                                             summarise(usuarios = sum(Cuenta_Mensual)))
       
       usuarios <- usuarios_mensuales[, 3]
       
-        mensual<<-Funcion_arimaTabla(condicion,df,input$tbats_at1)
+        mensual<<-Funcion_arimaTabla(condicion,df,input$tbats_at1,input$tbats_at2)
         
 
         output$tbats_plot1<-renderPlot({
