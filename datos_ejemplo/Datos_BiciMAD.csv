@@ -1,0 +1,173 @@
+"id","latitude","longitude","name","light","number","address","activate","no_available","total_bases","dock_bikes","free_bases","reservations_count"
+1,"40.4168961","-3.7024255","Puerta del Sol A",2,"1a","Puerta del Sol nº 1",1,0,24,9,13,0
+2,"40.4170009","-3.7024207","Puerta del Sol B",0,"1b","Puerta del Sol nº 1",1,0,24,7,17,0
+3,"40.4205886","-3.7058415","Miguel Moya",0,"2","Calle Miguel Moya nº 1",1,0,24,5,19,0
+4,"40.4302937","-3.7069171","Plaza Conde Suchil",2,"3","Plaza del Conde Suchil nº 2-4",1,0,18,11,7,0
+5,"40.4285524","-3.7025875","Malasaña",0,"4","Calle Manuela Malasaña nº 5",1,0,24,1,22,0
+6,"40.4285280","-3.7020599","Fuencarral",2,"5","Calle Fuencarral nº 108",1,0,27,9,17,0
+7,"40.4241480","-3.6984470","Colegio Arquitectos",0,"6","Calle Hortaleza nº 63",1,0,24,4,19,0
+8,"40.4251906","-3.6977715","Hortaleza",2,"7","Calle Hortaleza nº 75",1,0,21,8,9,0
+9,"40.4278682","-3.6954403","Alonso Martínez",0,"8","Plaza de Alonso Martínez nº 5",1,0,24,5,17,0
+10,"40.4156057","-3.7095084","Plaza de San Miguel",2,"9","Plaza de San Miguel nº 9",1,0,24,9,13,0
+11,"40.4250863","-3.6918807","Marqués de la Ensenada",0,"10","Calle Marqués de la Ensenada nº 16",1,0,24,7,16,0
+12,"40.4269483","-3.7035918","San Andrés",2,"11","Calle San Andrés nº 18",1,0,24,8,15,0
+13,"40.4284246","-3.7061931","San Hermenegildo",0,"12","Calle San Bernardo nº 85",1,0,24,4,18,0
+14,"40.4273264","-3.7104417","Conde Duque",0,"13","Calle Conde Duque nº 22",1,0,24,6,18,0
+15,"40.4260957","-3.7134790","Ventura Rodríguez",2,"14","Calle Ventura Rodríguez nº 2",1,0,24,11,9,0
+16,"40.4261649","-3.7073764","San Vicente Ferrer",2,"15","Calle San Vicente Ferrer nº 64",1,0,21,7,14,0
+17,"40.4230721","-3.7075065","San Bernardo",2,"16","Calle San Bernardo nº 22",1,0,21,12,9,1
+18,"40.4232649","-3.7038312","Carlos Cambronero",2,"17","Plaza de Carlos Cambronero nº 2",1,0,24,7,15,0
+19,"40.4207773","-3.6996502","Plaza de Pedro Zerolo",2,"18","Plaza de Pedro Zerolo",1,0,24,11,11,0
+20,"40.4218616","-3.6954983","Prim",0,"19","Calle Prim nº 2",1,0,24,2,20,0
+21,"40.4192342","-3.6954615","Banco de España A",0,"20a","Calle Alcalá nº 49",1,0,24,3,20,0
+23,"40.4197872","-3.7014814","Red de San Luis A",0,"21a","Calle Montera nº 48",1,0,24,4,18,0
+24,"40.4197204","-3.7015235","Red de San Luis B",0,"21b","Calle Montera nº 47",1,0,24,1,17,0
+25,"40.4200783","-3.7065376","Jacometrezo",0,"22","Calle Jacometrezo nº 3",1,0,24,7,17,0
+26,"40.4197429","-3.7080733","Santo Domingo",2,"23","Plaza de Santo Domingo nº 1",1,0,24,11,11,0
+27,"40.4182146","-3.7103538","Palacio de Oriente",0,"24","Calle Carlos III nº 1",1,0,24,4,19,0
+28,"40.4173114","-3.7064809","Plaza de Celenque A",0,"25a","Plaza de Celenque nº 1",1,0,24,6,18,0
+29,"40.4172781","-3.7063837","Plaza de Celenque B",2,"25b","Plaza de Celenque nº 1",1,0,24,10,14,0
+30,"40.4235117","-3.6930040","Bárbara de Braganza",0,"26","Calle Bárbara de Braganza nº 8",1,0,24,6,17,0
+31,"40.4132798","-3.6956178","Huertas",2,"27","Calle Jesús nº 1",1,0,24,11,12,0
+32,"40.4181663","-3.6992600","Sevilla",0,"28","Calle Alcalá nº 27",1,0,24,0,6,0
+33,"40.4162619","-3.6957355","Marqués de Cubas",0,"29","Calle del Marqués de Cubas nº 25",1,0,24,3,20,0
+34,"40.4192095","-3.7115040","San Quintín",2,"30","Calle Pavía nº 6",1,0,27,18,9,0
+35,"40.4163638","-3.7068969","Calle Mayor",0,"31","Calle Mayor nº 20",1,0,27,3,23,0
+36,"40.4150099","-3.7061032","Plaza de la Provincia",2,"32","Plaza de la Provincia nº 1",1,0,18,6,10,0
+37,"40.4157138","-3.7031808","Carretas",0,"33","Calle Carretas nº 8",1,0,24,4,20,0
+38,"40.4146755","-3.7036825","Jacinto Benavente",2,"34","Plaza de Jacinto Benavente",1,0,24,10,13,0
+39,"40.4141931","-3.7103285","Plaza del Cordón",0,"35","Plaza del Cordón nº 1",1,0,24,1,23,0
+40,"40.4167281","-3.7124038","Plaza de Ramales",2,"36","Plaza de Ramales nº 1",1,0,24,7,12,0
+41,"40.4108442","-3.7144964","Plaza San Francisco",2,"37","Plaza de San Francisco nº 5",1,0,24,14,7,0
+42,"40.4110406","-3.7120734","Plaza de los Carros",1,"38","Carrera de San Francisco nº 1",1,0,24,24,0,0
+43,"40.4112744","-3.7088337","Plaza de la Cebada",1,"39","Plaza de la Cebada nº 16 ",1,0,27,27,0,0
+44,"40.4138846","-3.7049407","Conde de Romanones",0,"40","Plaza del Conde de Romanones nº 9",1,0,24,5,14,0
+45,"40.4122047","-3.6991147","Antón Martín",2,"41","Calle Atocha nº 54",1,0,21,10,10,0
+46,"40.4107085","-3.6982318","Santa Isabel",2,"42","Calle Atocha nº 32",1,0,24,9,13,0
+47,"40.4101564","-3.7025024","Jesús y María",0,"43","Calle Lavapiés nº 34-36",1,0,24,5,17,0
+48,"40.4097617","-3.7040666","Cabestreros",1,"44","Calle Mesón de Paredes nº 35",1,0,21,17,4,0
+49,"40.4070358","-3.7110513","Puerta de Toledo",1,"45","Glorieta de la Puerta de Toledo nº 1",1,0,21,17,4,0
+50,"40.4053153","-3.7071259","Ribera de Curtidores",2,"46","Calle Ribera de Curtidores nº 28",1,0,24,12,12,0
+51,"40.4047851","-3.7028265","Embajadores 1",2,"47","Glorieta de Embajadores nº 6",1,0,24,9,15,0
+52,"40.4056107","-3.7022591","Embajadores 2",2,"48","Glorieta de Embajadores nº 2",1,0,24,11,13,0
+53,"40.4060941","-3.6992759","Casa Encendida",2,"49","Ronda de Atocha nº 34",1,0,24,11,12,0
+54,"40.4083684","-3.6933463","Museo Reina Sofía",2,"50","Calle Santa Isabel nº 57",1,0,24,11,13,0
+55,"40.4075606","-3.6935205","Ronda de Atocha",2,"51","Ronda de Atocha nº 2",1,0,27,11,13,0
+56,"40.4144226","-3.7007164","Plaza de Santa Ana",2,"52","Plaza de Santa Ana nº 10",1,0,24,8,15,0
+57,"40.4089282","-3.7008803","Plaza de Lavapiés",1,"53","Calle Valencia nº 1",1,0,24,19,4,0
+58,"40.4266828","-3.7004230","Barceló",2,"54","Calle Barceló nº 7",1,0,21,10,10,0
+59,"40.4239757","-3.7020842","Plaza de San Ildefonso",2,"55","Plaza de San Ildefonso nº 3",1,0,24,7,12,0
+60,"40.4184192","-3.7032414","Plaza del Carmen ",2,"56","Plaza del Carmen nº 1",1,0,24,8,16,0
+61,"40.4295658","-3.7126299","Santa Cruz del Marcenado",0,"57","Calle Santa Cruz del Marcenado nº 24",1,0,24,2,22,0
+62,"40.4222862","-3.6978950","Augusto Figueroa",0,"58","Calle Augusto Figueroa nº 33",1,0,24,7,15,0
+63,"40.4255495","-3.7043418","Plaza de Juan Pujol",0,"59","Calle Espíritu Santo nº 30",1,0,21,4,13,0
+64,"40.4197520","-3.6883980","Plaza de la Independencia",0,"60","Plaza de la Independencia nº 6",1,0,24,4,19,0
+65,"40.4213983","-3.6752045","Narváez",0,"61","Calle O'Donnell nº 28",1,0,24,1,20,0
+66,"40.4213148","-3.6724968","O'Donnell",0,"62","Calle O'Donnell nº 50",1,0,24,6,16,0
+67,"40.4179237","-3.6708959","Ibiza",2,"63","Calle Ibiza nº 62",1,0,24,15,8,0
+69,"40.4165605","-3.6904525","Antonio Maura",0,"65","Calle Antonio Maura nº 15",1,0,24,6,18,0
+71,"40.4108472","-3.6932250","Almadén",0,"67","Calle Almadén nº 28",1,0,24,1,22,0
+72,"40.4128372","-3.6912023","Espalter",2,"68","Calle Espalter nº 1",1,0,21,6,11,0
+73,"40.4098080","-3.6888220","Puerta del Ángel Caído",2,"69","Avenida de Alfonso XII nº 54",1,0,27,10,9,0
+74,"40.4153053","-3.6779232","Puerta del Doce de Octubre",1,"70","Avenida de Menéndez Pelayo nº 63",1,0,24,19,5,0
+75,"40.4159569","-3.6738865","Doce de Octubre",2,"71","Calle Doce de Octubre nº 28",1,0,24,13,10,1
+76,"40.4157413","-3.6691838","Sainz de Baranda",0,"72","Calle Doctor Esquerdo nº 99",1,0,24,6,17,0
+77,"40.4114475","-3.6689089","Plaza de los Astros",2,"73","Avenida de Nazaret nº 7",1,0,24,12,12,0
+78,"40.4117627","-3.6766813","Puerta del Pacífico ",1,"74","Avenida de Menéndez Pelayo nº 73",1,0,24,19,4,0
+79,"40.4082805","-3.6784838","Menéndez Pelayo",2,"75","Avenida de Menéndez Pelayo nº 90",1,0,24,15,9,0
+80,"40.4076726","-3.6750121","Puerta de Mariano de Cavia",1,"76","Avenida del Mediterráneo nº 19",1,0,24,21,1,0
+81,"40.4063500","-3.6704220","Conde de Casal",2,"77","Plaza del Conde de Casal nº 8",1,0,22,14,8,0
+82,"40.4009101","-3.6744804","Pedro Bosch",1,"78","Calle Cerro de la Plata nº 2",1,0,24,21,2,0
+83,"40.4051451","-3.6803874","Puerta de Granada",1,"79","Avenida de Menéndez Pelayo nº 38",1,0,24,18,3,0
+84,"40.4075685","-3.6902255","Atocha A",0,"80a","Paseo de la Infanta Isabel nº 3",1,0,24,5,17,0
+85,"40.4074902","-3.6901234","Atocha B",0,"80b","Paseo de la Infanta Isabel nº 3",1,0,27,4,21,0
+86,"40.4092970","-3.6919870","Cuesta de Moyano",0,"81","Plaza del Emperador Carlos V nº 11",1,0,24,6,16,0
+87,"40.4084556","-3.6697526","Niño Jesús",1,"82","Calle Doctor Esquerdo nº 161",1,0,24,19,3,0
+88,"40.4130243","-3.6751105","Pío Baroja",0,"83","Calle Pío Baroja nº 10",1,0,24,3,20,0
+89,"40.4032501","-3.6726019","Valderribas",0,"84","Calle Doctor Esquerdo nº 191",1,0,24,4,19,0
+90,"40.4215010","-3.6800080","Puerta de Madrid",0,"85","Avenida de Menéndez Pelayo nº 11",1,0,24,0,22,0
+91,"40.4186148","-3.6926217","Cibeles",0,"86","Paseo del Prado nº 1",1,0,21,0,21,0
+92,"40.4277360","-3.6832566","Ayala",1,"87","Calle Ayala nº 44",1,0,24,21,3,0
+93,"40.4313576","-3.6838303","Embajada de Italia",2,"88","Calle Velázquez nº 75",1,0,24,11,12,0
+94,"40.4272582","-3.6752024","Conde Peñalver",0,"89","Calle Ayala nº 102",1,0,24,3,20,0
+95,"40.4250361","-3.6837876","General Pardiñas",2,"90","Calle Goya nº 18",1,0,27,15,11,0
+96,"40.4261340","-3.6787441","Príncipe de Vergara",2,"91","Calle Hermosilla nº 70",1,0,24,8,12,0
+97,"40.4262945","-3.6865463","Claudio Coello",2,"92","Calle Claudio Coello nº 45",1,0,24,11,13,0
+98,"40.4257046","-3.6893698","Plaza de Colón",0,"93","Calle Goya nº 1",1,0,24,3,19,0
+99,"40.4226990","-3.6909648","Biblioteca Nacional",2,"94","Paseo de Recoletos nº 32-34",1,0,21,10,10,0
+100,"40.4226584","-3.6870548","Villanueva",2,"95","Calle Claudio Coello nº 109",1,0,24,7,15,0
+101,"40.4220640","-3.6821793","Castelló",2,"96","Calle Alcalá nº 111",1,0,27,12,15,0
+102,"40.4226906","-3.6801307","Alcalá",2,"97","Avenida de Menéndez Pelayo nº 3",1,0,27,11,16,0
+103,"40.4242625","-3.6753567","Plaza de Felipe II",2,"98","Plaza de Felipe II",1,0,24,13,9,0
+104,"40.4261851","-3.6738714","Alcántara",0,"99","Calle Alcántara nº 2",1,0,24,2,19,0
+105,"40.4248457","-3.6738635","Palacio de Deportes",0,"100","Calle Goya nº 99",1,0,24,7,16,0
+106,"40.4231526","-3.6691523","Jorge Juan",1,"101","Calle Jorge Juan nº 131",1,0,24,16,7,0
+107,"40.4211802","-3.6840229","Velázquez",2,"102","Calle Alcalá nº 95",1,0,24,9,14,0
+108,"40.4303057","-3.6865654","Ortega y Gasset",2,"103","Calle Ortega y Gasset nº 6",1,0,24,8,16,0
+109,"40.4268331","-3.6895336","Castellana",2,"104","Paseo de la Castellana nº 4",1,0,21,10,9,0
+110,"40.4267905","-3.6873922","Serrano",2,"105","Calle Serrano nº 54",1,0,24,16,8,0
+111,"40.4251002","-3.6877227","Colón A",2,"106a","Calle Serrano nº 34",1,0,18,9,9,0
+112,"40.4249630","-3.6877450","Colón B",0,"106b","Calle Serrano nº 34",1,0,18,5,13,0
+113,"40.4215246","-3.6884369","Columela",2,"107","Calle Serrano nº 6",1,0,24,11,12,0
+114,"40.4273005","-3.6706024","Mártires Concepcionistas",0,"108","Calle Mártires Concepcionistas nº 2",1,0,27,2,23,0
+115,"40.4300481","-3.6816402","Marqués de Salamanca",2,"109","Calle José Ortega y Gasset nº 30",1,0,24,12,12,0
+116,"40.4344969","-3.7206893","Moncloa",2,"110","Paseo de Moret nº 2",1,0,24,15,8,0
+117,"40.4337322","-3.7175435","Arcipreste de Hita A",1,"111a","Calle Arcipreste de Hita nº 12",1,0,24,18,6,0
+118,"40.4337036","-3.7175115","Arcipreste de Hita B",2,"111b","Calle Arcipreste de Hita nº 12",1,0,24,9,15,0
+119,"40.4325991","-3.7246532","Paseo de Moret",2,"112","Paseo de Moret nº 11",1,0,24,13,10,0
+120,"40.4276570","-3.7205129","Pintor Rosales",2,"113","Paseo del Pintor Rosales nº 38",1,0,24,9,15,0
+121,"40.4277456","-3.7174158","Quintana",2,"114","Calle Quintana nº 11-13",1,0,24,9,15,0
+122,"40.4253944","-3.7170448","Ferraz",2,"115","Calle Evaristo San Miguel nº 2",1,0,24,8,14,0
+123,"40.4240200","-3.7116030","Plaza de España A",2,"116a","Plaza de España",1,0,24,15,8,0
+124,"40.4241200","-3.7117030","Plaza de España B",1,"116b","Plaza de España",1,0,24,18,5,0
+125,"40.4309797","-3.7188898","Altamirano",0,"117","Calle Altamirano nº 24",1,0,24,5,18,0
+126,"40.4007810","-3.6882407","Juan Martín",2,"118","Calle Juan Martín el Empecinado nº 14",1,0,24,10,14,0
+127,"40.4013216","-3.6863218","Méndez Álvaro",2,"119","Calle Méndez Álvaro nº 11",1,0,24,12,12,0
+128,"40.4032208","-3.6944768","Palos de la Frontera",1,"120","Calle Palos de la Frontera nº 40",1,0,24,14,6,1
+129,"40.4017926","-3.6987665","Santa María de la Cabeza",2,"121","Paseo de Santa María de la Cabeza nº 58",1,0,24,12,12,0
+130,"40.4295863","-3.6963983","Santa Engracia 14",0,"122","Calle Santa Engracia nº 14",1,0,24,2,19,0
+131,"40.4306458","-3.7133412","Guzmán el Bueno",2,"123","Calle Guzmán el Bueno nº 2",1,0,24,13,9,0
+169,"40.4309524","-3.6993465","Manuel Silvela",0,"124","Calle Manuel Silvela nº 20",1,0,24,3,20,0
+164,"40.4352850","-3.6948626","General Martínez Campos ",0,"125","Calle Fernández de la Hoz nº 29",1,0,24,4,19,0
+163,"40.4344731","-3.7015686","General Álvarez de Castro",1,"126","Calle del General Álvarez de Castro nº 2",1,0,24,17,7,0
+168,"40.4338516","-3.7084390","Fernando el Católico",1,"127","Calle Fernando el Católico nº 19",1,0,24,17,7,0
+160,"40.4389940","-3.7154329","Cea Bermúdez",0,"128","Calle Cea Bermúdez nº 59",1,0,24,5,19,0
+161,"40.4385316","-3.6982209","José Abascal",1,"129","Calle José Abascal nº 33",1,0,24,18,5,0
+157,"40.4413860","-3.7016321","Santa Engracia 127",2,"130","Calle Santa Engracia nº 127",1,0,20,12,6,0
+156,"40.4412115","-3.7039582","Bravo Murillo 44",1,"131","Calle Bravo Murillo nº 44",1,0,24,19,5,0
+149,"40.4463667","-3.7036675","Glorieta de los Cuatro Caminos",0,"132","Calle Santa Engracia nº 168",1,0,24,3,19,0
+150,"40.4471250","-3.7001669","Raimundo Fernández",0,"133","Calle Raimundo Fernández Villaverde nº 33-35",1,0,24,4,18,0
+153,"40.4440297","-3.6956047","Agustín de Betancourt",2,"134","Calle María de Guzmán nº 58",1,0,24,11,11,0
+158,"40.4415974","-3.6927821","Plaza de San Juan de la Cruz",0,"135","Plaza de San Juan de la Cruz nº 11",1,0,24,5,16,0
+151,"40.4453307","-3.6908610","Castellana 106",2,"136","Paseo de la Castellana nº 106",1,0,24,9,14,0
+152,"40.4454110","-3.6853312","Plaza de la República Argentina",0,"137","Plaza de la República Argentina nº 6-7",1,0,24,7,17,0
+154,"40.4457414","-3.6917932","Paseo de la Castellana con Raimundo Fernández",0,"138","Paseo de la Castellana nº 67",1,0,24,7,17,0
+159,"40.4396792","-3.6907784","José Gutiérrez Abascal ",0,"139","Calle José Gutiérrez Abascal nº 2",1,0,24,3,21,0
+162,"40.4379444","-3.6828620","Velázquez 130",2,"140","Calle Velázquez nº 130",1,0,24,9,14,0
+165,"40.4355143","-3.6892368","Pº Castellana - Glorieta de Emilio Castelar",0,"141","Paseo de la Castellana nº 43",1,0,12,1,11,0
+167,"40.4334087","-3.6879154","Castellana 42",0,"142","Paseo de la Castellana nº 42",1,0,24,1,20,0
+166,"40.4345973","-3.6784920","Diego de León 52",2,"143","Calle Diego de León nº 52",1,0,24,8,16,0
+170,"40.4323655","-3.6758555","Juan Bravo 50",2,"144","Calle Juan Bravo nº 50",1,0,24,9,11,0
+171,"40.4298870","-3.6712823","Ortega y Gasset 87",2,"145","Calle Ortega y Gasset nº 87",1,0,24,14,7,0
+155,"40.4442258","-3.6787169","María Francisca 1",2,"146","Calle María Francisca nº 1",1,0,18,9,7,0
+148,"40.4483269","-3.6797296","Doctor Arce 45",2,"147","Avenida del Doctor Arce nº 45",1,0,24,10,14,0
+144,"40.4510188","-3.6817962","Serrano 210",2,"148","Calle Serrano nº 210",1,0,24,13,10,0
+146,"40.4498613","-3.6881689","Paseo de la Habana 42",2,"149","Paseo de la Habana nº 42",1,0,24,15,9,0
+147,"40.4488924","-3.6905604","Castellana frente a Hermanos Pinzón",2,"150","Paseo de la Castellana nº 124",1,0,24,8,15,0
+145,"40.4480662","-3.6952860","Orense 12",2,"151","Calle Orense nº 12",1,0,24,7,15,0
+142,"40.4527164","-3.6990077","General Perón 1",2,"152","Avenida del General Perón nº 1-4",1,0,24,10,14,0
+143,"40.4522938","-3.6926510","General Perón con Capitán Haya",0,"153","Avenida del General Perón nº 36",1,0,24,5,17,0
+141,"40.4548456","-3.6946218","Orense 36",2,"154","Calle Orense nº 36",1,0,24,15,9,0
+139,"40.4572824","-3.7009675","General Yagüe",2,"155","Calle del General Yagüe nº 57",1,0,24,13,11,0
+140,"40.4592351","-3.6915330","Sor Ángela de la Cruz",0,"156","Calle Sor Ángela de la Cruz nº 2",1,0,24,1,22,0
+137,"40.4591366","-3.6894151","Castellana 164",2,"157","Paseo de la Castellana nº 164",1,0,24,11,12,0
+138,"40.4585318","-3.6847150","Alberto Alcocer",2,"158","Avenida de Alberto Alcocer nº 22",1,0,24,16,8,0
+173,"40.4543852","-3.6835926","Paseo de la Habana 63",2,"159","Paseo de la Habana nº 63",1,0,24,12,12,0
+172,"40.4572466","-3.6763439","Colombia",1,"160","Calle Colombia nº 7",1,0,24,17,7,0
+132,"40.4220812","-3.7218482","Paseo de la Florida",1,"161","Paseo de la Florida nº 8",1,0,24,20,4,0
+133,"40.4034076","-3.7108108","Metro Pirámides",1,"162","Paseo de los Olmos nº 28",1,0,24,21,3,0
+134,"40.4035988","-3.7064516","Paseo de la Esperanza",2,"163","Paseo de la Esperanza nº 2",1,0,21,9,11,0
+136,"40.3972616","-3.6945025","Paseo de las Delicias",2,"164","Paseo de las Delicias nº 92-94",1,0,24,15,8,1
+135,"40.3919385","-3.6971829","Entrada Matadero",0,"165","Paseo de la Chopera nº 14",1,0,24,4,20,0
+174,"40.4138333","-3.7135833","Segovia 26",0,"166","Calle Segovia, 26",1,0,24,1,21,0
+175,"40.413736","-3.717487","Segovia 45",2,"167","Calle Segovia, 45",1,0,24,14,8,0

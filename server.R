@@ -326,8 +326,8 @@ api<-function(){
     output$datosRecomendaciones_plot2 <- renderPlot({})
     output$modelEval_plot1 <- renderPlot({})
     output$modelEval_plot2 <- renderPlot({})
-    output$geo_plot<- renderPlot({})
-    output$ruta_plot<- renderPlot({})
+    output$geo_plot<- renderLeaflet({})
+    output$ruta_plot<- renderLeaflet({})
     
   }
   
@@ -602,15 +602,7 @@ api<-function(){
     
   })
   
-  # #Cuadro sumario de la estructura del dataset
-  # output$str <- renderPrint({
-  #  df <-filedata()
-  #   if (is.null(df)) return(NULL)
-  # 
-  #   str(df)
-  # })
-  # 
-  
+
  
   #checkboxGroupInput de la consulta
   output$variables <- renderUI({
@@ -2361,9 +2353,10 @@ api<-function(){
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOkMostrarVentanasMLR", suspendWhenHidden = FALSE)
       
-      #Reset de mensajes
+      #Reset de mensajes y tablas
       output$reglienalmulti_print <- renderPrint({invisible()})
       output$reglienalmulti_MSE <- renderPrint({invisible()})
+      output$regreMultiEvaluation <- renderTable({})
     }
           
   
@@ -2501,9 +2494,11 @@ api<-function(){
     if (is.null(df)) return(NULL)
     hayCaracter<-FALSE
 
+    out<-tryCatch({
+      
     
     #Barra de progreso mostrada
-    withProgress(message = 'Generando red...',detail = 'Puede tardar un poco...', value = 0, {
+    withProgress(message = 'Generando red...',detail = 'Puede tardar un poco.. en caso de no alcanzar la convergencia se mostrará por pantalla un mensaje.', value = 0, {
       
     
     #Ordenamos el data.frame para que la variable salida OUT de la red quede en la última posición
@@ -2637,9 +2632,64 @@ api<-function(){
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKNN", suspendWhenHidden = FALSE)
       
+      #Guardamos una salida out 
+      output$salidaOKEvalNeural <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKEvalNeural", suspendWhenHidden = FALSE)
+      
+      output$redneural_plot1 <- renderPlot({})
+      output$redneural_plot2<- renderPlot({})
+    }
+
+    })#withprogress
+      
+    },warning=function(w){
+      
+      output$redneuronal_msj<-renderText({print("Warning: NO se ha alcanzado la convergencia para generar el modelo en 1e5 Iteraciones.")})
+      
+      #Guardamos una salida out 
+      output$salidaOKNN <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKNN", suspendWhenHidden = FALSE)
+      
+      #Guardamos una salida out 
+      output$salidaOKEvalNeural <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKEvalNeural", suspendWhenHidden = FALSE)
+      
+      output$redneural_plot1 <- renderPlot({})
+      output$redneural_plot2<- renderPlot({})
+      
+    },error=function(e){
+      
+      output$redneuronal_msj<-renderText({print("Error: No se ha alcanzado la convergencia para generar el modelo en 1e5 iteraciones.")})
+      
+      #Guardamos una salida out 
+      output$salidaOKNN <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKNN", suspendWhenHidden = FALSE)
+      
+      
+      #Guardamos una salida out 
+      output$salidaOKEvalNeural <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKEvalNeural", suspendWhenHidden = FALSE)
+      
+      
+      output$redneural_plot1 <- renderPlot({})
+      output$redneural_plot2<- renderPlot({})
     }
     
-    })#withprogress
+    
+   )#TryCath
+  
+  return(out)
+  
   })
   
   
@@ -2999,7 +3049,8 @@ api<-function(){
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKClustersJe", suspendWhenHidden = FALSE)
       
-    
+  
+      
     }else{
       
       output$clusterj_msj <- renderText({
@@ -3012,16 +3063,31 @@ api<-function(){
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKClustersJe", suspendWhenHidden = FALSE)
       
+     
+      #Guardamos una salida out 
+      output$salidaOKClustersJeCorte <- reactive({valorDevuelto<-"FALSE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKClustersJeCorte", suspendWhenHidden = FALSE)
+      
     }
       
     })#With progress
+    
+    #Reiniciamos mensajes y gráficos anteriores
+    output$clusterj_print <- renderPrint({invisible()})
+    output$clusterj_print1 <- renderPrint({invisible()})
+    output$clusterj_print2 <- renderPrint({invisible()})
+    output$clusterj_plotFinal<-renderPlot({})  
+    
     
   })
   
   observeEvent(input$clusterj_AddValorCorte,{
     valor<-input$clusterj_corte
 
-    
+    if(!is.na(as.numeric(valor))){
+      
      output$clusterj_plot1 <- renderPlot({
        
        #Barra de progreso mostrada
@@ -3107,7 +3173,7 @@ api<-function(){
       incProgress(4/4)
       
       })#withProgress
-      
+   
     })
     
     
@@ -3124,7 +3190,23 @@ api<-function(){
     })
     
     
-
+  }else{ #if(!is.na(as.numeric(valor)))
+    
+    output$clusterj_print<-renderText({print("Error: el valor de corte debe ser numérico.")})
+    
+    #Reiniciamos valores que pudieran ser mostrados anteriormente
+    output$clusterj_print1 <- renderPrint({invisible()})
+    output$clusterj_print2 <- renderPrint({invisible()})
+    output$clusterj_plotFinal<-renderPlot({})  
+    
+    #Guardamos una salida out para ocultar el panel de abajo
+    output$salidaOKClustersJeCorte <- reactive({valorDevuelto<-"FALSE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKClustersJeCorte", suspendWhenHidden = FALSE)
+   
+    
+  }
       
   })
   
@@ -3227,6 +3309,13 @@ api<-function(){
       
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKClustersEva", suspendWhenHidden = FALSE)
+      
+      #Guardamos una salida out 
+      output$salidaOKClustersCompa <- reactive({valorDevuelto<-"False"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKClustersCompa", suspendWhenHidden = FALSE)
+      
       
     }
       
@@ -4728,7 +4817,7 @@ api<-function(){
 
       #Informamos del archivo que se ha cargado
       output$mongo_msj_archivo<-renderText({
-        print("Error: Actualmente no hay cargado ningún archivo.")
+        print("Warning: Actualmente no hay cargado ningún archivo.")
       })
 
     }else{
@@ -4745,12 +4834,35 @@ api<-function(){
     #En caso de importación del documento
     observeEvent(input$Importar_DocFromBBDD,{
       
+      
+    if (input$baseDeDatos=='' || input$coleccion==''){
+        
+        output$mongo_msj_action<-renderText({
+          print("Error: los datos de conexión están incompletos.")
+        })
+        
+        #Reiniciamos mensajes y tablas
+        output$mongo_table<-renderTable({})
+        output$mongo_msj_table<-renderText({invisible()})
+        
+        #Para ocultar paneles
+        output$importadaColeccionDeMongo <- reactive({valorDevuelto<-"FALSE"})
+        
+        #Devolvemos la condición a ui.R para ocultar los paneles 
+        outputOptions(output, "importadaColeccionDeMongo", suspendWhenHidden = FALSE)
+        
+          
+    }else{
+          
       out<-tryCatch(  
+        
         {
         #Iniciamos la conexión con MongoDB
         m <- mongo(collection = input$coleccion, db=input$baseDeDatos,url=input$url_mongo)
         
-        #Obtenemos el dataframe de datos
+ 
+        
+         #Obtenemos el dataframe de datos
         df_imported <<- m$find()
         
         if (nrow(df_imported)>0){
@@ -4769,39 +4881,75 @@ api<-function(){
             print("Se muestran los 100 primeros registros de la tabla.")
             
           })
+        
+          
+          #Para ocultar paneles
+          output$importadaColeccionDeMongo <- reactive({valorDevuelto<-"TRUE"})
+          
+          #Devolvemos la condición a ui.R para ocultar los paneles 
+          outputOptions(output, "importadaColeccionDeMongo", suspendWhenHidden = FALSE)
+          
         }else{
           
           output$mongo_msj_action<-renderText({
-            print("Error: No existe la colección en la base de datos especificada.")
+            print("Error: no existe la colección en la base de datos especificada.")
             
           })
-        }
+          
+          #Reiniciamos mensajes y tabla
+          output$mongo_table<-renderTable({})
+          output$mongo_msj_table<-renderText({invisible()})
+         }
+       
         },
         
           warning = function(w) {
             output$mongo_msj_action<-renderText({
-            print(paste("Warning: ", "La cadena de conexión especificada no devuelve resultados."))
+            print(paste("Warning: ", "la cadena de conexión especificada no devuelve resultados."))
           })
+            
+            output$mongo_table<-renderTable({})
+            output$mongo_msj_table<-renderText({invisible()})
+            
+            #Para ocultar paneles
+            output$importadaColeccionDeMongo <- reactive({valorDevuelto<-"FALSE"})
+            
+            #Devolvemos la condición a ui.R para ocultar los paneles 
+            outputOptions(output, "importadaColeccionDeMongo", suspendWhenHidden = FALSE)
+            
         
           },
         error = function(e) {
             output$mongo_msj_action<-renderText({
-              print(paste("Error: ", "La cadena de conexión especificada no devuelve resultados."))
+              print(paste("Error: ", "la cadena de conexión especificada no devuelve resultados."))
             })
+            
+            output$mongo_table<-renderTable({})
+            output$mongo_msj_table<-renderText({invisible()})
+            
+            #Para ocultar paneles
+            output$importadaColeccionDeMongo <- reactive({valorDevuelto<-"FALSE"})
+            
+            #Devolvemos la condición a ui.R para ocultar los paneles 
+            outputOptions(output, "importadaColeccionDeMongo", suspendWhenHidden = FALSE)
+            
           }
         )
       return(out)
-
+    
+      
+      
+    }#if (input$baseDeDatos=='' || input$coleccion=='')
     
   })
     
-    output$importadaColeccionDeMongo<-eventReactive(input$Importar_DocFromBBDD,{
-      df_impor <-df_imported
-      if (is.null(df_impor)) return(NULL)
-      if(nrow(df_impor)==0){retorna<-"FALSE"}else{retorna<-"TRUE"}
-    })
-
-    outputOptions(output, 'importadaColeccionDeMongo', suspendWhenHidden = FALSE)
+    # output$importadaColeccionDeMongo<-eventReactive(input$Importar_DocFromBBDD,{
+    #   df_impor <-df_imported
+    #   if (is.null(df_impor)) return(NULL)
+    #   if(nrow(df_impor)==0){retorna<-"FALSE"}else{retorna<-"TRUE"}
+    # })
+    # 
+    # outputOptions(output, 'importadaColeccionDeMongo', suspendWhenHidden = FALSE)
 
 
     #En caso de exportación del documento
@@ -4810,7 +4958,7 @@ api<-function(){
       if (is.null(filesalida)){
         
         output$mongo_msj_action<-renderText({
-          print("Error: No se puede realizar esta operación sin haber cargado previamente un archivo.")
+          print("Error: no se puede realizar esta operación sin haber cargado previamente un archivo.")
         })
         
       }else{ #En el caso de que haya cargado un archivo podemos ejecutar la operación.
@@ -4834,13 +4982,13 @@ api<-function(){
           
           warning = function(w) {
             output$mongo_msj_action<-renderText({
-              print(paste("Warning: ", "La cadena de conexión especificada no devuelve resultados."))
+              print(paste("Warning: ", "la cadena de conexión especificada no devuelve resultados."))
             })
           },
           
           error = function(e) {
             output$mongo_msj_action<-renderText({
-              print(paste("Error: ", "La cadena de conexión especificada no devuelve resultados."))
+              print(paste("Error: ", "la cadena de conexión especificada no devuelve resultados."))
             })
            }
         )

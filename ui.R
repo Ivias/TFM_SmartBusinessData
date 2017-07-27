@@ -922,16 +922,17 @@ dashboardPage(
                          div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          tags$style(type='text/css', "#Exportar_DocToBBDD { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("Exportar_DocToBBDD", "Exportar Documento",style=blueStyle)),
+                         div(style="display: inline-block;vertical-align:top; width: 50px;",HTML("<br>")),
                          br(),
                          br(),
                          verbatimTextOutput("mongo_msj_action"),
                          br(),
+                         conditionalPanel(condition="output.importadaColeccionDeMongo=='TRUE'",shinySaveButton("guardarImportFromMongo", "Exportar Documento a csv.", class="btn btn-info", "Guardar archivo como ...", filetype=list(csv="csv"))),
+                         br(),
+                         br(),
                          tableOutput("mongo_table"),
                          br(),
-                         verbatimTextOutput("mongo_msj_table"),
-                         br(),
-                         tags$style(type='text/css', "#Exportar_DocToBBDD { width:100%; margin-top: 25px;}"),
-                         conditionalPanel(condition="output.importadaColeccionDeMongo=='TRUE'",shinySaveButton("guardarImportFromMongo", "Exportar documento a csv.", class="btn btn-info", "Guardar archivo como ...", filetype=list(csv="csv")))
+                         verbatimTextOutput("mongo_msj_table")
                          ))
             
       )#tabItem
