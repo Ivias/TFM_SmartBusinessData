@@ -956,7 +956,7 @@ api<-function(){
     #En el caso de que la operación sea mediante un factor numérico
     if (input$edicion_tipoDato=="Factor") {
       
-      if (class(df[,input$atributosEdicion]) == "numeric" && input$factorNumerico!="" &&  !is.na(as.numeric(input$factorNumerico))){
+      if (is.numeric(df[,input$atributosEdicion]) && input$factorNumerico!="" &&  !is.na(as.numeric(input$factorNumerico))){
         
         
         #Añadimos la nueva columna con el cálculo
@@ -988,8 +988,8 @@ api<-function(){
     }
     
       #Si la operación es entre atributos del dataset
-    }else if (class(df[,input$atributosEdicion]) == "numeric"  && input$otroAtributo!="") {
-      if (class(df[,input$otroAtributo])=="numeric") {
+    }else if (is.numeric(df[,input$atributosEdicion])  && input$otroAtributo!="") {
+      if (is.numeric(df[,input$otroAtributo])) {
         fileout<-mutate_(df, .dots=setNames(paste0(input$atributosEdicion,oper,input$otroAtributo), input$nuevoAtributo))
      
               if(nrow(fileout)<100){
@@ -2242,7 +2242,7 @@ api<-function(){
         xnom<-c("")
         
         for (i in 1:length(arrayList)){
-          if (class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric" || class(df[,input$reglinealmulti_at2])=="factor"){
+          if ((class(df[,arrayList[i]])!="integer" && class(df[,arrayList[i]])!="numeric") || class(df[,input$reglinealmulti_at2])=="factor"){
             valorCaracter<-"True"
           }
           assign(paste("X",arrayList[i],sep=""),df[,arrayList[i]])
@@ -4406,7 +4406,7 @@ api<-function(){
     }else{
       
       output$arima_msj <- renderText({
-        print("Error: el dataset no cumple las condiciones para ser transformado en una serie temporal.")
+        print("Error: el dataset no cumple las condiciones para ser transformado en una serie temporal. Revisar atributos de entrada.")
       })
       
       #Guardamos una salida out 
@@ -4571,7 +4571,7 @@ api<-function(){
         
         #Escribimos el mensaje por pantalla
         output$tbats_msj<-renderText({
-          print("Error: el dataset no cumple las condiciones para ser transformado en una serie temporal.")
+          print("Error: el dataset no cumple las condiciones para ser transformado en una serie temporal. Revisar atributos de entrada.")
         })
         
         #Guardamos una salida out 
