@@ -326,6 +326,8 @@ api<-function(){
     output$datosRecomendaciones_plot2 <- renderPlot({})
     output$modelEval_plot1 <- renderPlot({})
     output$modelEval_plot2 <- renderPlot({})
+    output$geo_plot<- renderPlot({})
+    output$ruta_plot<- renderPlot({})
     
   }
   
@@ -355,6 +357,7 @@ api<-function(){
     output$SLR_prediccion_print <- renderPrint({invisible()})
     output$reglienalmulti_msj <- renderPrint({invisible()})
     output$reglienalmulti_print <- renderPrint({invisible()})
+    output$regreMultiEvaluation_msj <- renderPrint({invisible()})
     output$redneuronal_msj <- renderPrint({invisible()})
     output$redneuronal_msj2 <- renderPrint({invisible()})
     output$cluster_msj <- renderPrint({invisible()})
@@ -375,6 +378,8 @@ api<-function(){
     output$dispersionReduccionHecha_msj <- renderPrint({invisible()})
     output$modelEval_msj <- renderPrint({invisible()})
     output$colaborativo_msj <- renderPrint({invisible()})
+    output$geo_msj <- renderPrint({invisible()})
+    output$ruta_msj <- renderPrint({invisible()})
     output$mongo_msj_action <- renderPrint({invisible()})
     output$mongo_msj_table <- renderPrint({invisible()})
     
@@ -404,23 +409,35 @@ api<-function(){
    output$salidaOKClustersJe <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKClustersJeCorte <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKClustersEva <- reactive({valorDevuelto<-"FALSE"})
+   output$salidaOKClustersCompa<- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKDispersion <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKEvalRecomen <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKrecomendarAction <- reactive({valorDevuelto<-"FALSE"})
+   output$salidaOKEvalNeural<- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKARIMA <- reactive({valorDevuelto<-"FALSE"})
    output$salidaOKTBATS <- reactive({valorDevuelto<-"FALSE"})
-   
+   output$fileMLROKdatacargado <- reactive({valorDevuelto<-"FALSE"})
+   output$fileNeuraldatacargado <- reactive({valorDevuelto<-"FALSE"})
  }
  
  #Reset de todas las variables generadas globalmente
  Function_ResetVariablesGlobales<-function(){
    
-   rm(  )
+   SeHaAfinado<<-FALSE
+   buscadosvaloreserror<<-"False"
+   borradosvaloreserror<<-"False"
+   eliminadosValoresAnomalos<<-"False"
+   segundaeliminacionAnomala<<-"False"
+   ficheroFactorizado<<-"False"
+   esfactorvisual<<-"NULL"
+   df_imported<<-NULL
    
  }
     
   #Definimos la función que es llamada por todas las acciones del script y devuelve el dataset cargado
   filedata<-reactive({
+    
+    
     #Variables trigger
     cargaAPI<-input$API_Action
     cargaCSV<-input$datafile
@@ -436,6 +453,8 @@ api<-function(){
     #Reiniciamos en caso de factorización previa
     ficheroFactorizado<<-"False"
     
+    #Borramos variables globales en cada nueva carga
+    Function_ResetVariablesGlobales()
     
     #Recogemos el fichero cargado
     file<-filesalida
@@ -779,7 +798,7 @@ api<-function(){
   #---Pasamos a la búsqueda de valores anómalos---------
   #Iniciamos variables de control
   buscadosvaloreserror<-"False"
-  borradosvaloreserror<<-"False"
+  borradosvaloreserror<-"False"
 
   #Combo atributos
   output$atributosLimpieza <- renderUI({
@@ -1907,16 +1926,30 @@ api<-function(){
     
     colcharacter<-"False"
     
-    #Dibujamos los gráfico 
-    output$multivar_graf_plot <- renderPlot({
-      #Mostramos la relación de todas la variables numéricas
-      #Buscamos las variables no-numéricas
-      for (i in ncol(df)){
+    #Mostramos la relación de todas la variables numéricas
+    #Buscamos las variables no-numéricas
+    e<-0
+    for (i in 1:ncol(df)){
+      i<-i+e
+      if (i<(ncol(df)+1)){
         if (class(df[,i])=="character"){
-          colcharacter<<-"True"
+          colcharacter<-"True"
           df[,i]<-NULL
+          e<- e-1
         }
       }
+    }
+    
+    
+    #Dibujamos los gráfico 
+    output$multivar_graf_plot <- renderPlot({
+      
+      # for (i in 1:ncol(df)){
+      #   if (class(df[,i])=="character"){
+      #     colcharacter<<-"True"
+      #     df[,i]<-NULL
+      #   }
+      # }
       pairs(df)
       
     })
@@ -1950,11 +1983,10 @@ api<-function(){
     #Buscamos las variables no-numéricas y las eliminamos
     e<-0
     for (i in 1:ncol(df)){
-      as<-"22"
       i<-i+e
       if (i<(ncol(df)+1)){
         if (class(df[,i])=="character" || class(df[,i])=="factor"){
-          colcharactermulti<<-"True"
+          colcharactermulti<-"True"
           df[,i]<-NULL
           e<- e-1
         }
@@ -1995,7 +2027,7 @@ api<-function(){
     #Buscamos las variables no-numéricas
     for (i in ncol(df)){
       if (class(df[,i])=="character"){
-        colcharactermulti<<-"True"
+        colcharactermulti<-"True"
         df[,i]<-NULL
       }
     }
@@ -2124,6 +2156,8 @@ api<-function(){
          #Devolvemos la condición a ui.R
          outputOptions(output, "salidaOkMostrarVentanasSLR", suspendWhenHidden = FALSE)
          
+         #Reiniciamos la salida Print de evaluación
+         output$SLR_prediccion_print<-renderPrint({invisible()})
          
       }else{
         
@@ -2305,6 +2339,17 @@ api<-function(){
        
        
        
+       #Guardamos una salida out para los paneles de la evaluación de modelos (panel de emisión de predicciones)
+       output$fileMLROKdatacargado <- reactive({valorDevuelto<-"TRUE"})
+       
+       #Devolvemos la condición a ui.R para ocultar los paneles 
+       outputOptions(output, "fileMLROKdatacargado", suspendWhenHidden = FALSE)
+       
+       #Reiniciamos paneles inferiores
+       output$regreMultiEvaluation_msj <- renderPrint({invisible()})
+       output$regreMultiEvaluation<-renderTable({})
+       
+       
         }else{
       
       #Mostramos el mensaje
@@ -2321,20 +2366,23 @@ api<-function(){
       output$reglienalmulti_MSE <- renderPrint({invisible()})
     }
           
-    
+  
   })
   
 
   
   #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida del modelo MLR
-  output$fileMLRdatacargado <- eventReactive(input$regreMultiEvaluation,{
+  eventReactive(input$regreMultiEvaluation,{
     output$regreMultiEvaluation_msj<-renderText({
       print("Se ha cargado un archivo para realizar pronósticos según el modelo MLR.")
     })
+    
+    
+    
   })
+ 
   
-  #Devolvemos la condición de que el fichero (NN) se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
-  outputOptions(output, "fileMLRdatacargado", suspendWhenHidden = FALSE)
+  
   
   
   #Mostramos el fichero cargado para pronosticar en base al modelo MLR
@@ -2571,6 +2619,12 @@ api<-function(){
       #Devolvemos la condición a ui.R para ocultar los paneles 
       outputOptions(output, "salidaOKNN", suspendWhenHidden = FALSE)
       
+      #Guardamos una salida out para los paneles de la evaluación de modelos
+      output$salidaOKEvalNeural <- reactive({valorDevuelto<-"TRUE"})
+      
+      #Devolvemos la condición a ui.R para ocultar los paneles 
+      outputOptions(output, "salidaOKEvalNeural", suspendWhenHidden = FALSE)
+      
       
     }else{
       output$redneuronal_msj<-renderText({
@@ -2590,14 +2644,14 @@ api<-function(){
   
   
   #Guardamos una salida out para consulta cada vez que se carge un archivo para ser pronosticada la salida de la NN
-  output$fileNeuraldatacargado <- eventReactive(input$neuralFileEvaluation,{
+ observeEvent(input$neuralFileEvaluation,{
     output$redneuronal_msj3<-renderText({
       print("Se ha cargado un archivo para realizar pronósticos según el modelo de red generado.")
     })
+    
   })
   
-  #Devolvemos la condición de que el fichero (NN) se ha cargado a la variable para consultar desde ui.R <conditionalPanel>
-  outputOptions(output, "fileNeuraldatacargado", suspendWhenHidden = FALSE)
+  
   
   
   #Mostramos el fichero cargado para pronosticar en base a la red neuronal generada
@@ -3246,6 +3300,13 @@ api<-function(){
     })
   
     })#withProgress
+    
+    
+    #Guardamos una salida out 
+    output$salidaOKClustersCompa <- reactive({valorDevuelto<-"TRUE"})
+    
+    #Devolvemos la condición a ui.R para ocultar los paneles 
+    outputOptions(output, "salidaOKClustersCompa", suspendWhenHidden = FALSE)
   })
   
  
@@ -3262,7 +3323,9 @@ api<-function(){
     #Lo que se observa
     cambio1<-input$RedDisp_Guardar
     cambio2<-input$RedDisp_Reset
-    
+    #cambio3<-input$datafile
+    #cambio4<-input$API_Action
+    control<-filedata()
     
     #El fichero que cogemos para renderizar los combos
     if(SeHaAfinado==FALSE){
@@ -3301,6 +3364,17 @@ api<-function(){
     
     #Escucha dinámica
     espera<-input$datosRecomendaciones_Action
+    #espera2<-input$datafile
+    #espera3<-input$API_Action
+    control<-filedata()
+    
+    #El fichero que cogemos para renderizar los combos
+    if(SeHaAfinado==FALSE){
+      df<-filedata()
+    }else{
+      df<-df_Reco_afinado
+    }
+    if (is.null(df)) return(NULL)
     
         #Slider dinámico en función de la dispersión de la matriz de valores
         output$RedDisperMatrix <- renderUI({
@@ -3619,6 +3693,9 @@ api<-function(){
     #Lo que se observa
     cambio1<-input$RedDisp_Guardar
     cambio2<-input$RedDisp_Reset
+    #cambio3<-input$datafile
+    #cambio4<-input$API_Action
+    control<-filedata()
     
     #El fichero que cogemos para renderizar los combos
     if(SeHaAfinado==FALSE){
@@ -3689,7 +3766,7 @@ api<-function(){
     items_dados<-1
   }
   
-  eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = items_dados, goodRating=3)
+  eval_sets <- evaluationScheme(data = r, method = "cross-validation", k = input$modelEval_sliderEval, given = items_dados, goodRating=1)
 
   
   n_recommendations <- c(1, 3, 5, 10)
@@ -3883,6 +3960,9 @@ api<-function(){
     #Lo que se observa
     cambio1<-input$RedDisp_Guardar
     cambio2<-input$RedDisp_Reset
+    #cambio3<-input$datafile
+    #cambio4<-input$API_Action
+    control<-filedata()
     
     
     #El fichero que cogemos para renderizar los combos
@@ -3921,7 +4001,10 @@ api<-function(){
     
     #Variable que se observa (usuario)
     cambio<-input$colaborativo_at1
-  
+    #cambio2<-input$datafile
+    #cambio4<-input$API_Action
+    control<-filedata()
+    
     #El fichero que cogemos para renderizar los combos
     if(SeHaAfinado==FALSE){
       df<-filedata()

@@ -450,8 +450,8 @@ dashboardPage(
                   verbatimTextOutput("regreMultiEvaluation_msj")
                   
               )),
-              conditionalPanel(condition ="output.fileMLRdatacargado",
-                               box(title = "Predicciones - Modelo de Regresión Múltiple", width = 12, status = "primary",
+              conditionalPanel(condition ="output.fileMLROKdatacargado=='TRUE'",
+                               box(title = "Predicciones - Modelo MLR", width = 12, status = "primary",
                                    div(style = 'overflow-x: scroll', tableOutput("regreMultiEvaluation"))
                                ))
               )),
@@ -596,7 +596,7 @@ dashboardPage(
                          tags$style(type='text/css', "#clustereva_CompaAction { width:100%; margin-top: 25px;}"),
                          div(style="display: inline-block;vertical-align:middle; width: 150px;",actionButton("clustereva_CompaAction", "Comparar",style=blueStyle)),
                          br()))),
-             fluidRow(conditionalPanel(condition ="output.salidaOKClustersEva=='TRUE' && input.clustereva_CompaAction",           
+             fluidRow(conditionalPanel(condition ="output.salidaOKClustersCompa=='TRUE' && input.clustereva_CompaAction",           
                        box(tags$p("GRÁFICAS MODELO 1", style = "font-size: 115%;color:blue;font-weight: bold"),width = 6,
                            withSpinner(plotOutput("clustereva_plot1",click = "clustereva_plot1_click")),
                           withSpinner(plotOutput("clustereva_plot2",click = "clustereva_plot2_click"))),
@@ -645,7 +645,7 @@ dashboardPage(
                         verbatimTextOutput("redneuronal_msj3")
                         
                     )),
-                     conditionalPanel(condition ="output.fileNeuraldatacargado",
+                     conditionalPanel(condition ="output.salidaOKEvalNeural=='TRUE'",
                                       box(title = "Predicciones - Modelo  de la Red Neuronal (NN)", width = 12, status = "primary",
                                           div(style = 'overflow-x: scroll', tableOutput("tableEvalNeuronal"))
                                       ))
@@ -741,7 +741,7 @@ dashboardPage(
                          conditionalPanel(condition ="output.salidaOKTBATS=='TRUE'", withSpinner(plotOutput("tbats_plot1")))))
     ),
     
-    #Series temporales
+    #Visualizaciones
     tabItem(tabName = "agrupaciones",
             fluidRow(box(tags$p("VISUALIZACIONES DE LOS DATOS", style = "font-size: 115%;color:blue;font-weight: bold"),width = 12,
                          br(),
